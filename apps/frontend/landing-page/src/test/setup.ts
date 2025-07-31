@@ -14,6 +14,23 @@ configure({
 // CSS modules are handled by the vitest config css.modules.classNameStrategy
 // which returns class names as-is for testing
 
+// Mock framer-motion globally
+vi.mock('framer-motion', () => {
+  const React = require('react')
+  return {
+    motion: new Proxy({}, {
+      get: (target, prop) => {
+        // Return a component that renders the HTML element
+        return React.forwardRef((props: any, ref: any) => {
+          const { children, ...rest } = props
+          return React.createElement(prop as string, { ...rest, ref }, children)
+        })
+      }
+    }),
+    AnimatePresence: ({ children }: any) => children,
+  }
+})
+
 // Suppress console output in tests to reduce verbosity
 // Set DEBUG=true environment variable to see console output
 if (!process.env.DEBUG) {

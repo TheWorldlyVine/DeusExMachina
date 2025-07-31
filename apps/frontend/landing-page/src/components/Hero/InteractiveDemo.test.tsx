@@ -60,10 +60,10 @@ describe('InteractiveDemo', () => {
   it('displays correct icons for node types', () => {
     render(<InteractiveDemo isActive={false} />)
     
-    // Check for emoji icons
-    expect(screen.getByText('🏰')).toBeInTheDocument() // location
-    expect(screen.getByText('👤')).toBeInTheDocument() // character
-    expect(screen.getByText('⚡')).toBeInTheDocument() // event
+    // Check for emoji icons - use getAllByText since there might be multiple
+    expect(screen.getAllByText('🏰').length).toBeGreaterThan(0) // location
+    expect(screen.getAllByText('👤').length).toBeGreaterThan(0) // character
+    expect(screen.getAllByText('⚡').length).toBeGreaterThan(0) // event
   })
 
   it('shows connected nodes in detail panel', async () => {

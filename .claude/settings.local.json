@@ -12,7 +12,9 @@
       "Bash(npx eslint:*)",
       "Bash(pnpm run test:*)",
       "Bash(pnpm run lint:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

@@ -2,12 +2,28 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { Hero } from './index'
 
+// Mock InteractiveDemo component
+vi.mock('./InteractiveDemo', () => ({
+  InteractiveDemo: ({ isActive }: { isActive: boolean }) => (
+    <div data-testid="interactive-demo" data-active={isActive}>Interactive Demo</div>
+  ),
+}))
+
+// Mock SignupModal component
+vi.mock('@/components/SignupModal', () => ({
+  SignupModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => 
+    isOpen ? <div data-testid="signup-modal">Signup Modal</div> : null,
+}))
+
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+    h1: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <h1 {...props}>{children}</h1>,
+    p: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <p {...props}>{children}</p>,
+    span: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <span {...props}>{children}</span>,
   },
-  AnimatePresence: ({ children }: React.PropsWithChildren) => children,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }))
 
 describe('Hero', () => {

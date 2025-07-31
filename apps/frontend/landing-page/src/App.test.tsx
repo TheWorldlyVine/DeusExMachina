@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import App from './App'
 
 describe('App', () => {
@@ -14,14 +14,17 @@ describe('App', () => {
     expect(heading).toBeInTheDocument()
   })
 
-  it('renders all main sections', () => {
+  it('renders all main sections', async () => {
     render(<App />)
     
-    // Check for main section headings
-    expect(screen.getByText('Features')).toBeInTheDocument()
-    expect(screen.getByText('Community Showcase')).toBeInTheDocument()
-    expect(screen.getByText('What Creators Say')).toBeInTheDocument()
-    expect(screen.getByText('Trusted by Thousands')).toBeInTheDocument()
-    expect(screen.getByText('Simple, Transparent Pricing')).toBeInTheDocument()
+    // Wait for lazy-loaded components
+    await waitFor(() => {
+      // Check for main section headings
+      expect(screen.getByText('Everything You Need to Build Worlds')).toBeInTheDocument()
+      expect(screen.getByText('Community Showcase')).toBeInTheDocument()
+      expect(screen.getByText('What Creators Say')).toBeInTheDocument()
+      expect(screen.getByText('Trusted by Thousands')).toBeInTheDocument()
+      expect(screen.getByText('Simple, Transparent Pricing')).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 })

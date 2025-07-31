@@ -13,11 +13,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    css: {
-      modules: {
-        classNameStrategy: 'non-scoped'
-      }
-    },
+    css: true,
     reporters: process.env.CI ? ['dot'] : ['dot'],
     logHeapUsage: false,
     silent: true,
