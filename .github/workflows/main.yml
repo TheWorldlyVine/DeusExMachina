@@ -140,6 +140,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
       
       - name: Deploy to Static Hosting
         if: github.ref == 'refs/heads/main'
@@ -148,13 +149,21 @@ jobs:
           PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           BUCKET_NAME="${{ vars.STATIC_HOSTING_BUCKET }}"
           
+          # Debug: Check if PROJECT_ID is being passed
+          echo "Debug: Raw PROJECT_ID length: ${#PROJECT_ID}"
+          echo "Debug: PROJECT_ID first char: ${PROJECT_ID:0:1}"
+          echo "Debug: PROJECT_ID is empty: $([ -z "$PROJECT_ID" ] && echo "YES" || echo "NO")"
+          
           # Check if PROJECT_ID is set
           if [ -z "$PROJECT_ID" ]; then
-            echo "ERROR: GCP_PROJECT_ID secret is not set!"
-            echo "Please add it to your repository secrets:"
+            echo "ERROR: GCP_PROJECT_ID secret is not set or is empty!"
+            echo "Please check your repository secrets:"
             echo "1. Go to Settings → Secrets and variables → Actions"
-            echo "2. Add a new secret named GCP_PROJECT_ID"
-            echo "3. Set the value to your GCP project ID"
+            echo "2. Look for GCP_PROJECT_ID in the secrets list"
+            echo "3. Click 'Update' and re-enter your GCP project ID"
+            echo "4. Make sure there are no extra spaces or quotes"
+            echo ""
+            echo "The secret appears to be: '${PROJECT_ID}' (should not be empty)"
             exit 1
           fi
           
@@ -164,6 +173,7 @@ jobs:
           fi
           
           echo "Project ID: ${PROJECT_ID}"
+          echo "Project ID length: ${#PROJECT_ID}"
           echo "Deploying to bucket: gs://${BUCKET_NAME}/"
           
           # Check if bucket exists
