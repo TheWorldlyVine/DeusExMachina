@@ -7,7 +7,9 @@ describe('Button', () => {
     render(<Button>Click me</Button>)
     const button = screen.getByRole('button', { name: 'Click me' })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveClass('button', 'primary', 'md')
+    expect(button).toHaveClass('button')
+    expect(button).toHaveClass('primary')
+    expect(button).toHaveClass('md')
   })
 
   it('renders different variants', () => {

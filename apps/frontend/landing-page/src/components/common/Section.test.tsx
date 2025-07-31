@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Section } from './Section'
 
@@ -12,7 +12,9 @@ describe('Section', () => {
     
     const section = screen.getByRole('region')
     expect(section).toBeInTheDocument()
-    expect(section).toHaveClass('section', 'size-md', 'bg-default')
+    expect(section).toHaveClass('section')
+    expect(section).toHaveClass('size-md')
+    expect(section).toHaveClass('bg-default')
     expect(screen.getByText('Test Content')).toBeInTheDocument()
   })
 

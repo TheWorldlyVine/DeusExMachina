@@ -7,7 +7,9 @@ describe('Card', () => {
     render(<Card>Card Content</Card>)
     const card = screen.getByText('Card Content').parentElement
     expect(card).toBeInTheDocument()
-    expect(card).toHaveClass('card', 'default', 'padding-md')
+    expect(card).toHaveClass('card')
+    expect(card).toHaveClass('default')
+    expect(card).toHaveClass('padding-md')
   })
 
   it('renders different variants', () => {
@@ -20,23 +22,28 @@ describe('Card', () => {
 
   it('renders different padding sizes', () => {
     const { rerender } = render(<Card padding="none">No Padding</Card>)
-    expect(screen.getByText('No Padding').parentElement).toHaveClass('padding-none')
+    const noPaddingCard = screen.getByText('No Padding').parentElement
+    expect(noPaddingCard).toHaveClass('padding-none')
 
     rerender(<Card padding="sm">Small Padding</Card>)
-    expect(screen.getByText('Small Padding').parentElement).toHaveClass('padding-sm')
+    const smPaddingCard = screen.getByText('Small Padding').parentElement
+    expect(smPaddingCard).toHaveClass('padding-sm')
 
     rerender(<Card padding="lg">Large Padding</Card>)
-    expect(screen.getByText('Large Padding').parentElement).toHaveClass('padding-lg')
+    const lgPaddingCard = screen.getByText('Large Padding').parentElement
+    expect(lgPaddingCard).toHaveClass('padding-lg')
   })
 
   it('renders interactive state', () => {
     render(<Card interactive>Interactive Card</Card>)
-    expect(screen.getByText('Interactive Card').parentElement).toHaveClass('interactive')
+    const card = screen.getByText('Interactive Card').parentElement
+    expect(card).toHaveClass('interactive')
   })
 
   it('accepts custom className', () => {
     render(<Card className="custom-card">Custom</Card>)
-    expect(screen.getByText('Custom').parentElement).toHaveClass('custom-card')
+    const card = screen.getByText('Custom').parentElement
+    expect(card).toHaveClass('custom-card')
   })
 
   it('forwards ref', () => {

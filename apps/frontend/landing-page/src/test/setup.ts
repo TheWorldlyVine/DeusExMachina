@@ -1,6 +1,40 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
+// Mock CSS modules to return the class name as-is
+const mockCssModule = new Proxy({}, {
+  get: (target, prop) => {
+    if (prop === 'default' || prop === '__esModule') {
+      return mockCssModule
+    }
+    return prop
+  }
+})
+
+// Replace the CSS module imports
+vi.mock(/\.module\.css$/, () => {
+  return { default: mockCssModule }
+})
+
+// Suppress console output in tests to reduce verbosity
+// Set DEBUG=true environment variable to see console output
+const originalConsole = { ...console }
+
+if (!process.env.DEBUG) {
+  console.log = vi.fn()
+  console.debug = vi.fn()
+  console.info = vi.fn()
+  console.warn = vi.fn()
+  // Keep error output for debugging test failures
+  console.error = (...args) => {
+    // Only show non-React error boundary errors
+    const errorString = args.join(' ')
+    if (!errorString.includes('Error boundary') && !errorString.includes('ReactDOMTestUtils')) {
+      originalConsole.error(...args)
+    }
+  }
+}
+
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -33,3 +67,19 @@ class MockIntersectionObserver implements IntersectionObserver {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).IntersectionObserver = MockIntersectionObserver
+
+// Mock Image for testing image loading
+Object.defineProperty(global, 'Image', {
+  writable: true,
+  value: class MockImage {
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    src = ''
+    
+    constructor() {
+      setTimeout(() => {
+        if (this.onload) this.onload()
+      }, 0)
+    }
+  }
+})
