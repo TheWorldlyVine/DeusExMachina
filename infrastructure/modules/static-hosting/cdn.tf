@@ -93,18 +93,32 @@ resource "google_compute_security_policy" "static_security" {
     description = "Rate limiting rule"
   }
   
-  # Block common attack patterns
+  # Block sensitive files - Part 1
   rule {
     action   = "deny(403)"
     priority = "900"
     match {
       expr {
         expression = <<-EOT
-          request.path.matches('\\.git$') || request.path.matches('\\.svn$') || request.path.matches('\\.env$') || request.path.matches('\\.config$') || request.path.matches('\\.bak$') || request.path.matches('\\.backup$') || request.path.matches('\\.sql$') || request.path.matches('\\.db$') || request.path.matches('\\.log$')
+          request.path.matches('\\.git$') || request.path.matches('\\.svn$') || request.path.matches('\\.env$') || request.path.matches('\\.config$') || request.path.matches('\\.bak$')
         EOT
       }
     }
-    description = "Block access to sensitive files"
+    description = "Block access to sensitive files (git, svn, env, config, bak)"
+  }
+  
+  # Block sensitive files - Part 2
+  rule {
+    action   = "deny(403)"
+    priority = "901"
+    match {
+      expr {
+        expression = <<-EOT
+          request.path.matches('\\.backup$') || request.path.matches('\\.sql$') || request.path.matches('\\.db$') || request.path.matches('\\.log$')
+        EOT
+      }
+    }
+    description = "Block access to sensitive files (backup, sql, db, log)"
   }
   
   # Geo-blocking (example - adjust as needed)
