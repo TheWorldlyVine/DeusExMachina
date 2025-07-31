@@ -53,6 +53,7 @@ jobs:
         run: |
           PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           BUCKET_NAME="${PROJECT_ID}-terraform-state"
+          SERVICE_ACCOUNT="terraform-sa@${PROJECT_ID}.iam.gserviceaccount.com"
           
           # Use gcloud storage instead of gsutil for better auth handling
           # Create state bucket if it doesn't exist
@@ -69,6 +70,12 @@ jobs:
           else
             echo "Terraform state bucket already exists: gs://${BUCKET_NAME}"
           fi
+          
+          # Grant the service account permissions to the bucket
+          echo "Granting storage permissions to service account..."
+          gcloud storage buckets add-iam-policy-binding gs://${BUCKET_NAME} \
+            --member="serviceAccount:${SERVICE_ACCOUNT}" \
+            --role="roles/storage.objectAdmin"
       
       - name: Terraform Init
         run: |
