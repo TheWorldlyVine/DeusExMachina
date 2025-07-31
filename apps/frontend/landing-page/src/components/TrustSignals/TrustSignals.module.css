@@ -1,0 +1,259 @@
+.trustSignals {
+  text-align: center;
+}
+
+.header {
+  margin-bottom: var(--space-3xl);
+}
+
+.title {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-md);
+}
+
+.subtitle {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xl);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-xl);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-base);
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.statIcon {
+  font-size: var(--text-4xl);
+}
+
+.statNumber {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+}
+
+.statLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.security {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-sm);
+}
+
+.sectionSubtitle {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+.badges {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-xl);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.badgeIcon {
+  font-size: var(--text-xl);
+}
+
+.badgeName {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.guarantees {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.guarantee {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--text-base);
+}
+
+.checkmark {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--color-success);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+}
+
+.awards {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.awardsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+}
+
+.award {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.awardIcon {
+  font-size: var(--text-3xl);
+}
+
+.awardInfo {
+  flex: 1;
+}
+
+.awardName {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  margin-bottom: 2px;
+}
+
+.awardOrg {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.companies {
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.companiesTitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-xl);
+}
+
+.companyLogos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2xl);
+  flex-wrap: wrap;
+}
+
+.companyLogo {
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+  transition: opacity var(--transition-base);
+}
+
+.companyLogo:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: var(--text-3xl);
+  }
+
+  .subtitle {
+    font-size: var(--text-base);
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  .statCard {
+    padding: var(--space-md);
+  }
+
+  .statIcon {
+    font-size: var(--text-3xl);
+  }
+
+  .statNumber {
+    font-size: var(--text-2xl);
+  }
+
+  .badges {
+    gap: var(--space-sm);
+  }
+
+  .badge {
+    padding: var(--space-xs) var(--space-md);
+  }
+
+  .awardsList {
+    grid-template-columns: 1fr;
+  }
+
+  .companyLogos {
+    gap: var(--space-lg);
+  }
+
+  .companyLogo {
+    font-size: var(--text-base);
+  }
+}

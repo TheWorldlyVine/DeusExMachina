@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Section, Button } from '@/components/common'
 import { InteractiveDemo } from './InteractiveDemo'
+import { SignupModal } from '@/components/SignupModal'
 import styles from './Hero.module.css'
 
 export function Hero() {
   const [showDemo, setShowDemo] = useState(false)
+  const [showSignup, setShowSignup] = useState(false)
 
   return (
     <Section size="xl" className={styles.hero}>
@@ -43,7 +45,10 @@ export function Hero() {
           <div className={styles.actions}>
             <Button 
               size="lg" 
-              onClick={() => setShowDemo(true)}
+              onClick={() => {
+                setShowDemo(true)
+                setShowSignup(true)
+              }}
               className={styles.primaryCta}
             >
               Start Building Worlds
@@ -52,6 +57,7 @@ export function Hero() {
               size="lg" 
               variant="outline"
               className={styles.secondaryCta}
+              onClick={() => setShowDemo(true)}
             >
               Watch Demo
             </Button>
@@ -71,6 +77,8 @@ export function Hero() {
           <InteractiveDemo isActive={showDemo} />
         </motion.div>
       </div>
+      
+      <SignupModal isOpen={showSignup} onClose={() => setShowSignup(false)} />
     </Section>
   )
 }
