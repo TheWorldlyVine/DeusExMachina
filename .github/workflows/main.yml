@@ -142,6 +142,12 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
       
+      - name: Set up Cloud SDK
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
       - name: Deploy to Static Hosting
         if: github.ref == 'refs/heads/main'
         run: |
@@ -176,11 +182,21 @@ jobs:
           echo "Project ID length: ${#PROJECT_ID}"
           echo "Deploying to bucket: gs://${BUCKET_NAME}/"
           
-          # Check if bucket exists
-          if ! gsutil ls -b gs://${BUCKET_NAME}/ &>/dev/null; then
+          # List all buckets in the project to debug
+          echo ""
+          echo "Listing all buckets in project:"
+          gcloud storage buckets list --project=${PROJECT_ID} || echo "Failed to list buckets"
+          
+          # Check if bucket exists using gcloud
+          if ! gcloud storage buckets describe gs://${BUCKET_NAME} --project=${PROJECT_ID} &>/dev/null; then
+            echo ""
             echo "ERROR: Bucket gs://${BUCKET_NAME}/ does not exist!"
-            echo "Please run the Infrastructure workflow first to create the bucket."
-            echo "Go to Actions → Infrastructure Deployment → Run workflow"
+            echo ""
+            echo "Checking for similar bucket names:"
+            gcloud storage buckets list --project=${PROJECT_ID} | grep -i static || echo "No static buckets found"
+            echo ""
+            echo "Please ensure the Infrastructure workflow completed successfully."
+            echo "The infrastructure should have created a bucket named: ${BUCKET_NAME}"
             exit 1
           fi
           
