@@ -1,0 +1,10 @@
+rootProject.name = 'deus-ex-machina'
+
+// Backend modules
+include ':apps:backend:auth-function'
+include ':apps:backend:api-function'
+include ':apps:backend:processor-function'
+include ':apps:backend:shared'
+
+// Java common packages
+include ':packages:java-common'

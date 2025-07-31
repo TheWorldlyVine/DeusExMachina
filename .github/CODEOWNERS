@@ -1,0 +1,28 @@
+# Global owners
+* @platform-team
+
+# Backend
+/apps/backend/ @backend-team
+/packages/java-common/ @backend-team
+/infrastructure/modules/cloud-functions/ @backend-team @devops-team
+
+# Frontend
+/apps/frontend/ @frontend-team
+/packages/ui-components/ @frontend-team @design-system-team
+/packages/utils/ @frontend-team
+
+# Infrastructure
+/infrastructure/ @devops-team
+/infrastructure/environments/prod/ @devops-team @security-team
+
+# Documentation
+/docs/ @technical-writers
+/docs/adrs/ @architecture-team
+
+# CI/CD
+/.github/workflows/ @devops-team
+
+# Security-sensitive areas
+/infrastructure/modules/security/ @security-team
+/apps/backend/auth-function/ @security-team @backend-team
+/.github/workflows/security.yml @security-team

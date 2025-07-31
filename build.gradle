@@ -1,0 +1,94 @@
+plugins {
+    id 'java'
+    id 'com.google.cloud.functions' version '0.9.1' apply false
+    id 'com.github.spotbugs' version '6.0.7' apply false
+    id 'net.ltgt.errorprone' version '3.1.0' apply false
+}
+
+allprojects {
+    group = 'com.deusexmachina'
+    version = '1.0.0'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'com.github.spotbugs'
+    apply plugin: 'net.ltgt.errorprone'
+    
+    repositories {
+        mavenCentral()
+        google()
+    }
+    
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+    
+    dependencies {
+        // Core dependencies
+        compileOnly 'com.google.cloud.functions:functions-framework-api:1.1.2'
+        
+        // Formal verification
+        compileOnly 'org.openjml:openjml:0.20.1'
+        
+        // Logging
+        implementation 'org.slf4j:slf4j-api:2.0.9'
+        implementation 'ch.qos.logback:logback-classic:1.4.14'
+        
+        // Testing
+        testImplementation 'junit:junit:4.13.2'
+        testImplementation 'com.google.truth:truth:1.1.5'
+        testImplementation 'org.mockito:mockito-core:5.8.0'
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+        
+        // Static analysis
+        compileOnly 'com.google.errorprone:error_prone_annotations:2.24.1'
+        errorprone 'com.google.errorprone:error_prone_core:2.24.1'
+        
+        // SpotBugs
+        spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.12.0'
+    }
+    
+    // Error Prone configuration
+    tasks.withType(JavaCompile) {
+        options.errorprone.enabled = true
+        options.errorprone.disableWarningsInGeneratedCode = true
+        options.errorprone.excludedPaths = ".*/build/generated/.*"
+    }
+    
+    // SpotBugs configuration
+    spotbugs {
+        ignoreFailures = false
+        showStackTraces = true
+        showProgress = true
+        reportsDir = file("$buildDir/reports/spotbugs")
+        excludeFilter = file("$rootDir/config/spotbugs/exclude.xml")
+    }
+    
+    test {
+        useJUnit()
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
+    }
+}
+
+// Configure Java-specific subprojects
+configure(subprojects.findAll { it.path.startsWith(':apps:backend') }) {
+    apply plugin: 'com.google.cloud.functions'
+    
+    dependencies {
+        implementation 'com.google.cloud.functions:functions-framework-api:1.1.2'
+        
+        if (project.name != 'shared') {
+            implementation project(':apps:backend:shared')
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
