@@ -11,7 +11,7 @@ vi.mock('./InteractiveDemo', () => ({
 
 // Mock SignupModal component
 vi.mock('@/components/SignupModal', () => ({
-  SignupModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => 
+  SignupModal: ({ isOpen }: { isOpen: boolean; onClose: () => void }) => 
     isOpen ? <div data-testid="signup-modal">Signup Modal</div> : null,
 }))
 

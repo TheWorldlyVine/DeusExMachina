@@ -14,7 +14,8 @@
       "Bash(pnpm run lint:*)",
       "Bash(rm:*)",
       "Bash(chmod:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(./scripts/pre-commit-check.sh:*)"
     ],
     "deny": []
   }
