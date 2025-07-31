@@ -10,7 +10,7 @@ describe('Section', () => {
       </Section>
     )
     
-    const section = screen.getByRole('region')
+    const section = screen.getByText('Test Content').closest('section')
     expect(section).toBeInTheDocument()
     expect(section).toHaveClass('section')
     expect(section).toHaveClass('size-md')
@@ -20,26 +20,32 @@ describe('Section', () => {
 
   it('renders different sizes', () => {
     const { rerender } = render(<Section size="sm">Small</Section>)
-    expect(screen.getByRole('region')).toHaveClass('size-sm')
+    const section = screen.getByText('Small').closest('section')
+    expect(section).toHaveClass('size-sm')
 
     rerender(<Section size="lg">Large</Section>)
-    expect(screen.getByRole('region')).toHaveClass('size-lg')
+    const lgSection = screen.getByText('Large').closest('section')
+    expect(lgSection).toHaveClass('size-lg')
 
     rerender(<Section size="xl">Extra Large</Section>)
-    expect(screen.getByRole('region')).toHaveClass('size-xl')
+    const xlSection = screen.getByText('Extra Large').closest('section')
+    expect(xlSection).toHaveClass('size-xl')
   })
 
   it('renders different backgrounds', () => {
     const { rerender } = render(<Section background="surface">Surface</Section>)
-    expect(screen.getByRole('region')).toHaveClass('bg-surface')
+    const surfaceSection = screen.getByText('Surface').closest('section')
+    expect(surfaceSection).toHaveClass('bg-surface')
 
     rerender(<Section background="primary">Primary</Section>)
-    expect(screen.getByRole('region')).toHaveClass('bg-primary')
+    const primarySection = screen.getByText('Primary').closest('section')
+    expect(primarySection).toHaveClass('bg-primary')
   })
 
   it('renders centered content', () => {
     render(<Section centered>Centered</Section>)
-    expect(screen.getByRole('region')).toHaveClass('centered')
+    const section = screen.getByText('Centered').closest('section')
+    expect(section).toHaveClass('centered')
   })
 
   it('wraps content in container', () => {
@@ -55,7 +61,8 @@ describe('Section', () => {
 
   it('accepts custom className', () => {
     render(<Section className="custom-section">Custom</Section>)
-    expect(screen.getByRole('region')).toHaveClass('custom-section')
+    const section = screen.getByText('Custom').closest('section')
+    expect(section).toHaveClass('custom-section')
   })
 
   it('forwards ref', () => {

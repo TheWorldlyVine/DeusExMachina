@@ -18,6 +18,9 @@ export default defineConfig({
         classNameStrategy: 'non-scoped'
       }
     },
+    reporters: process.env.CI ? ['default'] : ['./vitest.reporter.ts'],
+    logHeapUsage: false,
+    silent: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

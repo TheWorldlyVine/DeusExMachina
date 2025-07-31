@@ -6,20 +6,30 @@ import { vi } from 'vitest'
 
 // Suppress console output in tests to reduce verbosity
 // Set DEBUG=true environment variable to see console output
-const originalConsole = { ...console }
-
 if (!process.env.DEBUG) {
-  console.log = vi.fn()
-  console.debug = vi.fn()
-  console.info = vi.fn()
-  console.warn = vi.fn()
-  // Keep error output for debugging test failures
-  console.error = (...args) => {
-    // Only show non-React error boundary errors
-    const errorString = args.join(' ')
-    if (!errorString.includes('Error boundary') && !errorString.includes('ReactDOMTestUtils')) {
-      originalConsole.error(...args)
-    }
+  global.console = {
+    ...console,
+    log: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    trace: vi.fn(),
+    group: vi.fn(),
+    groupEnd: vi.fn(),
+    groupCollapsed: vi.fn(),
+    time: vi.fn(),
+    timeEnd: vi.fn(),
+    timeLog: vi.fn(),
+    assert: vi.fn(),
+    clear: vi.fn(),
+    count: vi.fn(),
+    countReset: vi.fn(),
+    dir: vi.fn(),
+    dirxml: vi.fn(),
+    table: vi.fn(),
+    profile: vi.fn(),
+    profileEnd: vi.fn(),
   }
 }
 
