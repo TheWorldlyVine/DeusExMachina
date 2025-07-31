@@ -1,0 +1,73 @@
+.section {
+  position: relative;
+  width: 100%;
+}
+
+/* Sizes */
+.size-sm {
+  padding: var(--space-2xl) 0;
+}
+
+.size-md {
+  padding: var(--space-3xl) 0;
+}
+
+.size-lg {
+  padding: calc(var(--space-3xl) * 1.5) 0;
+}
+
+.size-xl {
+  padding: calc(var(--space-3xl) * 2) 0;
+}
+
+/* Backgrounds */
+.bg-default {
+  background-color: var(--color-background);
+}
+
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.bg-primary h1,
+.bg-primary h2,
+.bg-primary h3,
+.bg-primary h4,
+.bg-primary h5,
+.bg-primary h6 {
+  color: white;
+}
+
+/* Centered content */
+.centered {
+  text-align: center;
+}
+
+.centered > .container > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .size-sm {
+    padding: var(--space-xl) 0;
+  }
+  
+  .size-md {
+    padding: var(--space-2xl) 0;
+  }
+  
+  .size-lg {
+    padding: var(--space-3xl) 0;
+  }
+  
+  .size-xl {
+    padding: calc(var(--space-3xl) * 1.5) 0;
+  }
+}

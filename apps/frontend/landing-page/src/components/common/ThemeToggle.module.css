@@ -1,0 +1,38 @@
+.toggle {
+  position: fixed;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  z-index: var(--z-fixed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.toggle:hover {
+  background-color: var(--color-surface-variant);
+  transform: scale(1.05);
+}
+
+.toggle:active {
+  transform: scale(0.95);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-base);
+}
+
+.toggle:hover .icon {
+  transform: rotate(15deg);
+}

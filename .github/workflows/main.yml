@@ -200,15 +200,35 @@ jobs:
             exit 1
           fi
           
-          # Deploy web-app to Cloud Storage
-          gsutil -m rsync -r -d apps/frontend/web-app/dist/ gs://${BUCKET_NAME}/
+          # Deploy all frontend apps to Cloud Storage
+          for app_dir in apps/frontend/*/; do
+            app_name=$(basename "$app_dir")
+            
+            # Skip if not a directory or if dist folder doesn't exist
+            if [ ! -d "$app_dir" ] || [ ! -d "${app_dir}dist" ]; then
+              echo "Skipping $app_name (no dist folder found)"
+              continue
+            fi
+            
+            echo "Deploying $app_name to gs://${BUCKET_NAME}/${app_name}/"
+            
+            # Deploy app to its own subdirectory
+            gsutil -m rsync -r -d "${app_dir}dist/" "gs://${BUCKET_NAME}/${app_name}/"
+            
+            # Set cache headers for different file types
+            gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://${BUCKET_NAME}/${app_name}/**/*.js" || true
+            gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://${BUCKET_NAME}/${app_name}/**/*.css" || true
+            gsutil -m setmeta -h "Cache-Control:public, max-age=2592000" "gs://${BUCKET_NAME}/${app_name}/**/*.{png,jpg,jpeg,gif,svg,webp}" || true
+            gsutil -m setmeta -h "Cache-Control:public, max-age=300" "gs://${BUCKET_NAME}/${app_name}/**/*.html" || true
+            gsutil -m setmeta -h "Cache-Control:no-cache" "gs://${BUCKET_NAME}/${app_name}/index.html" || true
+          done
           
-          # Set cache headers for different file types
-          gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://${BUCKET_NAME}/**/*.js || true
-          gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://${BUCKET_NAME}/**/*.css || true
-          gsutil -m setmeta -h "Cache-Control:public, max-age=2592000" gs://${BUCKET_NAME}/**/*.{png,jpg,jpeg,gif,svg,webp} || true
-          gsutil -m setmeta -h "Cache-Control:public, max-age=300" gs://${BUCKET_NAME}/**/*.html || true
-          gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
+          # Deploy the primary app (web-app) to root as well for backward compatibility
+          if [ -d "apps/frontend/web-app/dist" ]; then
+            echo "Deploying web-app to root path"
+            gsutil -m rsync -r -d apps/frontend/web-app/dist/ gs://${BUCKET_NAME}/
+            gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
+          fi
       
       - name: Invalidate CDN Cache
         if: github.ref == 'refs/heads/main'
