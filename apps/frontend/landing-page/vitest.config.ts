@@ -18,13 +18,6 @@ export default defineConfig({
         classNameStrategy: 'non-scoped'
       }
     },
-    deps: {
-      optimizer: {
-        web: {
-          include: ['identity-obj-proxy']
-        }
-      }
-    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

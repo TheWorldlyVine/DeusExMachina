@@ -9,7 +9,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(pnpm run lint:*)"
     ],
     "deny": []
   }

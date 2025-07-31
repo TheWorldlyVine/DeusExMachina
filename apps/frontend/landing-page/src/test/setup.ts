@@ -1,20 +1,8 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
-// Mock CSS modules to return the class name as-is
-const mockCssModule = new Proxy({}, {
-  get: (target, prop) => {
-    if (prop === 'default' || prop === '__esModule') {
-      return mockCssModule
-    }
-    return prop
-  }
-})
-
-// Replace the CSS module imports
-vi.mock(/\.module\.css$/, () => {
-  return { default: mockCssModule }
-})
+// CSS modules are handled by the vitest config css.modules.classNameStrategy
+// which returns class names as-is for testing
 
 // Suppress console output in tests to reduce verbosity
 // Set DEBUG=true environment variable to see console output
