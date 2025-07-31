@@ -69,4 +69,4 @@ nx-cloud.env
 *.pem
 .cache/
 .parcel-cache/
-.turbo
+.turboPR_DESCRIPTION.md
