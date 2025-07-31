@@ -48,6 +48,10 @@ export function Testimonials() {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const currentTestimonial = testimonials[activeTestimonial]
+  
+  if (!currentTestimonial) {
+    return null
+  }
 
   const handleVideoToggle = () => {
     if (videoRef.current) {

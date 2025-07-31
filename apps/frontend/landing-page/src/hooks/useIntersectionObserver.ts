@@ -24,12 +24,15 @@ export function useIntersectionObserver<T extends HTMLElement>(
     if (!element || (triggerOnce && hasTriggered)) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        const intersecting = entry.isIntersecting
-        setIsIntersecting(intersecting)
-        
-        if (intersecting && triggerOnce) {
-          setHasTriggered(true)
+      (entries) => {
+        const entry = entries[0]
+        if (entry) {
+          const intersecting = entry.isIntersecting
+          setIsIntersecting(intersecting)
+          
+          if (intersecting && triggerOnce) {
+            setHasTriggered(true)
+          }
         }
       },
       {
