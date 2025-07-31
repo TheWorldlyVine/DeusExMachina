@@ -216,23 +216,7 @@ jobs:
           URL_MAP_NAME="${{ vars.STATIC_URL_MAP_NAME || format('deus-ex-machina-prod-static-url-map') }}"
           gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --async || true
       
-      - name: Deploy preview (PR)
-        if: github.event_name == 'pull_request'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Deploy to production
-        if: github.ref == 'refs/heads/main'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+      # Vercel deployment removed - using GCS static hosting instead
 
   # Infrastructure CI/CD
   infrastructure:
