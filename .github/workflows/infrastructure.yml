@@ -44,16 +44,30 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
       - name: Setup Terraform Backend
         run: |
           PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
           BUCKET_NAME="${PROJECT_ID}-terraform-state"
           
+          # Use gcloud storage instead of gsutil for better auth handling
           # Create state bucket if it doesn't exist
-          if ! gsutil ls -b gs://${BUCKET_NAME} &> /dev/null; then
-            gsutil mb -p ${PROJECT_ID} -c STANDARD -l us-central1 gs://${BUCKET_NAME}/
-            gsutil versioning set on gs://${BUCKET_NAME}/
-            gsutil uniformbucketlevelaccess set on gs://${BUCKET_NAME}/
+          if ! gcloud storage buckets describe gs://${BUCKET_NAME} &> /dev/null; then
+            echo "Creating Terraform state bucket: gs://${BUCKET_NAME}"
+            gcloud storage buckets create gs://${BUCKET_NAME} \
+              --project=${PROJECT_ID} \
+              --default-storage-class=STANDARD \
+              --location=us-central1 \
+              --uniform-bucket-level-access
+            
+            # Enable versioning
+            gcloud storage buckets update gs://${BUCKET_NAME} --versioning
+          else
+            echo "Terraform state bucket already exists: gs://${BUCKET_NAME}"
           fi
       
       - name: Terraform Init
