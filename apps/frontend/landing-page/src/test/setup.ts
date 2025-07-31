@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
+import { configure } from '@testing-library/react'
+
+// Configure React Testing Library to be less verbose
+configure({
+  getElementError: (message) => {
+    const error = new Error(message?.split('\n')[0] || 'Element not found')
+    error.name = 'TestingLibraryElementError'
+    return error
+  },
+})
 
 // CSS modules are handled by the vitest config css.modules.classNameStrategy
 // which returns class names as-is for testing

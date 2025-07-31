@@ -44,9 +44,10 @@ describe('InteractiveDemo', () => {
   it('shows node details on click', async () => {
     render(<InteractiveDemo isActive={true} />)
     
-    // Click on Elara Moonshadow
-    const characterNode = screen.getByText('Elara Moonshadow')
-    fireEvent.click(characterNode.parentElement!)
+    // Click on Elara Moonshadow node (get the span with class nodeName)
+    const characterNodes = screen.getAllByText('Elara Moonshadow')
+    const nodeElement = characterNodes.find(el => el.classList.contains('nodeName'))
+    fireEvent.click(nodeElement?.parentElement!)
     
     await waitFor(() => {
       expect(screen.getByText('A key figure in the unfolding narrative.')).toBeInTheDocument()
@@ -66,9 +67,10 @@ describe('InteractiveDemo', () => {
   it('shows connected nodes in detail panel', async () => {
     render(<InteractiveDemo isActive={true} />)
     
-    // Click on The Crystal Citadel
-    const locationNode = screen.getByText('The Crystal Citadel')
-    fireEvent.click(locationNode.parentElement!)
+    // Click on The Crystal Citadel node
+    const locationNodes = screen.getAllByText('The Crystal Citadel')
+    const nodeElement = locationNodes.find(el => el.classList.contains('nodeName'))
+    fireEvent.click(nodeElement?.parentElement!)
     
     await waitFor(() => {
       expect(screen.getByText('Connected to:')).toBeInTheDocument()

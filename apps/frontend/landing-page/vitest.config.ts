@@ -18,9 +18,10 @@ export default defineConfig({
         classNameStrategy: 'non-scoped'
       }
     },
-    reporters: process.env.CI ? ['default'] : ['./vitest.reporter.ts'],
+    reporters: process.env.CI ? ['dot'] : ['dot'],
     logHeapUsage: false,
-    silent: false,
+    silent: true,
+    hideSkippedTests: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
