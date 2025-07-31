@@ -33,6 +33,7 @@ variable "entry_point" {
 variable "source_archive_path" {
   description = "Path to the source archive"
   type        = string
+  default     = null
 }
 
 variable "memory" {

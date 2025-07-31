@@ -34,9 +34,13 @@ resource "google_storage_bucket" "source" {
 }
 
 resource "google_storage_bucket_object" "function_source" {
-  name   = "${var.function_name}-${filemd5(var.source_archive_path)}.zip"
+  name   = "${var.function_name}-${var.source_archive_path != null ? filemd5(var.source_archive_path) : "placeholder"}.zip"
   bucket = google_storage_bucket.source.name
-  source = var.source_archive_path
+  source = var.source_archive_path != null ? var.source_archive_path : "${path.module}/placeholder.zip"
+  
+  lifecycle {
+    ignore_changes = [name, source]
+  }
 }
 
 resource "google_cloudfunctions2_function" "function" {

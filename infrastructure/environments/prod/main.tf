@@ -13,7 +13,8 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "deus-ex-machina-terraform-state-prod"
+    # This will be configured during terraform init
+    # bucket = "your-project-id-terraform-state"
     prefix = "terraform/state"
   }
 }
@@ -30,7 +31,7 @@ provider "google-beta" {
 
 locals {
   environment = "prod"
-  project_id  = "deus-ex-machina-prod"
+  project_id  = var.project_id
   region      = "us-central1"
   
   common_labels = {
@@ -121,6 +122,46 @@ module "api_function" {
     "roles/secretmanager.secretAccessor",
     "roles/cloudsql.client",
   ]
+  
+  labels = local.common_labels
+}
+
+# Static Hosting for Frontend
+module "static_hosting" {
+  source = "../../modules/static-hosting"
+  
+  project_id   = local.project_id
+  project_name = "deus-ex-machina"
+  environment  = local.environment
+  region       = local.region
+  
+  # Enable test index.html for initial deployment
+  deploy_test_index = true
+  
+  # Enable API routing to Cloud Functions
+  enable_api_routing = true
+  
+  # Basic security features for production
+  enable_cloud_armor = true
+  
+  # CORS configuration - adjust as needed
+  cors_origins = ["https://deus-ex-machina.com", "https://www.deus-ex-machina.com"]
+  
+  # Cache policies
+  cache_policies = {
+    html_ttl   = 300      # 5 minutes for HTML
+    static_ttl = 31536000 # 1 year for hashed assets
+    image_ttl  = 2592000  # 30 days for images
+  }
+  
+  # Security headers
+  security_headers = {
+    enable_hsts               = true
+    enable_content_type_options = true
+    enable_xss_protection     = true
+    enable_frame_options      = true
+    csp_policy               = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com;"
+  }
   
   labels = local.common_labels
 }
