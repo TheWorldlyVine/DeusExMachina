@@ -4,7 +4,7 @@ import { DefaultReporter } from 'vitest/reporters'
 export default class QuietReporter extends DefaultReporter implements Reporter {
   ctx!: Vitest
   
-  constructor(options?: any) {
+  constructor(options?: Record<string, unknown>) {
     super({
       ...options,
       verbose: false,
