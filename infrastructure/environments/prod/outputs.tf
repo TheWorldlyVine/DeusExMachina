@@ -1,24 +1,24 @@
-# VPC Outputs
-output "vpc_network_id" {
-  description = "The ID of the VPC network"
-  value       = module.vpc.network_id
-}
+# VPC Outputs (commented until VPC module is enabled)
+# output "vpc_network_id" {
+#   description = "The ID of the VPC network"
+#   value       = module.vpc.network_id
+# }
 
-output "vpc_subnet_id" {
-  description = "The ID of the private subnet"
-  value       = module.vpc.subnet_id
-}
+# output "vpc_subnet_id" {
+#   description = "The ID of the private subnet"
+#   value       = module.vpc.subnet_id
+# }
 
-# Cloud Functions Outputs
-output "auth_function_url" {
-  description = "URL of the auth function"
-  value       = module.auth_function.function_url
-}
+# Cloud Functions Outputs (commented until functions are enabled)
+# output "auth_function_url" {
+#   description = "URL of the auth function"
+#   value       = module.auth_function.function_url
+# }
 
-output "api_function_url" {
-  description = "URL of the API function"
-  value       = module.api_function.function_url
-}
+# output "api_function_url" {
+#   description = "URL of the API function"
+#   value       = module.api_function.function_url
+# }
 
 # Static Hosting Outputs
 output "static_hosting_bucket" {

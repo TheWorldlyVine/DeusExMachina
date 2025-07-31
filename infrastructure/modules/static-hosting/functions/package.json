@@ -1,0 +1,12 @@
+{
+  "name": "cache-invalidator",
+  "version": "1.0.0",
+  "description": "Cloud Function to invalidate CDN cache on file updates",
+  "main": "cache-invalidator.js",
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "@google-cloud/compute": "^3.0.0"
+  }
+}
