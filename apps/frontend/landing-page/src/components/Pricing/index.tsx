@@ -201,7 +201,7 @@ export function Pricing() {
           </div>
           <div className={styles.faqItem}>
             <h4>What happens to my data if I downgrade?</h4>
-            <p>Your worlds remain safe. You'll have read-only access to worlds that exceed your plan limits.</p>
+            <p>Your worlds remain safe. You&apos;ll have read-only access to worlds that exceed your plan limits.</p>
           </div>
           <div className={styles.faqItem}>
             <h4>Do you offer educational discounts?</h4>

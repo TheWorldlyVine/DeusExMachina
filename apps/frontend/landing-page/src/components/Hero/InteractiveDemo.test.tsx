@@ -5,10 +5,10 @@ import { InteractiveDemo } from './InteractiveDemo'
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    line: ({ children, ...props }: any) => <line {...props}>{children}</line>,
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+    line: ({ children, ...props }: React.SVGProps<SVGLineElement>) => <line {...props}>{children}</line>,
   },
-  AnimatePresence: ({ children }: any) => children,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => children,
 }))
 
 describe('InteractiveDemo', () => {

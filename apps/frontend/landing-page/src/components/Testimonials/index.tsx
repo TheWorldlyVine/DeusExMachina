@@ -71,7 +71,7 @@ export function Testimonials() {
         >
           <h2 className={styles.title}>What Creators Say</h2>
           <p className={styles.subtitle}>
-            Hear from writers, game masters, and artists who've transformed their creative process
+            Hear from writers, game masters, and artists who&apos;ve transformed their creative process
           </p>
         </motion.div>
       </div>
@@ -112,7 +112,7 @@ export function Testimonials() {
                   </div>
                 ) : (
                   <div className={styles.quoteContainer}>
-                    <div className={styles.quoteIcon}>"</div>
+                    <div className={styles.quoteIcon}>&ldquo;</div>
                     <blockquote className={styles.quote}>
                       {currentTestimonial.quote}
                     </blockquote>
