@@ -211,10 +211,18 @@ jobs:
           gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
       
       - name: Invalidate CDN Cache
-        if: github.ref == 'refs/heads/main' && vars.CDN_ENABLED == 'true'
+        if: github.ref == 'refs/heads/main'
         run: |
-          URL_MAP_NAME="${{ vars.STATIC_URL_MAP_NAME || format('deus-ex-machina-prod-static-url-map') }}"
-          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --async || true
+          PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          URL_MAP_NAME="${{ vars.STATIC_URL_MAP_NAME }}"
+          
+          # If URL_MAP_NAME is not set, construct it from PROJECT_ID
+          if [ -z "$URL_MAP_NAME" ]; then
+            URL_MAP_NAME="deus-ex-machina-prod-static-url-map"
+          fi
+          
+          echo "Invalidating CDN cache for URL map: ${URL_MAP_NAME}"
+          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --async || echo "CDN cache invalidation skipped (URL map may not exist)"
       
       # Vercel deployment removed - using GCS static hosting instead
 
