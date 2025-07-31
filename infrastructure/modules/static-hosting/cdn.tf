@@ -100,7 +100,7 @@ resource "google_compute_security_policy" "static_security" {
     match {
       expr {
         expression = <<-EOT
-          request.path.matches('(?i)(\\.(git|svn|env|config|bak|backup|sql|db|log))')
+          request.path.matches('(?i)\\.(git|svn|env|config|bak|backup|sql|db|log)')
         EOT
       }
     }

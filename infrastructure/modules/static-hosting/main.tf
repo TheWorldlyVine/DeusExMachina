@@ -95,6 +95,45 @@ resource "google_compute_managed_ssl_certificate" "static_cert" {
   }
 }
 
+# Self-signed SSL Certificate for testing (when no domain is provided)
+resource "google_compute_ssl_certificate" "static_self_signed" {
+  count = var.domain_name == null ? 1 : 0
+  
+  name        = "${var.project_name}-${var.environment}-static-self-signed"
+  private_key = tls_private_key.static_key[0].private_key_pem
+  certificate = tls_self_signed_cert.static_cert[0].cert_pem
+  
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# TLS private key for self-signed cert
+resource "tls_private_key" "static_key" {
+  count     = var.domain_name == null ? 1 : 0
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+# Self-signed certificate
+resource "tls_self_signed_cert" "static_cert" {
+  count           = var.domain_name == null ? 1 : 0
+  private_key_pem = tls_private_key.static_key[0].private_key_pem
+  
+  subject {
+    common_name  = "${var.project_name}.example.com"
+    organization = "DeusExMachina"
+  }
+  
+  validity_period_hours = 8760 # 1 year
+  
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
 # Health check for backend
 resource "google_compute_health_check" "static_health" {
   name               = "${var.project_name}-${var.environment}-static-health"
@@ -141,7 +180,7 @@ resource "google_compute_url_map" "static_url_map" {
 resource "google_compute_target_https_proxy" "static_https_proxy" {
   name             = "${var.project_name}-${var.environment}-static-https-proxy"
   url_map          = google_compute_url_map.static_url_map.id
-  ssl_certificates = var.domain_name != null ? google_compute_managed_ssl_certificate.static_cert[*].id : []
+  ssl_certificates = var.domain_name != null ? google_compute_managed_ssl_certificate.static_cert[*].id : google_compute_ssl_certificate.static_self_signed[*].id
 }
 
 # HTTP Proxy (redirects to HTTPS)
