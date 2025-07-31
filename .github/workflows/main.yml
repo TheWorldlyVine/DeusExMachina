@@ -1,0 +1,231 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '21'
+  PNPM_VERSION: '8'
+  TERRAFORM_VERSION: '1.6.0'
+
+jobs:
+  # Detect changes
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      infrastructure: ${{ steps.filter.outputs.infrastructure }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+              - 'packages/java-common/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/ui-components/**'
+              - 'packages/utils/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+            infrastructure:
+              - 'infrastructure/**'
+
+  # Java Backend CI/CD
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        function: [auth-function, api-function, processor-function]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Run static analysis
+        run: |
+          ./gradlew spotbugsMain
+          ./gradlew build -x test
+      
+      - name: Run tests
+        run: ./gradlew :apps:backend:${{ matrix.function }}:test
+      
+      - name: Build function
+        run: ./gradlew :apps:backend:${{ matrix.function }}:build
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.function }}
+          path: apps/backend/${{ matrix.function }}/build/test-results/
+      
+      - name: Authenticate to Google Cloud
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Deploy to GCP
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: ${{ matrix.function }}
+          runtime: java21
+          source_dir: apps/backend/${{ matrix.function }}
+          entry_point: com.deusexmachina.functions.${{ matrix.function }}
+          region: us-central1
+
+  # Frontend CI/CD
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Run linting
+        run: pnpm run lint
+      
+      - name: Run type checking
+        run: pnpm run type-check
+      
+      - name: Run tests
+        run: pnpm run test
+      
+      - name: Build applications
+        run: pnpm run build
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: frontend
+      
+      - name: Authenticate to Google Cloud
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Deploy to Static Hosting
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Get bucket name from GitHub variables or construct it
+          PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          BUCKET_NAME="${{ vars.STATIC_HOSTING_BUCKET || format('{0}-prod-static', secrets.GCP_PROJECT_ID) }}"
+          
+          # Deploy web-app to Cloud Storage
+          gsutil -m rsync -r -d apps/frontend/web-app/dist/ gs://${BUCKET_NAME}/
+          
+          # Set cache headers for different file types
+          gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://${BUCKET_NAME}/**/*.js || true
+          gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://${BUCKET_NAME}/**/*.css || true
+          gsutil -m setmeta -h "Cache-Control:public, max-age=2592000" gs://${BUCKET_NAME}/**/*.{png,jpg,jpeg,gif,svg,webp} || true
+          gsutil -m setmeta -h "Cache-Control:public, max-age=300" gs://${BUCKET_NAME}/**/*.html || true
+          gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
+      
+      - name: Invalidate CDN Cache
+        if: github.ref == 'refs/heads/main' && vars.CDN_ENABLED == 'true'
+        run: |
+          URL_MAP_NAME="${{ vars.STATIC_URL_MAP_NAME || format('deus-ex-machina-prod-static-url-map') }}"
+          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --async || true
+      
+      - name: Deploy preview (PR)
+        if: github.event_name == 'pull_request'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Deploy to production
+        if: github.ref == 'refs/heads/main'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+  # Infrastructure CI/CD
+  infrastructure:
+    needs: changes
+    if: needs.changes.outputs.infrastructure == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive infrastructure/
+      
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infrastructure/
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Terraform Init
+        run: |
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+          terraform init
+      
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+          terraform plan -out=tfplan
+      
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: infrastructure/environments/*/tfplan
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd infrastructure/environments/prod
+          terraform apply -auto-approve tfplan

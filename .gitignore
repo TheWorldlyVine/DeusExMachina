@@ -70,3 +70,9 @@ nx-cloud.env
 .cache/
 .parcel-cache/
 .turboPR_DESCRIPTION.md
+
+# Security - NEVER commit these
+terraform-key.json
+*-key.json
+*.tfvars
+!*.tfvars.example

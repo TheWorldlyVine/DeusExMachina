@@ -1,0 +1,123 @@
+name: Infrastructure Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - '.github/workflows/infrastructure.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - staging
+          - dev
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+jobs:
+  terraform:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/environments/${{ github.event.inputs.environment || 'prod' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Setup Terraform Backend
+        run: |
+          PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          BUCKET_NAME="${PROJECT_ID}-terraform-state"
+          
+          # Create state bucket if it doesn't exist
+          if ! gsutil ls -b gs://${BUCKET_NAME} &> /dev/null; then
+            gsutil mb -p ${PROJECT_ID} -c STANDARD -l us-central1 gs://${BUCKET_NAME}/
+            gsutil versioning set on gs://${BUCKET_NAME}/
+            gsutil uniformbucketlevelaccess set on gs://${BUCKET_NAME}/
+          fi
+      
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=terraform/state"
+      
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+      
+      - name: Comment Plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infrastructure/environments/${{ github.event.inputs.environment || 'prod' }}/plan.txt', 'utf8');
+            const truncated = plan.length > 65000 ? plan.substring(0, 65000) + '\n\n... (truncated)' : plan;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Terraform Plan Results\n\`\`\`\n${truncated}\n\`\`\``
+            });
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve tfplan
+      
+      - name: Export Outputs
+        if: github.ref == 'refs/heads/main'
+        id: outputs
+        run: |
+          # Export key outputs as GitHub variables
+          echo "STATIC_HOSTING_BUCKET=$(terraform output -raw static_hosting_bucket)" >> $GITHUB_ENV
+          echo "STATIC_HOSTING_IP=$(terraform output -raw static_hosting_ip)" >> $GITHUB_ENV
+          echo "STATIC_HOSTING_URL=$(terraform output -raw static_hosting_url)" >> $GITHUB_ENV
+      
+      - name: Update GitHub Variables
+        if: github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // This would update repository variables if the API supported it
+            // For now, outputs are logged
+            console.log('Infrastructure deployed successfully!');
+            console.log(`Static Hosting Bucket: ${process.env.STATIC_HOSTING_BUCKET}`);
+            console.log(`Static Hosting URL: ${process.env.STATIC_HOSTING_URL}`);
+      
+      - name: Post Deployment Summary
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "## 🚀 Infrastructure Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Outputs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Static Hosting URL**: $(terraform output -raw static_hosting_url)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bucket Name**: $(terraform output -raw static_hosting_bucket)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Static IP**: $(terraform output -raw static_hosting_ip)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. The frontend will be automatically deployed on the next push" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update DNS records if using custom domain" >> $GITHUB_STEP_SUMMARY
