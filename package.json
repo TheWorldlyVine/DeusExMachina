@@ -11,7 +11,9 @@
     "type-check": "pnpm -r run type-check",
     "clean": "pnpm -r run clean && rimraf node_modules",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,css}\""
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
+    "pre-commit": "./scripts/pre-commit-check.sh",
+    "lint:fix": "pnpm -r run lint -- --fix"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",

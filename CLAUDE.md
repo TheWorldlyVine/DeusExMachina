@@ -156,6 +156,7 @@ pnpm run build
 3. **Ask for clarification rather than making assumptions**
 4. **Consider the long-term maintainability of any solution**
 5. **Remember that this is a production-ready system - act accordingly**
+6. **ALWAYS run `pnpm run pre-commit` before committing to avoid CI failures**
 
 ## Continuous Improvement
 
