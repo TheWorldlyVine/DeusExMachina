@@ -145,8 +145,24 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           # Get bucket name from GitHub variables or construct it
-          PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-          BUCKET_NAME="${{ vars.STATIC_HOSTING_BUCKET || format('{0}-prod-static', secrets.GCP_PROJECT_ID) }}"
+          PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          BUCKET_NAME="${{ vars.STATIC_HOSTING_BUCKET }}"
+          
+          # If BUCKET_NAME is not set, construct it from PROJECT_ID
+          if [ -z "$BUCKET_NAME" ]; then
+            BUCKET_NAME="${PROJECT_ID}-prod-static"
+          fi
+          
+          echo "Project ID: ${PROJECT_ID}"
+          echo "Deploying to bucket: gs://${BUCKET_NAME}/"
+          
+          # Check if bucket exists
+          if ! gsutil ls -b gs://${BUCKET_NAME}/ &>/dev/null; then
+            echo "ERROR: Bucket gs://${BUCKET_NAME}/ does not exist!"
+            echo "Please run the Infrastructure workflow first to create the bucket."
+            echo "Go to Actions → Infrastructure Deployment → Run workflow"
+            exit 1
+          fi
           
           # Deploy web-app to Cloud Storage
           gsutil -m rsync -r -d apps/frontend/web-app/dist/ gs://${BUCKET_NAME}/
