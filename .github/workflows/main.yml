@@ -75,7 +75,7 @@ jobs:
       
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.function }}
           path: apps/backend/${{ matrix.function }}/build/test-results/
@@ -245,7 +245,7 @@ jobs:
           terraform plan -out=tfplan
       
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
           path: infrastructure/environments/*/tfplan
