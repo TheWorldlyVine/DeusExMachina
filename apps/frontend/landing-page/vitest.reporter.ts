@@ -1,7 +1,10 @@
+import type { Reporter, Vitest, File } from 'vitest'
 import { DefaultReporter } from 'vitest/reporters'
 
-export default class QuietReporter extends DefaultReporter {
-  constructor(options: any) {
+export default class QuietReporter extends DefaultReporter implements Reporter {
+  ctx!: Vitest
+  
+  constructor(options?: any) {
     super({
       ...options,
       verbose: false,
@@ -9,20 +12,22 @@ export default class QuietReporter extends DefaultReporter {
     })
   }
 
-  onTaskUpdate() {
+  onTaskUpdate(): void {
     // Suppress task update logs
   }
 
-  onWatcherRerun() {
+  onWatcherRerun(): void {
     // Suppress watcher rerun logs
   }
 
-  onCollected() {
+  onCollected(): void {
     // Suppress collection logs
   }
 
-  onFinished(files = this.ctx.state.getFiles(), errors = this.ctx.state.getUnhandledErrors()) {
+  onFinished(files?: File[], errors?: unknown[]): void {
     // Only show summary and errors
-    super.onFinished(files, errors)
+    const finalFiles = files || this.ctx.state.getFiles()
+    const finalErrors = errors || this.ctx.state.getUnhandledErrors()
+    super.onFinished(finalFiles, finalErrors)
   }
 }
