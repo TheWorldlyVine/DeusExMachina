@@ -2,6 +2,16 @@ plugins {
     id 'java'
 }
 
+// Early initialization for Cloud Functions compatibility
+gradle.projectsEvaluated {
+    // Ensure jar task has archivePath property
+    def jarTask = project.tasks.findByName('jar')
+    if (jarTask && !jarTask.hasProperty('archivePath')) {
+        jarTask.ext.archivePath = jarTask.archiveFile.get().asFile
+        jarTask.ext.archiveName = jarTask.archiveFileName.get()
+    }
+}
+
 repositories {
     mavenCentral()
     google()
@@ -81,11 +91,13 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Compatibility shim for Cloud Functions
-afterEvaluate {
-    tasks.named('jar') {
-        // Provide deprecated properties for compatibility
-        ext.set('archivePath', archiveFile.get().asFile)
-        ext.set('archiveName', archiveFileName.get())
-    }
+// Cloud Functions compatibility - provide deprecated properties
+tasks.withType(Jar) {
+    // Set properties immediately when task is configured
+    ext.archivePath = provider { archiveFile.get().asFile }
+    ext.archiveName = provider { archiveFileName.get() }
+    
+    // Also provide getter methods
+    ext.getArchivePath = { -> archiveFile.get().asFile }
+    ext.getArchiveName = { -> archiveFileName.get() }
 }
