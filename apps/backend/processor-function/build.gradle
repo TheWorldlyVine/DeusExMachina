@@ -70,13 +70,22 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Cloud Functions compatibility - provide deprecated properties
-tasks.withType(Jar) {
-    // Set properties immediately when task is configured
-    ext.archivePath = provider { archiveFile.get().asFile }
-    ext.archiveName = provider { archiveFileName.get() }
-    
-    // Also provide getter methods
-    ext.getArchivePath = { -> archiveFile.get().asFile }
-    ext.getArchiveName = { -> archiveFileName.get() }
+// Configure the jar task properties for Cloud Functions
+afterEvaluate {
+    tasks.jar.ext.archivePath = tasks.jar.archiveFile.get().asFile
+    tasks.jar.ext.archiveName = tasks.jar.archiveFileName.get()
+}
+
+// Cloud Functions injects these tasks - define them ourselves to control output
+task _javaFunctionPrintJarTarget {
+    doLast {
+        println tasks.jar.archiveFile.get().asFile.absolutePath
+    }
+}
+
+task _javaFunctionCopyAllDependencies {
+    doLast {
+        // This task seems to expect the jar path as output
+        println tasks.jar.archiveFile.get().asFile.absolutePath
+    }
 }
