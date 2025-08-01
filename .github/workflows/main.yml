@@ -287,7 +287,6 @@ jobs:
         with:
           working_directory: infrastructure/
           soft_fail: true
-          format: concise
       
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

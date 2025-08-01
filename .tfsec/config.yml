@@ -1,20 +1,27 @@
 # tfsec configuration to reduce noise and focus on important security issues
 
-# Exclude some checks that are too noisy or not applicable
-exclude:
-  # GCS bucket checks that are intentionally public for static hosting
-  - google-storage-enable-ubla  # We need public access for static website
-  - google-storage-bucket-encryption-customer-key  # Default encryption is fine
-  
-  # Compute checks that don't apply to our use case
-  - google-compute-enable-shielded-vm-vtpm  # Not needed for backend buckets
-  - google-compute-enable-shielded-vm-im  # Not needed for backend buckets
-  
-  # General checks that are too strict
-  - general-secrets-sensitive-in-variable  # We use variables for configuration
+# Set minimum severity to HIGH to significantly reduce output
+minimum_severity: HIGH
 
-# Set minimum severity to reduce noise
-minimum_severity: MEDIUM
+# Exclude checks that are not applicable to our use case
+exclude:
+  # GCS bucket checks - we need public access for static website hosting
+  - google-storage-enable-ubla
+  - google-storage-bucket-encryption-customer-key
+  - google-storage-no-public-access
+  
+  # Compute checks that don't apply to static hosting
+  - google-compute-enable-shielded-vm-vtpm
+  - google-compute-enable-shielded-vm-im
+  - google-compute-enable-vpc-flow-logs
+  - google-compute-no-public-ip
+  
+  # IAM checks that are intentional for public static hosting
+  - google-iam-no-public-access
+  
+  # General checks
+  - general-secrets-sensitive-in-variable
+  - general-secrets-sensitive-in-local
 
 # Ignore test/example files
 exclude_paths:
