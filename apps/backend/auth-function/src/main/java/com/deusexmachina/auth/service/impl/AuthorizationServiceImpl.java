@@ -6,6 +6,7 @@ import com.deusexmachina.auth.dto.PermissionGrantRequest;
 import com.deusexmachina.auth.exception.AuthException;
 import com.deusexmachina.auth.repository.PermissionRepository;
 import com.deusexmachina.auth.service.AuthorizationService;
+import com.google.cloud.Timestamp;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
@@ -87,7 +88,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                                 .grantedBy(request.grantedBy())
                                 .level(request.level())
                                 .grantedAt(existing.getGrantedAt())
-                                .expiresAt(request.expiresAt())
+                                .expiresAt(request.expiresAt() != null ? Timestamp.ofTimeSecondsAndNanos(request.expiresAt().getEpochSecond(), request.expiresAt().getNano()) : null)
                                 .customPermissions(request.customPermissions())
                                 .build();
                         
@@ -101,7 +102,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                                 .grantedTo(request.grantedTo())
                                 .grantedBy(request.grantedBy())
                                 .level(request.level())
-                                .expiresAt(request.expiresAt())
+                                .expiresAt(request.expiresAt() != null ? Timestamp.ofTimeSecondsAndNanos(request.expiresAt().getEpochSecond(), request.expiresAt().getNano()) : null)
                                 .customPermissions(request.customPermissions())
                                 .build();
                         

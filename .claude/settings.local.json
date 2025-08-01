@@ -18,7 +18,10 @@
       "Bash(./scripts/pre-commit-check.sh:*)",
       "Bash(./check-landing-page.sh:*)",
       "Bash(grep:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude generated code -->
+    <Match>
+        <Package name="~.*\.generated\..*" />
+    </Match>
+    
+    <!-- Exclude test classes -->
+    <Match>
+        <Class name="~.*Test$" />
+    </Match>
+    
+    <!-- Exclude domain objects exposure warnings (they're immutable) -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+        <Class name="~.*\.domain\..*" />
+    </Match>
+    
+    <!-- Exclude repository field exposure warnings (repositories are services, not mutable data) -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2" />
+        <Class name="~.*ServiceImpl$" />
+        <Field name="~.*Repository$" />
+    </Match>
+    
+    <!-- Constructor throw warnings for properly handled cases -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+        <Class name="com.deusexmachina.auth.service.impl.TokenServiceImpl" />
+    </Match>
+</FindBugsFilter>

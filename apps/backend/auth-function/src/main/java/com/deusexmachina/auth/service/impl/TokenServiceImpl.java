@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,13 +42,21 @@ public class TokenServiceImpl implements TokenService {
     @Inject
     public TokenServiceImpl(SecretManagerServiceClient secretManager) {
         // Load JWT secret from Secret Manager
-        String jwtSecret = loadJwtSecret(secretManager);
-        this.algorithm = Algorithm.HMAC256(jwtSecret);
+        try {
+            String jwtSecret = loadJwtSecret(secretManager);
+            this.algorithm = Algorithm.HMAC256(jwtSecret);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize TokenService", e);
+        }
     }
     
     // Constructor for testing
     TokenServiceImpl(String jwtSecret) {
-        this.algorithm = Algorithm.HMAC256(jwtSecret);
+        try {
+            this.algorithm = Algorithm.HMAC256(jwtSecret);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize TokenService with provided secret", e);
+        }
     }
     
     @Override

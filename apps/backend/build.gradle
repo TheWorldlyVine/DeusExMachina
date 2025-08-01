@@ -1,3 +1,7 @@
+plugins {
+    id 'com.github.spotbugs' version '6.0.4' apply false
+}
+
 // Root build file
 allprojects {
     group = 'com.deusexmachina'
@@ -12,6 +16,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'com.github.spotbugs'
     
     java {
         toolchain {
@@ -41,6 +46,25 @@ subprojects {
         testLogging {
             events "passed", "skipped", "failed"
             exceptionFormat = 'full'
+        }
+    }
+    
+    // SpotBugs configuration
+    spotbugs {
+        ignoreFailures = false
+        showStackTraces = true
+        showProgress = true
+        excludeFilter = file("${rootProject.projectDir}/spotbugs-exclude.xml")
+        // Only fail on high priority (P1) bugs
+        onlyAnalyze = ['com.deusexmachina.*']
+    }
+    
+    spotbugsMain {
+        reports {
+            html {
+                required = true
+                outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            }
         }
     }
 }

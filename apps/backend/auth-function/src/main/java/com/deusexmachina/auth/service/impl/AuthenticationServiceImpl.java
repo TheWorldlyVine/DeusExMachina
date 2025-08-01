@@ -282,7 +282,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 logger.error("Error during logout", e);
                 return CompletableFuture.<Void>completedFuture(null);
             }
-        }).thenCompose(future -> future);
+        }).thenCompose(future -> (CompletableFuture<Void>) future);
     }
     
     @Override
@@ -303,11 +303,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     
                     return userRepository.update(user.getUserId(), 
                             new UserRepository.UserUpdateRequest(null, true, null, null))
-                            .thenApply(u -> null);
+                            .thenApply(u -> (Void) null);
                 })
-                .whenComplete((result, error) -> {
+                .thenApply(v -> {
                     // Clean up token
                     verificationTokens.remove(token);
+                    return v;
                 });
     }
     
@@ -356,10 +357,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     // Revoke all sessions for security
                     return sessionRepository.revokeAllForUser(user.getUserId());
                 })
-                .thenApply(count -> null)
-                .whenComplete((result, error) -> {
+                .thenApply(count -> (Void) null)
+                .thenApply(v -> {
                     // Clean up token
                     resetTokens.remove(token);
+                    return v;
                 });
     }
     

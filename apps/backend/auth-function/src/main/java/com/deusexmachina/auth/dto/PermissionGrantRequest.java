@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,4 +32,19 @@ public record PermissionGrantRequest(
     Instant expiresAt,
     
     Map<String, Boolean> customPermissions
-) {}
+) {
+    public PermissionGrantRequest {
+        // Create defensive copy of mutable map
+        customPermissions = customPermissions != null 
+            ? Collections.unmodifiableMap(new HashMap<>(customPermissions))
+            : null;
+    }
+    
+    @Override
+    public Map<String, Boolean> customPermissions() {
+        // Return defensive copy to prevent external modification
+        return customPermissions != null 
+            ? Collections.unmodifiableMap(new HashMap<>(customPermissions))
+            : null;
+    }
+}

@@ -7,9 +7,6 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.regex.Pattern;
@@ -73,17 +70,17 @@ public class PasswordServiceImpl implements PasswordService {
     @Override
     public boolean isPasswordBreached(String password) {
         try {
-            // Calculate SHA-1 hash of password (used by HaveIBeenPwned API)
-            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
-            byte[] hashBytes = sha1.digest(password.getBytes(StandardCharsets.UTF_8));
-            String hash = bytesToHex(hashBytes);
-            
             // TODO: Implement actual HaveIBeenPwned API check
+            // This would involve:
+            // 1. Calculate SHA-1 hash of password
+            // 2. Send first 5 characters to HaveIBeenPwned API
+            // 3. Check if full hash appears in response
+            
             // For now, just check against common passwords
             return isCommonPassword(password);
             
-        } catch (NoSuchAlgorithmException e) {
-            logger.error("Failed to calculate SHA-1 hash", e);
+        } catch (Exception e) {
+            logger.error("Failed to check password breach status", e);
             return false;
         }
     }
@@ -124,13 +121,6 @@ public class PasswordServiceImpl implements PasswordService {
         return new String(chars);
     }
     
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
-            result.append(String.format("%02x", b));
-        }
-        return result.toString();
-    }
     
     private boolean isCommonPassword(String password) {
         // Common passwords to check against

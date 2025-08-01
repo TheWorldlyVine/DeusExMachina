@@ -120,4 +120,14 @@ public final class JsonUtils {
             return false;
         }
     }
+    
+    /**
+     * Gets the shared Gson instance for use across the application.
+     * This instance is configured with pretty printing and ISO date format.
+     * 
+     * @return the shared Gson instance
+     */
+    public static Gson getGson() {
+        return GSON;
+    }
 }
