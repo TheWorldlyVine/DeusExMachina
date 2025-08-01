@@ -17,7 +17,8 @@
       "Bash(git restore:*)",
       "Bash(./scripts/pre-commit-check.sh:*)",
       "Bash(./check-landing-page.sh:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

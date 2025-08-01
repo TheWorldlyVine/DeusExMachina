@@ -1,0 +1,53 @@
+.card {
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+/* Variants */
+.default {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.bordered {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+}
+
+.ghost {
+  background-color: #f9fafb;
+}
+
+/* Padding */
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: 1rem;
+}
+
+.padding-md {
+  padding: 1.5rem;
+}
+
+.padding-lg {
+  padding: 2rem;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .default {
+    background-color: #1f2937;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .bordered {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .ghost {
+    background-color: #111827;
+  }
+}
