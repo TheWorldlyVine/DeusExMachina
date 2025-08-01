@@ -70,22 +70,11 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Configure the jar task properties for Cloud Functions
+// Cloud Functions dynamically injects tasks that expect jar.archivePath
+// We must provide these properties as actual values, not providers
 afterEvaluate {
-    tasks.jar.ext.archivePath = tasks.jar.archiveFile.get().asFile
-    tasks.jar.ext.archiveName = tasks.jar.archiveFileName.get()
-}
-
-// Cloud Functions injects these tasks - define them ourselves to control output
-task _javaFunctionPrintJarTarget {
-    doLast {
-        println tasks.jar.archiveFile.get().asFile.absolutePath
-    }
-}
-
-task _javaFunctionCopyAllDependencies {
-    doLast {
-        // This task seems to expect the jar path as output
-        println tasks.jar.archiveFile.get().asFile.absolutePath
-    }
+    def jarTask = tasks.getByName('jar')
+    // Set the deprecated properties that Cloud Functions expects
+    jarTask.ext.archivePath = jarTask.archiveFile.get().asFile
+    jarTask.ext.archiveName = jarTask.archiveFileName.get()
 }
