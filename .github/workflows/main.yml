@@ -243,10 +243,10 @@ jobs:
             gsutil -m setmeta -h "Cache-Control:no-cache" "gs://${BUCKET_NAME}/${app_name}/index.html" || true
           done
           
-          # Deploy the primary app (web-app) to root as well for backward compatibility
-          if [ -d "apps/frontend/web-app/dist" ]; then
-            echo "Deploying web-app to root path"
-            gsutil -m rsync -r -d apps/frontend/web-app/dist/ gs://${BUCKET_NAME}/
+          # Deploy the landing page to root
+          if [ -d "apps/frontend/landing-page/dist" ]; then
+            echo "Deploying landing-page to root path"
+            gsutil -m rsync -r -d apps/frontend/landing-page/dist/ gs://${BUCKET_NAME}/
             gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
           fi
       
