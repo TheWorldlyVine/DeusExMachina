@@ -1,7 +1,11 @@
 package com.deusexmachina.shared.utils;
 
 import com.google.cloud.functions.HttpResponse;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jakarta.validation.ConstraintViolation;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +38,15 @@ public final class ResponseUtils {
     }
     
     /**
+     * Sets standard CORS headers with default origin.
+     * 
+     * @param response the HTTP response
+     */
+    public static void setCorsHeaders(HttpResponse response) {
+        setCorsHeaders(response, "*");
+    }
+    
+    /**
      * Sends a successful JSON response.
      * 
      * @param response the HTTP response
@@ -41,8 +54,26 @@ public final class ResponseUtils {
      * @throws IOException if writing fails
      */
     public static void sendSuccess(HttpResponse response, Object data) throws IOException {
-        JsonObject responseBody = JsonUtils.createSuccessResponse(data);
-        sendJson(response, 200, responseBody);
+        sendSuccess(response, data, 200);
+    }
+    
+    /**
+     * Sends a successful JSON response with custom status code.
+     * 
+     * @param response the HTTP response
+     * @param data the data to send
+     * @param statusCode the HTTP status code
+     * @throws IOException if writing fails
+     */
+    public static void sendSuccess(HttpResponse response, Object data, int statusCode) throws IOException {
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setStatusCode(statusCode);
+        
+        Gson gson = JsonUtils.getGson();
+        try (PrintWriter writer = new PrintWriter(response.getWriter())) {
+            writer.print(gson.toJson(data));
+            writer.flush();
+        }
     }
     
     /**
@@ -58,6 +89,19 @@ public final class ResponseUtils {
             throws IOException {
         JsonObject errorResponse = JsonUtils.createErrorResponse(errorCode, message, statusCode);
         sendJson(response, statusCode, errorResponse);
+    }
+    
+    /**
+     * Sends an error JSON response with default error code.
+     * 
+     * @param response the HTTP response
+     * @param statusCode the HTTP status code
+     * @param message the error message
+     * @throws IOException if writing fails
+     */
+    public static void sendError(HttpResponse response, int statusCode, String message) 
+            throws IOException {
+        sendError(response, statusCode, "ERROR", message);
     }
     
     /**
@@ -150,5 +194,33 @@ public final class ResponseUtils {
      */
     public static void sendInternalError(HttpResponse response, String message) throws IOException {
         sendError(response, 500, "INTERNAL_ERROR", message);
+    }
+    
+    /**
+     * Sends validation errors response.
+     * 
+     * @param response the HTTP response
+     * @param violations the constraint violations
+     * @throws IOException if writing fails
+     */
+    public static void sendValidationErrors(HttpResponse response, Set<? extends ConstraintViolation<?>> violations) 
+            throws IOException {
+        JsonObject error = new JsonObject();
+        error.addProperty("error", "Validation failed");
+        error.addProperty("status_code", 400);
+        
+        Gson gson = JsonUtils.getGson();
+        var errors = violations.stream()
+                .map(violation -> {
+                    JsonObject fieldError = new JsonObject();
+                    fieldError.addProperty("field", violation.getPropertyPath().toString());
+                    fieldError.addProperty("message", violation.getMessage());
+                    return fieldError;
+                })
+                .collect(Collectors.toList());
+        
+        error.add("validation_errors", gson.toJsonTree(errors));
+        
+        sendJson(response, 400, error);
     }
 }

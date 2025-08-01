@@ -1,0 +1,56 @@
+// Root build file
+allprojects {
+    group = 'com.deusexmachina'
+    version = '1.0.0'
+    
+    repositories {
+        mavenCentral()
+        google()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+    
+    // Common dependencies
+    dependencies {
+        // Testing
+        testImplementation 'junit:junit:4.13.2'
+        testImplementation 'com.google.truth:truth:1.1.5'
+        testImplementation 'org.mockito:mockito-core:5.8.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    }
+    
+    // Compiler options
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-parameters']
+    }
+    
+    // Test configuration
+    test {
+        useJUnitPlatform()
+        maxHeapSize = '1G'
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat = 'full'
+        }
+    }
+}
+
+// Task to run all tests
+task testAll {
+    dependsOn subprojects.test
+}
+
+// Task to build all projects
+task buildAll {
+    dependsOn subprojects.build
+}

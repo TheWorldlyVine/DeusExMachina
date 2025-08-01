@@ -1,0 +1,12 @@
+rootProject.name = 'deusexmachina-backend'
+
+include ':shared'
+include ':auth-function'
+include ':api-function'
+include ':processor-function'
+
+// Define project paths
+project(':shared').projectDir = file('shared')
+project(':auth-function').projectDir = file('auth-function')
+project(':api-function').projectDir = file('api-function')
+project(':processor-function').projectDir = file('processor-function')

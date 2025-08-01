@@ -1,47 +1,52 @@
 package com.deusexmachina.functions;
 
+import com.deusexmachina.auth.config.AuthModule;
+import com.deusexmachina.auth.dto.*;
+import com.deusexmachina.auth.exception.AuthException;
+import com.deusexmachina.auth.service.AuthenticationService;
+import com.deusexmachina.shared.utils.JsonUtils;
+import com.deusexmachina.shared.utils.ResponseUtils;
+import com.deusexmachina.shared.validation.ValidationUtils;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import jakarta.validation.ConstraintViolation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
- * Cloud Function for user authentication.
- * Handles login, token generation, and token verification.
+ * Cloud Function for authentication endpoints.
+ * Acts as a controller, delegating business logic to services.
+ * Follows Single Responsibility Principle - only handles HTTP request/response.
  */
 public class AuthFunction implements HttpFunction {
-    private static final Logger logger = Logger.getLogger(AuthFunction.class.getName());
-    private static final Gson gson = new Gson();
-    private static final String JWT_SECRET = System.getenv("JWT_SECRET");
-    private static final String JWT_ISSUER = "deusexmachina-auth";
-    private static final Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET != null ? JWT_SECRET : "default-secret");
+    private static final Logger logger = LoggerFactory.getLogger(AuthFunction.class);
+    private static final Gson gson = JsonUtils.getGson();
+    private static final long REQUEST_TIMEOUT_SECONDS = 30;
     
-    /**
-     * @requires request != null
-     * @requires request.getMethod() != null
-     * @ensures response.getStatusCode() >= 200 && response.getStatusCode() < 600
-     */
+    private final AuthenticationService authService;
+    
+    public AuthFunction() {
+        // Initialize dependency injection
+        Injector injector = Guice.createInjector(new AuthModule());
+        this.authService = injector.getInstance(AuthenticationService.class);
+    }
+    
     @Override
     public void service(HttpRequest request, HttpResponse response) throws Exception {
         // Set CORS headers
-        response.appendHeader("Access-Control-Allow-Origin", "*");
-        response.appendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.appendHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        ResponseUtils.setCorsHeaders(response);
         
         // Handle preflight requests
         if ("OPTIONS".equals(request.getMethod())) {
@@ -53,201 +58,241 @@ public class AuthFunction implements HttpFunction {
         String method = request.getMethod();
         
         try {
+            // Route to appropriate handler
             switch (path) {
-                case "/auth/login":
-                    if ("POST".equals(method)) {
-                        handleLogin(request, response);
-                    } else {
-                        sendError(response, 405, "Method not allowed");
-                    }
+                case "/auth/register":
+                    handleRegister(request, response, method);
                     break;
                     
-                case "/auth/verify":
-                    if ("GET".equals(method) || "POST".equals(method)) {
-                        handleVerify(request, response);
-                    } else {
-                        sendError(response, 405, "Method not allowed");
-                    }
+                case "/auth/login":
+                    handleLogin(request, response, method);
+                    break;
+                    
+                case "/auth/google":
+                    handleGoogleLogin(request, response, method);
                     break;
                     
                 case "/auth/refresh":
-                    if ("POST".equals(method)) {
-                        handleRefresh(request, response);
-                    } else {
-                        sendError(response, 405, "Method not allowed");
-                    }
+                    handleRefreshToken(request, response, method);
+                    break;
+                    
+                case "/auth/logout":
+                    handleLogout(request, response, method);
+                    break;
+                    
+                case "/auth/verify-email":
+                    handleVerifyEmail(request, response, method);
+                    break;
+                    
+                case "/auth/reset-password":
+                    handlePasswordReset(request, response, method);
+                    break;
+                    
+                case "/auth/confirm-reset":
+                    handleConfirmReset(request, response, method);
                     break;
                     
                 default:
-                    sendError(response, 404, "Endpoint not found");
+                    ResponseUtils.sendError(response, 404, "Endpoint not found");
                     break;
             }
+        } catch (AuthException e) {
+            logger.warn("Authentication error: {}", e.getMessage());
+            ResponseUtils.sendError(response, e.getStatusCode(), e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error processing request", e);
-            sendError(response, 500, "Internal server error");
+            logger.error("Unexpected error", e);
+            ResponseUtils.sendError(response, 500, "Internal server error");
         }
     }
     
-    /**
-     * @requires request.getMethod().equals("POST")
-     * @requires request body contains valid JSON with username and password
-     * @ensures response contains JWT token on success or error on failure
-     */
-    private void handleLogin(HttpRequest request, HttpResponse response) throws IOException {
-        BufferedReader reader = request.getReader();
-        LoginRequest loginRequest = gson.fromJson(reader, LoginRequest.class);
-        
-        // Validate input
-        if (loginRequest == null || loginRequest.username == null || loginRequest.password == null) {
-            sendError(response, 400, "Invalid request body");
+    private void handleRegister(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
             return;
         }
         
-        // TODO: Implement actual user authentication against database
-        // This is a mock implementation for demonstration
-        if (isValidUser(loginRequest.username, loginRequest.password)) {
-            String token = generateToken(loginRequest.username);
-            String refreshToken = generateRefreshToken(loginRequest.username);
-            
-            JsonObject responseBody = new JsonObject();
-            responseBody.addProperty("token", token);
-            responseBody.addProperty("refreshToken", refreshToken);
-            responseBody.addProperty("expiresIn", 3600); // 1 hour
-            
-            sendSuccess(response, responseBody);
-        } else {
-            sendError(response, 401, "Invalid credentials");
-        }
-    }
-    
-    /**
-     * @requires request contains Authorization header with Bearer token
-     * @ensures response indicates whether token is valid
-     */
-    private void handleVerify(HttpRequest request, HttpResponse response) throws IOException {
-        String authHeader = request.getFirstHeader("Authorization").orElse("");
+        RegisterRequest registerRequest = gson.fromJson(request.getReader(), RegisterRequest.class);
         
-        if (!authHeader.startsWith("Bearer ")) {
-            sendError(response, 401, "Missing or invalid authorization header");
+        // Validate request
+        Set<ConstraintViolation<RegisterRequest>> violations = 
+                ValidationUtils.validate(registerRequest);
+        if (!violations.isEmpty()) {
+            ResponseUtils.sendValidationErrors(response, violations);
             return;
         }
         
-        String token = authHeader.substring(7);
+        // Process registration
+        AuthResponse authResponse = authService.register(registerRequest)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         
-        try {
-            DecodedJWT decodedJWT = verifyToken(token);
-            
-            JsonObject responseBody = new JsonObject();
-            responseBody.addProperty("valid", true);
-            responseBody.addProperty("username", decodedJWT.getSubject());
-            responseBody.addProperty("expiresAt", decodedJWT.getExpiresAt().getTime());
-            
-            sendSuccess(response, responseBody);
-        } catch (JWTVerificationException e) {
-            logger.log(Level.WARNING, "Token verification failed", e);
-            sendError(response, 401, "Invalid token");
-        }
+        ResponseUtils.sendSuccess(response, authResponse, 201);
     }
     
-    /**
-     * @requires request contains valid refresh token
-     * @ensures response contains new JWT token
-     */
-    private void handleRefresh(HttpRequest request, HttpResponse response) throws IOException {
-        BufferedReader reader = request.getReader();
-        RefreshRequest refreshRequest = gson.fromJson(reader, RefreshRequest.class);
-        
-        if (refreshRequest == null || refreshRequest.refreshToken == null) {
-            sendError(response, 400, "Invalid request body");
+    private void handleLogin(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
             return;
         }
         
-        try {
-            DecodedJWT decodedJWT = verifyRefreshToken(refreshRequest.refreshToken);
-            String username = decodedJWT.getSubject();
-            
-            String newToken = generateToken(username);
-            
-            JsonObject responseBody = new JsonObject();
-            responseBody.addProperty("token", newToken);
-            responseBody.addProperty("expiresIn", 3600); // 1 hour
-            
-            sendSuccess(response, responseBody);
-        } catch (JWTVerificationException e) {
-            logger.log(Level.WARNING, "Refresh token verification failed", e);
-            sendError(response, 401, "Invalid refresh token");
+        LoginRequest loginRequest = gson.fromJson(request.getReader(), LoginRequest.class);
+        
+        // Validate request
+        Set<ConstraintViolation<LoginRequest>> violations = 
+                ValidationUtils.validate(loginRequest);
+        if (!violations.isEmpty()) {
+            ResponseUtils.sendValidationErrors(response, violations);
+            return;
         }
-    }
-    
-    private boolean isValidUser(String username, String password) {
-        // Mock implementation - replace with actual authentication logic
-        return "admin".equals(username) && "password".equals(password);
-    }
-    
-    private String generateToken(String username) {
-        Instant now = Instant.now();
-        return JWT.create()
-            .withIssuer(JWT_ISSUER)
-            .withSubject(username)
-            .withIssuedAt(Date.from(now))
-            .withExpiresAt(Date.from(now.plus(1, ChronoUnit.HOURS)))
-            .sign(algorithm);
-    }
-    
-    private String generateRefreshToken(String username) {
-        Instant now = Instant.now();
-        return JWT.create()
-            .withIssuer(JWT_ISSUER)
-            .withSubject(username)
-            .withClaim("type", "refresh")
-            .withIssuedAt(Date.from(now))
-            .withExpiresAt(Date.from(now.plus(7, ChronoUnit.DAYS)))
-            .sign(algorithm);
-    }
-    
-    private DecodedJWT verifyToken(String token) throws JWTVerificationException {
-        JWTVerifier verifier = JWT.require(algorithm)
-            .withIssuer(JWT_ISSUER)
-            .build();
-        return verifier.verify(token);
-    }
-    
-    private DecodedJWT verifyRefreshToken(String token) throws JWTVerificationException {
-        JWTVerifier verifier = JWT.require(algorithm)
-            .withIssuer(JWT_ISSUER)
-            .withClaim("type", "refresh")
-            .build();
-        return verifier.verify(token);
-    }
-    
-    private void sendSuccess(HttpResponse response, JsonObject body) throws IOException {
-        response.setContentType("application/json");
-        response.setStatusCode(200);
-        PrintWriter writer = new PrintWriter(response.getWriter());
-        writer.print(gson.toJson(body));
-        writer.flush();
-    }
-    
-    private void sendError(HttpResponse response, int statusCode, String message) throws IOException {
-        response.setContentType("application/json");
-        response.setStatusCode(statusCode);
         
-        JsonObject error = new JsonObject();
-        error.addProperty("error", message);
-        error.addProperty("statusCode", statusCode);
+        // Process login
+        AuthResponse authResponse = authService.login(loginRequest)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         
-        PrintWriter writer = new PrintWriter(response.getWriter());
-        writer.print(gson.toJson(error));
-        writer.flush();
+        ResponseUtils.sendSuccess(response, authResponse);
     }
     
-    // Request/Response DTOs
-    static class LoginRequest {
-        String username;
-        String password;
+    private void handleGoogleLogin(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        GoogleLoginRequest googleRequest = gson.fromJson(request.getReader(), GoogleLoginRequest.class);
+        
+        // Validate request
+        Set<ConstraintViolation<GoogleLoginRequest>> violations = 
+                ValidationUtils.validate(googleRequest);
+        if (!violations.isEmpty()) {
+            ResponseUtils.sendValidationErrors(response, violations);
+            return;
+        }
+        
+        // Process Google login
+        AuthResponse authResponse = authService.googleLogin(googleRequest)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        ResponseUtils.sendSuccess(response, authResponse);
     }
     
-    static class RefreshRequest {
-        String refreshToken;
+    private void handleRefreshToken(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject requestBody = gson.fromJson(request.getReader(), JsonObject.class);
+        String refreshToken = requestBody.get("refresh_token").getAsString();
+        
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseUtils.sendError(response, 400, "Refresh token is required");
+            return;
+        }
+        
+        // Process token refresh
+        TokenResponse tokenResponse = authService.refreshToken(refreshToken)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        ResponseUtils.sendSuccess(response, tokenResponse);
+    }
+    
+    private void handleLogout(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject requestBody = gson.fromJson(request.getReader(), JsonObject.class);
+        String refreshToken = requestBody.get("refresh_token").getAsString();
+        boolean logoutAll = requestBody.has("logout_all") && 
+                requestBody.get("logout_all").getAsBoolean();
+        
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            ResponseUtils.sendError(response, 400, "Refresh token is required");
+            return;
+        }
+        
+        // Process logout
+        authService.logout(refreshToken, logoutAll)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        ResponseUtils.sendSuccess(response, new JsonObject());
+    }
+    
+    private void handleVerifyEmail(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject requestBody = gson.fromJson(request.getReader(), JsonObject.class);
+        String token = requestBody.get("token").getAsString();
+        
+        if (token == null || token.isEmpty()) {
+            ResponseUtils.sendError(response, 400, "Token is required");
+            return;
+        }
+        
+        // Process email verification
+        authService.verifyEmail(token)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        JsonObject successResponse = new JsonObject();
+        successResponse.addProperty("message", "Email verified successfully");
+        ResponseUtils.sendSuccess(response, successResponse);
+    }
+    
+    private void handlePasswordReset(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject requestBody = gson.fromJson(request.getReader(), JsonObject.class);
+        String email = requestBody.get("email").getAsString();
+        
+        if (email == null || email.isEmpty()) {
+            ResponseUtils.sendError(response, 400, "Email is required");
+            return;
+        }
+        
+        // Process password reset request
+        authService.initiatePasswordReset(email)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        JsonObject successResponse = new JsonObject();
+        successResponse.addProperty("message", "If the email exists, a reset link has been sent");
+        ResponseUtils.sendSuccess(response, successResponse);
+    }
+    
+    private void handleConfirmReset(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"POST".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject requestBody = gson.fromJson(request.getReader(), JsonObject.class);
+        String token = requestBody.get("token").getAsString();
+        String newPassword = requestBody.get("new_password").getAsString();
+        
+        if (token == null || token.isEmpty() || newPassword == null || newPassword.isEmpty()) {
+            ResponseUtils.sendError(response, 400, "Token and new password are required");
+            return;
+        }
+        
+        // Process password reset confirmation
+        authService.completePasswordReset(token, newPassword)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        JsonObject successResponse = new JsonObject();
+        successResponse.addProperty("message", "Password reset successfully");
+        ResponseUtils.sendSuccess(response, successResponse);
     }
 }
