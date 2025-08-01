@@ -70,11 +70,7 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Cloud Functions dynamically injects tasks that expect jar.archivePath
-// We must provide these properties as actual values, not providers
-afterEvaluate {
-    def jarTask = tasks.getByName('jar')
-    // Set the deprecated properties that Cloud Functions expects
-    jarTask.ext.archivePath = jarTask.archiveFile.get().asFile
-    jarTask.ext.archiveName = jarTask.archiveFileName.get()
-}
+// Immediately after jar task is configured, add the deprecated properties
+// This runs during script configuration phase, before Cloud Functions appends code
+jar.ext.archivePath = jar.archiveFile.get().asFile
+jar.ext.archiveName = jar.archiveFileName.get()
