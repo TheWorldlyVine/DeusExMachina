@@ -48,5 +48,9 @@ export const breakpoints = {
 
 // Convenience hooks for common breakpoints
 export const useIsMobile = () => !useMediaQuery(breakpoints.md);
-export const useIsTablet = () => useMediaQuery(breakpoints.md) && !useMediaQuery(breakpoints.lg);
+export const useIsTablet = () => {
+  const isMdScreen = useMediaQuery(breakpoints.md);
+  const isLgScreen = useMediaQuery(breakpoints.lg);
+  return isMdScreen && !isLgScreen;
+};
 export const useIsDesktop = () => useMediaQuery(breakpoints.lg);
