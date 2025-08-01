@@ -33,7 +33,7 @@ locals {
   environment = "prod"
   project_id  = var.project_id
   region      = "us-central1"
-  
+
   common_labels = {
     environment = local.environment
     managed-by  = "terraform"
@@ -131,31 +131,31 @@ locals {
 # Static Hosting for Frontend
 module "static_hosting" {
   source = "../../modules/static-hosting"
-  
+
   project_id   = local.project_id
   project_name = "deus-ex-machina"
   environment  = local.environment
   region       = local.region
-  
+
   # Enable test index.html for initial deployment
   deploy_test_index = true
-  
+
   # Enable API routing to Cloud Functions
   enable_api_routing = true
-  
+
   # Basic security features for production
   enable_cloud_armor = true
-  
+
   # CORS configuration - adjust as needed
   cors_origins = ["https://deus-ex-machina.com", "https://www.deus-ex-machina.com"]
-  
+
   # Cache policies
   cache_policies = {
     html_ttl   = 300      # 5 minutes for HTML
     static_ttl = 31536000 # 1 year for hashed assets
     image_ttl  = 2592000  # 30 days for images
   }
-  
+
   # Security headers
   security_headers = {
     enable_hsts               = true
@@ -164,6 +164,6 @@ module "static_hosting" {
     enable_frame_options      = true
     csp_policy               = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com;"
   }
-  
+
   labels = local.common_labels
 }

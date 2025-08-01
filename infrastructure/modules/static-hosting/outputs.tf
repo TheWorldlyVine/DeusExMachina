@@ -32,16 +32,16 @@ output "deployment_instructions" {
   description = "Instructions for deploying static files"
   value = <<-EOT
     To deploy static files to the bucket:
-    
+
     1. Build your frontend application:
        pnpm run build
-    
+
     2. Deploy to the bucket:
        gsutil -m rsync -r -d dist/ gs://${google_storage_bucket.static_site.name}/
-    
+
     3. Invalidate CDN cache (if needed):
        gcloud compute url-maps invalidate-cdn-cache ${google_compute_url_map.static_url_map.name} --path "/*"
-    
+
     Access your site at: ${var.domain_name != null ? "https://${var.domain_name}" : "https://${google_compute_global_address.static_ip.address}"}
   EOT
 }

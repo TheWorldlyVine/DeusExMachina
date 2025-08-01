@@ -1,7 +1,7 @@
 # Static Hosting Module for DeusExMachina Frontend
 
 locals {
-  bucket_name = "${var.project_id}-${var.environment}-static"
+  bucket_name = "${var.project_id}-${var.environment}-static-site"
 }
 
 # Cloud Storage bucket for static files
@@ -9,25 +9,25 @@ resource "google_storage_bucket" "static_site" {
   name          = local.bucket_name
   location      = var.region
   force_destroy = var.force_destroy
-  
+
   uniform_bucket_level_access = true
   
   website {
     main_page_suffix = "index.html"
     not_found_page   = "404.html"
   }
-  
+
   cors {
     origin          = var.cors_origins
     method          = ["GET", "HEAD", "OPTIONS"]
     response_header = ["*"]
     max_age_seconds = 3600
   }
-  
+
   versioning {
     enabled = true
   }
-  
+
   lifecycle_rule {
     condition {
       num_newer_versions = 5
@@ -37,7 +37,7 @@ resource "google_storage_bucket" "static_site" {
       type = "Delete"
     }
   }
-  
+
   labels = merge(
     var.labels,
     {
@@ -59,19 +59,19 @@ resource "google_compute_backend_bucket" "static_backend" {
   name        = "${var.project_name}-${var.environment}-backend-bucket"
   bucket_name = google_storage_bucket.static_site.name
   enable_cdn  = true
-  
+
   cdn_policy {
     cache_mode        = "CACHE_ALL_STATIC"
     default_ttl       = 300  # 5 minutes for HTML
     max_ttl          = 86400 # 24 hours max
     client_ttl       = 300
     negative_caching = true
-    
+
     negative_caching_policy {
       code = 404
       ttl  = 120
     }
-    
+
     negative_caching_policy {
       code = 410
       ttl  = 120
@@ -87,9 +87,9 @@ resource "google_compute_global_address" "static_ip" {
 # SSL Certificate (Google-managed)
 resource "google_compute_managed_ssl_certificate" "static_cert" {
   count = var.domain_name != null ? 1 : 0
-  
+
   name = "${var.project_name}-${var.environment}-static-cert"
-  
+
   managed {
     domains = [var.domain_name]
   }
@@ -98,11 +98,11 @@ resource "google_compute_managed_ssl_certificate" "static_cert" {
 # Self-signed SSL Certificate for testing (when no domain is provided)
 resource "google_compute_ssl_certificate" "static_self_signed" {
   count = var.domain_name == null ? 1 : 0
-  
+
   name        = "${var.project_name}-${var.environment}-static-self-signed"
   private_key = tls_private_key.static_key[0].private_key_pem
   certificate = tls_self_signed_cert.static_cert[0].cert_pem
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -119,14 +119,14 @@ resource "tls_private_key" "static_key" {
 resource "tls_self_signed_cert" "static_cert" {
   count           = var.domain_name == null ? 1 : 0
   private_key_pem = tls_private_key.static_key[0].private_key_pem
-  
+
   subject {
     common_name  = "${var.project_name}.example.com"
     organization = "DeusExMachina"
   }
-  
+
   validity_period_hours = 8760 # 1 year
-  
+
   allowed_uses = [
     "key_encipherment",
     "digital_signature",
@@ -139,7 +139,7 @@ resource "google_compute_health_check" "static_health" {
   name               = "${var.project_name}-${var.environment}-static-health"
   check_interval_sec = 10
   timeout_sec        = 5
-  
+
   http_health_check {
     port         = 443
     request_path = "/"
@@ -150,7 +150,7 @@ resource "google_compute_health_check" "static_health" {
 resource "google_compute_url_map" "static_url_map" {
   name            = "${var.project_name}-${var.environment}-static-url-map"
   default_service = google_compute_backend_bucket.static_backend.id
-  
+
   # Route API calls to Cloud Functions
   dynamic "host_rule" {
     for_each = var.enable_api_routing ? [1] : []
@@ -159,13 +159,13 @@ resource "google_compute_url_map" "static_url_map" {
       path_matcher = "api-routes"
     }
   }
-  
+
   dynamic "path_matcher" {
     for_each = var.enable_api_routing ? [1] : []
     content {
       name            = "api-routes"
       default_service = google_compute_backend_bucket.static_backend.id
-      
+
       # This would be configured to route to Cloud Functions
       # For now, using the same backend as placeholder
       path_rule {
@@ -208,17 +208,17 @@ resource "google_compute_global_forwarding_rule" "static_http" {
 # Output the index.html file for initial testing
 resource "google_storage_bucket_object" "index_html" {
   count = var.deploy_test_index ? 1 : 0
-  
+
   name   = "index.html"
   bucket = google_storage_bucket.static_site.name
-  
+
   content = templatefile("${path.module}/templates/index.html.tpl", {
     project_name = var.project_name
     environment  = var.environment
     timestamp    = timestamp()
   })
-  
+
   content_type = "text/html"
-  
+
   cache_control = "public, max-age=300"
 }

@@ -3,42 +3,42 @@
 # Custom cache key policy for better cache performance
 resource "google_compute_backend_bucket" "static_backend_custom" {
   count = var.enable_advanced_cdn ? 1 : 0
-  
+
   name        = "${var.project_name}-${var.environment}-backend-bucket-custom"
   bucket_name = google_storage_bucket.static_site.name
   enable_cdn  = true
-  
+
   cdn_policy {
     cache_mode = "USE_ORIGIN_HEADERS"
-    
+
     # Cache based on query strings for cache busting
     cache_key_policy {
       include_http_headers = []
       query_string_whitelist = ["v", "version"]
     }
-    
+
     # Different TTLs for different content types
     default_ttl = var.cache_policies.html_ttl
     max_ttl     = var.cache_policies.static_ttl
     client_ttl  = var.cache_policies.html_ttl
-    
+
     # Enable negative caching
     negative_caching = true
-    
+
     negative_caching_policy {
       code = 404
       ttl  = 120
     }
-    
+
     negative_caching_policy {
       code = 410
       ttl  = 120
     }
-    
+
     # Serve stale content while revalidating
     serve_while_stale = 86400
   }
-  
+
   # Custom headers for security
   custom_response_headers = concat(
     var.security_headers.enable_hsts ? ["Strict-Transport-Security: max-age=31536000; includeSubDomains"] : [],
@@ -52,9 +52,9 @@ resource "google_compute_backend_bucket" "static_backend_custom" {
 # Edge security policies using Cloud Armor
 resource "google_compute_security_policy" "static_security" {
   count = var.enable_cloud_armor ? 1 : 0
-  
+
   name = "${var.project_name}-${var.environment}-static-security"
-  
+
   # Default rule
   rule {
     action   = "allow"
@@ -67,7 +67,7 @@ resource "google_compute_security_policy" "static_security" {
     }
     description = "Default allow rule"
   }
-  
+
   # Rate limiting rule
   rule {
     action   = "rate_based_ban"
@@ -82,17 +82,17 @@ resource "google_compute_security_policy" "static_security" {
       conform_action = "allow"
       exceed_action  = "deny(429)"
       enforce_on_key = "IP"
-      
+
       rate_limit_threshold {
         count        = 100
         interval_sec = 60
       }
-      
+
       ban_duration_sec = 600 # Ban for 10 minutes
     }
     description = "Rate limiting rule"
   }
-  
+
   # Block sensitive files - Part 1
   rule {
     action   = "deny(403)"
@@ -106,7 +106,7 @@ resource "google_compute_security_policy" "static_security" {
     }
     description = "Block access to sensitive files (git, svn, env, config, bak)"
   }
-  
+
   # Block sensitive files - Part 2
   rule {
     action   = "deny(403)"
@@ -120,7 +120,7 @@ resource "google_compute_security_policy" "static_security" {
     }
     description = "Block access to sensitive files (backup, sql, db, log)"
   }
-  
+
   # Geo-blocking (example - adjust as needed)
   dynamic "rule" {
     for_each = length(var.blocked_countries) > 0 ? [1] : []
@@ -140,11 +140,11 @@ resource "google_compute_security_policy" "static_security" {
 # Additional cache invalidation cloud function (optional)
 resource "google_cloudfunctions2_function" "cache_invalidator" {
   count = var.enable_cache_invalidator ? 1 : 0
-  
+
   name        = "${var.project_name}-${var.environment}-cache-invalidator"
   location    = var.region
   description = "Function to invalidate CDN cache on deployment"
-  
+
   build_config {
     runtime     = "nodejs20"
     entry_point = "invalidateCache"
@@ -155,16 +155,16 @@ resource "google_cloudfunctions2_function" "cache_invalidator" {
       }
     }
   }
-  
+
   service_config {
     max_instance_count = 1
     timeout_seconds    = 60
-    
+
     environment_variables = {
       URL_MAP_NAME = google_compute_url_map.static_url_map.name
       PROJECT_ID   = var.project_id
     }
-    
+
     service_account_email = google_service_account.cache_invalidator_sa[0].email
   }
 }
@@ -172,7 +172,7 @@ resource "google_cloudfunctions2_function" "cache_invalidator" {
 # Service account for cache invalidator
 resource "google_service_account" "cache_invalidator_sa" {
   count = var.enable_cache_invalidator ? 1 : 0
-  
+
   account_id   = "${var.project_name}-${var.environment}-cache-inv"
   display_name = "Cache Invalidator Service Account"
   description  = "Service account for CDN cache invalidation"
@@ -181,7 +181,7 @@ resource "google_service_account" "cache_invalidator_sa" {
 # IAM permissions for cache invalidator
 resource "google_project_iam_member" "cache_invalidator_permissions" {
   count = var.enable_cache_invalidator ? 1 : 0
-  
+
   project = var.project_id
   role    = "roles/compute.urlMapAdmin"
   member  = "serviceAccount:${google_service_account.cache_invalidator_sa[0].email}"
@@ -190,7 +190,7 @@ resource "google_project_iam_member" "cache_invalidator_permissions" {
 # Source code for cache invalidator function
 resource "google_storage_bucket_object" "cache_invalidator_source" {
   count = var.enable_cache_invalidator ? 1 : 0
-  
+
   name   = "cache-invalidator-${data.archive_file.cache_invalidator_zip[0].output_md5}.zip"
   bucket = google_storage_bucket.static_site.name
   source = data.archive_file.cache_invalidator_zip[0].output_path
@@ -198,15 +198,15 @@ resource "google_storage_bucket_object" "cache_invalidator_source" {
 
 data "archive_file" "cache_invalidator_zip" {
   count = var.enable_cache_invalidator ? 1 : 0
-  
+
   type        = "zip"
   output_path = "${path.module}/cache-invalidator.zip"
-  
+
   source {
     content  = file("${path.module}/functions/cache-invalidator.js")
     filename = "index.js"
   }
-  
+
   source {
     content  = file("${path.module}/functions/package.json")
     filename = "package.json"

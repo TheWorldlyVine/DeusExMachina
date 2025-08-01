@@ -10,7 +10,7 @@ resource "google_service_account" "function_sa" {
 
 resource "google_project_iam_member" "function_roles" {
   for_each = toset(var.service_account_roles)
-  
+
   project = var.project_id
   role    = each.value
   member  = "serviceAccount:${google_service_account.function_sa.email}"
@@ -37,7 +37,7 @@ resource "google_storage_bucket_object" "function_source" {
   name   = "${var.function_name}-${var.source_archive_path != null ? filemd5(var.source_archive_path) : "placeholder"}.zip"
   bucket = google_storage_bucket.source.name
   source = var.source_archive_path != null ? var.source_archive_path : "${path.module}/placeholder.zip"
-  
+
   lifecycle {
     ignore_changes = [name, source]
   }
@@ -47,7 +47,7 @@ resource "google_cloudfunctions2_function" "function" {
   name        = var.function_name
   location    = var.region
   description = var.description
-  
+
   build_config {
     runtime     = var.runtime
     entry_point = var.entry_point
@@ -58,7 +58,7 @@ resource "google_cloudfunctions2_function" "function" {
       }
     }
   }
-  
+
   service_config {
     max_instance_count               = var.max_instances
     min_instance_count               = var.min_instances
@@ -68,9 +68,9 @@ resource "google_cloudfunctions2_function" "function" {
     ingress_settings                 = var.ingress_settings
     all_traffic_on_latest_revision   = true
     max_instance_request_concurrency = var.max_concurrent_requests
-    
+
     environment_variables = var.env_vars
-    
+
     dynamic "secret_environment_variables" {
       for_each = var.secret_env_vars
       content {
