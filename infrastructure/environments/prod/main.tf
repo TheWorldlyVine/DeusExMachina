@@ -158,11 +158,11 @@ module "static_hosting" {
 
   # Security headers
   security_headers = {
-    enable_hsts               = true
+    enable_hsts                 = true
     enable_content_type_options = true
-    enable_xss_protection     = true
-    enable_frame_options      = true
-    csp_policy               = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com;"
+    enable_xss_protection       = true
+    enable_frame_options        = true
+    csp_policy                  = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com;"
   }
 
   labels = local.common_labels

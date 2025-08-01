@@ -30,7 +30,7 @@ output "cdn_backend_id" {
 
 output "deployment_instructions" {
   description = "Instructions for deploying static files"
-  value = <<-EOT
+  value       = <<-EOT
     To deploy static files to the bucket:
 
     1. Build your frontend application:

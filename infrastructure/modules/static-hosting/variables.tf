@@ -69,7 +69,7 @@ variable "labels" {
 variable "cache_policies" {
   description = "Cache policies for different file types"
   type = object({
-    html_ttl   = optional(number, 300)    # 5 minutes
+    html_ttl   = optional(number, 300)      # 5 minutes
     static_ttl = optional(number, 31536000) # 1 year for hashed assets
     image_ttl  = optional(number, 2592000)  # 30 days
   })
@@ -79,11 +79,11 @@ variable "cache_policies" {
 variable "security_headers" {
   description = "Security headers to apply"
   type = object({
-    enable_hsts               = optional(bool, true)
+    enable_hsts                 = optional(bool, true)
     enable_content_type_options = optional(bool, true)
-    enable_xss_protection     = optional(bool, true)
-    enable_frame_options      = optional(bool, true)
-    csp_policy               = optional(string, null)
+    enable_xss_protection       = optional(bool, true)
+    enable_frame_options        = optional(bool, true)
+    csp_policy                  = optional(string, null)
   })
   default = {}
 }

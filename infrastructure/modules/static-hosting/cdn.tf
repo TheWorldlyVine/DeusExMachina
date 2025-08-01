@@ -13,7 +13,7 @@ resource "google_compute_backend_bucket" "static_backend_custom" {
 
     # Cache based on query strings for cache busting
     cache_key_policy {
-      include_http_headers = []
+      include_http_headers   = []
       query_string_whitelist = ["v", "version"]
     }
 

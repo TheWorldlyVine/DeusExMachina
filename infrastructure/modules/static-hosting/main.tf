@@ -61,8 +61,8 @@ resource "google_compute_backend_bucket" "static_backend" {
   enable_cdn  = true
 
   cdn_policy {
-    cache_mode        = "CACHE_ALL_STATIC"
-    default_ttl       = 300  # 5 minutes for HTML
+    cache_mode       = "CACHE_ALL_STATIC"
+    default_ttl      = 300   # 5 minutes for HTML
     max_ttl          = 86400 # 24 hours max
     client_ttl       = 300
     negative_caching = true
