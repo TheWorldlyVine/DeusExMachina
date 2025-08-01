@@ -22,7 +22,8 @@
       "Bash(find:*)",
       "Bash(./gradlew build:*)",
       "Bash(./gradlew:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
