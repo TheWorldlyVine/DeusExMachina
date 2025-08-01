@@ -15,28 +15,30 @@ configure({
 // which returns class names as-is for testing
 
 // Mock framer-motion globally
+interface MockMotionProps {
+  children?: React.ReactNode
+  [key: string]: unknown
+}
+
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<typeof import('react')>('react')
   const React = actual
-  
-  interface MotionProps {
-    children?: React.ReactNode
-    [key: string]: unknown
-  }
   
   return {
     motion: new Proxy({}, {
       get: (_target, prop) => {
         // Return a component that renders the HTML element
-        const Component = React.forwardRef<HTMLElement, MotionProps>((props, ref) => {
-          const { children, ...rest } = props
-          return React.createElement(prop as string, { ...rest, ref }, children)
+        const Component = React.forwardRef<HTMLElement, MockMotionProps>((props, ref) => {
+          return React.createElement(
+            prop as string, 
+            { ...props, ref }
+          )
         })
         Component.displayName = `motion.${String(prop)}`
         return Component
       }
     }),
-    AnimatePresence: ({ children }: { children?: React.ReactNode }) => children,
+    AnimatePresence: ({ children }: MockMotionProps) => children,
   }
 })
 
