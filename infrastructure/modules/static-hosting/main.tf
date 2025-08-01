@@ -10,7 +10,25 @@ resource "google_storage_bucket" "static_site" {
   location      = var.region
   force_destroy = var.force_destroy
 
+  # Security: Use uniform bucket-level access
   uniform_bucket_level_access = true
+
+  # Security: Enable encryption
+  dynamic "encryption" {
+    for_each = var.kms_key_name != null ? [1] : []
+    content {
+      default_kms_key_name = var.kms_key_name
+    }
+  }
+
+  # Logging configuration
+  dynamic "logging" {
+    for_each = var.enable_logging ? [1] : []
+    content {
+      log_bucket        = var.log_bucket
+      log_object_prefix = "storage-logs/${local.bucket_name}/"
+    }
+  }
 
   website {
     main_page_suffix = "index.html"

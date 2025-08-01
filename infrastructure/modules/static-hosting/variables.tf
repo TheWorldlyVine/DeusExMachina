@@ -111,3 +111,21 @@ variable "enable_cache_invalidator" {
   type        = bool
   default     = false
 }
+
+variable "kms_key_name" {
+  description = "KMS key for bucket encryption (optional, uses Google-managed encryption if not specified)"
+  type        = string
+  default     = null
+}
+
+variable "enable_logging" {
+  description = "Enable access logging for the bucket"
+  type        = bool
+  default     = false
+}
+
+variable "log_bucket" {
+  description = "Name of the bucket to store access logs (required if enable_logging is true)"
+  type        = string
+  default     = null
+}

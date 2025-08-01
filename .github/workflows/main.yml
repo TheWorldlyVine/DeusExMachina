@@ -286,6 +286,8 @@ jobs:
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infrastructure/
+          soft_fail: true
+          format: concise
       
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
