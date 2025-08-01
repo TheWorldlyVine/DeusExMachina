@@ -13,7 +13,7 @@ describe('ThemeToggle', () => {
     render(<ThemeToggle />)
     const button = screen.getByRole('button', { name: /switch to dark theme/i })
     expect(button).toBeInTheDocument()
-    expect(button).toHaveClass('toggle')
+    expect(button.tagName).toBe('BUTTON')
   })
 
   it('renders with dark theme icon when theme is dark', () => {

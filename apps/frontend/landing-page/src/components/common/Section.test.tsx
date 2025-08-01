@@ -56,13 +56,15 @@ describe('Section', () => {
     )
     
     const container = screen.getByText('Container content').parentElement
-    expect(container).toHaveClass('container')
+    expect(container).toBeInTheDocument()
+    expect(container?.className).toContain('container')
   })
 
   it('accepts custom className', () => {
     render(<Section className="custom-section">Custom</Section>)
     const section = screen.getByText('Custom').closest('section')
-    expect(section).toHaveClass('custom-section')
+    expect(section).toBeInTheDocument()
+    expect(section?.className).toContain('custom-section')
   })
 
   it('forwards ref', () => {

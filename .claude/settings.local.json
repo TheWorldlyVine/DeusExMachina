@@ -15,7 +15,8 @@
       "Bash(rm:*)",
       "Bash(chmod:*)",
       "Bash(git restore:*)",
-      "Bash(./scripts/pre-commit-check.sh:*)"
+      "Bash(./scripts/pre-commit-check.sh:*)",
+      "Bash(./check-landing-page.sh:*)"
     ],
     "deny": []
   }
