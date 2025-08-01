@@ -57,4 +57,14 @@ tasks.register("runFunction", JavaExec) {
 // Configure the jar task for Cloud Functions
 jar {
     enabled = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Compatibility shim for Cloud Functions
+afterEvaluate {
+    tasks.named('jar') {
+        // Provide deprecated properties for compatibility
+        ext.set('archivePath', archiveFile.get().asFile)
+        ext.set('archiveName', archiveFileName.get())
+    }
 }
