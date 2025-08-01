@@ -65,7 +65,18 @@ gcloud services enable \
   logging.googleapis.com \
   monitoring.googleapis.com \
   dns.googleapis.com \
-  certificatemanager.googleapis.com
+  certificatemanager.googleapis.com \
+  firestore.googleapis.com \
+  redis.googleapis.com \
+  sqladmin.googleapis.com
+
+# IMPORTANT: For Cloud Functions v2 (used by default), also enable:
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  pubsub.googleapis.com \
+  eventarc.googleapis.com \
+  --project=$PROJECT_ID
 ```
 
 ### 3. Create Service Account for Terraform
@@ -109,14 +120,78 @@ gsutil versioning set on gs://$PROJECT_ID-terraform-state/
 gsutil uniformbucketlevelaccess set on gs://$PROJECT_ID-terraform-state/
 ```
 
-### 5. Configure GitHub Secrets
+### 5. Create Service Account for GitHub Actions
+
+GitHub Actions needs a service account to deploy Cloud Functions and manage infrastructure:
+
+```bash
+# Create service account for GitHub Actions
+gcloud iam service-accounts create github-actions-sa \
+  --display-name="GitHub Actions Service Account" \
+  --description="Service account for GitHub Actions CI/CD"
+
+# Store the service account email for later use
+export SA_EMAIL="github-actions-sa@$PROJECT_ID.iam.gserviceaccount.com"
+
+# Grant necessary roles for Cloud Functions deployment
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/cloudfunctions.admin"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/iam.serviceAccountUser"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/storage.admin"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/artifactregistry.admin"
+
+# Additional roles for infrastructure management
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/compute.networkAdmin"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/compute.loadBalancerAdmin"
+
+# Create and download service account key
+gcloud iam service-accounts keys create github-actions-key.json \
+  --iam-account=$SA_EMAIL
+
+# IMPORTANT: This key will be used in GitHub Secrets
+```
+
+### 6. Configure GitHub Secrets
 
 Add the following secrets to your GitHub repository (Settings → Secrets and variables → Actions):
 
-- `GCP_SA_KEY`: Contents of the service account key JSON file
-- `GCP_PROJECT_ID`: Your GCP project ID
+1. Go to your repository on GitHub
+2. Navigate to Settings → Secrets and variables → Actions
+3. Click "New repository secret" and add:
+   - **Name**: `GCP_SA_KEY`
+   - **Value**: Copy the entire contents of `github-actions-key.json`
+   - Click "Add secret"
+4. Add another secret:
+   - **Name**: `GCP_PROJECT_ID`
+   - **Value**: Your GCP project ID (e.g., `deus-ex-machina-prod`)
+   - Click "Add secret"
 
-### 6. Deploy Infrastructure via GitHub Actions
+**Security Notes:**
+- Never commit service account keys to Git
+- Delete local key files after adding to GitHub Secrets: `rm github-actions-key.json terraform-key.json`
+- Service account keys don't expire but should be rotated periodically
+- You can create multiple keys for the same service account if needed
+
+### 7. Deploy Infrastructure via GitHub Actions
 
 The infrastructure is deployed automatically through GitHub Actions:
 
@@ -134,7 +209,7 @@ The workflow will:
 
 **No local Terraform required!**
 
-### 7. Deploy Initial Test Page
+### 8. Deploy Initial Test Page
 
 ```bash
 # The test index.html is automatically deployed by Terraform
@@ -145,7 +220,7 @@ echo "Visit: https://$(terraform output -raw static_hosting_ip)"
 gsutil -m cp index.html gs://$(terraform output -raw static_hosting_bucket)/
 ```
 
-### 8. Configure Custom Domain (Optional)
+### 9. Configure Custom Domain (Optional)
 
 1. Add an A record in your DNS pointing to the static IP:
    ```
@@ -164,7 +239,7 @@ gsutil -m cp index.html gs://$(terraform output -raw static_hosting_bucket)/
    terraform apply
    ```
 
-### 9. Local Development Authentication
+### 10. Local Development Authentication
 
 For local development, authenticate with GCP:
 
@@ -321,6 +396,22 @@ The project uses GitHub Actions for continuous integration and deployment:
    - Verify GCP_SA_KEY secret is set correctly
    - Check if service account has storage.admin role
    - Ensure bucket name and URL map name secrets are correct
+
+6. **Cloud Functions deployment error: "Cannot access API run.googleapis.com"**
+   ```bash
+   # This means Cloud Run API is not enabled (required for Cloud Functions v2)
+   # Enable the missing APIs:
+   gcloud services enable run.googleapis.com --project=$PROJECT_ID
+   gcloud services enable artifactregistry.googleapis.com --project=$PROJECT_ID
+   
+   # Verify the service account has proper roles:
+   gcloud projects add-iam-policy-binding $PROJECT_ID \
+     --member="serviceAccount:github-actions-sa@$PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/run.admin"
+   
+   # If you prefer Cloud Functions v1, modify .github/workflows/main.yml:
+   # Change the deploy action to use gen: 1
+   ```
 
 ## Static Hosting Features
 
