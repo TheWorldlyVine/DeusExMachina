@@ -194,6 +194,8 @@ jobs:
           if [ -z "$BUCKET_NAME" ]; then
             # Convert underscores to hyphens for valid bucket names
             SAFE_PROJECT_ID=$(echo "${PROJECT_ID}" | tr '_' '-')
+            # Terraform creates bucket with pattern: project_id-environment-static
+            # Since our PROJECT_ID is "deus-ex-machina-prod", this results in double "prod"
             BUCKET_NAME="${SAFE_PROJECT_ID}-prod-static"
           fi
           
