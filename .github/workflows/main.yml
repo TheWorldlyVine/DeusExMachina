@@ -246,8 +246,15 @@ jobs:
           # Deploy the landing page to root
           if [ -d "apps/frontend/landing-page/dist" ]; then
             echo "Deploying landing-page to root path"
+            echo "Contents of dist folder:"
+            ls -la apps/frontend/landing-page/dist/
             gsutil -m rsync -r -d apps/frontend/landing-page/dist/ gs://${BUCKET_NAME}/
             gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
+            echo "Deployment complete. Verifying bucket contents:"
+            gsutil ls -la gs://${BUCKET_NAME}/ | head -20
+          else
+            echo "ERROR: Landing page dist folder not found!"
+            ls -la apps/frontend/landing-page/
           fi
       
       - name: Invalidate CDN Cache
