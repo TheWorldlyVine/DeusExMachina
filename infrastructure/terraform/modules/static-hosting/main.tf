@@ -1,6 +1,6 @@
 # Google Cloud Storage bucket for static frontend hosting
 resource "google_storage_bucket" "frontend_static" {
-  name          = "${var.project_id}-frontend-static"
+  name          = "${var.project_id}-prod-static-site"
   location      = var.region
   force_destroy = false
 

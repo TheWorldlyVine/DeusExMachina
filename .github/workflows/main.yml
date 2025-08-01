@@ -175,7 +175,9 @@ jobs:
           
           # If BUCKET_NAME is not set, construct it from PROJECT_ID
           if [ -z "$BUCKET_NAME" ]; then
-            BUCKET_NAME="${PROJECT_ID}-prod-static"
+            # Convert underscores to hyphens for valid bucket names
+            SAFE_PROJECT_ID=$(echo "${PROJECT_ID}" | tr '_' '-')
+            BUCKET_NAME="${SAFE_PROJECT_ID}-prod-static-site"
           fi
           
           echo "Project ID: ${PROJECT_ID}"
