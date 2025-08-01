@@ -274,14 +274,49 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Setup Terraform Backend
+        run: |
+          PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          BUCKET_NAME="${PROJECT_ID}-terraform-state"
+          SERVICE_ACCOUNT="terraform-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+          
+          # Use gcloud storage instead of gsutil for better auth handling
+          # Create state bucket if it doesn't exist
+          if ! gcloud storage buckets describe gs://${BUCKET_NAME} &> /dev/null; then
+            echo "Creating Terraform state bucket: gs://${BUCKET_NAME}"
+            gcloud storage buckets create gs://${BUCKET_NAME} \
+              --project=${PROJECT_ID} \
+              --default-storage-class=STANDARD \
+              --location=us-central1 \
+              --uniform-bucket-level-access
+            
+            # Enable versioning
+            gcloud storage buckets update gs://${BUCKET_NAME} --versioning
+          else
+            echo "Terraform state bucket already exists: gs://${BUCKET_NAME}"
+          fi
+          
+          # Grant the service account permissions to the bucket
+          echo "Granting storage permissions to service account..."
+          gcloud storage buckets add-iam-policy-binding gs://${BUCKET_NAME} \
+            --member="serviceAccount:${SERVICE_ACCOUNT}" \
+            --role="roles/storage.objectAdmin"
+      
       - name: Terraform Init
         run: |
-          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
-          terraform init
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=terraform/state"
       
       - name: Terraform Plan
         run: |
-          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
           terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -out=tfplan
       
       - name: Upload Terraform Plan
@@ -293,5 +328,30 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: |
-          cd infrastructure/environments/production
+          cd infrastructure/environments/prod
           terraform apply -auto-approve tfplan
+      
+      - name: Export Outputs
+        if: github.ref == 'refs/heads/main'
+        id: outputs
+        run: |
+          cd infrastructure/environments/prod
+          # Export key outputs as GitHub variables
+          echo "STATIC_HOSTING_BUCKET=$(terraform output -raw static_hosting_bucket)" >> $GITHUB_ENV
+          echo "STATIC_HOSTING_IP=$(terraform output -raw static_hosting_ip)" >> $GITHUB_ENV
+          echo "STATIC_HOSTING_URL=$(terraform output -raw static_hosting_url)" >> $GITHUB_ENV
+      
+      - name: Post Deployment Summary
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd infrastructure/environments/prod
+          echo "## 🚀 Infrastructure Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Outputs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Static Hosting URL**: $(terraform output -raw static_hosting_url)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bucket Name**: $(terraform output -raw static_hosting_bucket)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Static IP**: $(terraform output -raw static_hosting_ip)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. The frontend will be automatically deployed on the next push" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update DNS records if using custom domain" >> $GITHUB_STEP_SUMMARY
