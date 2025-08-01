@@ -21,7 +21,8 @@
       "Bash(mkdir:*)",
       "Bash(find:*)",
       "Bash(./gradlew build:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }
