@@ -54,8 +54,7 @@ tasks.register("runFunction", JavaExec) {
     }
 }
 
+// Configure the jar task for Cloud Functions
 jar {
-    manifest {
-        attributes 'Main-Class': 'com.deusexmachina.functions.ApiFunction'
-    }
+    enabled = true
 }
