@@ -11,7 +11,7 @@ resource "google_storage_bucket" "static_site" {
   force_destroy = var.force_destroy
 
   uniform_bucket_level_access = true
-  
+
   website {
     main_page_suffix = "index.html"
     not_found_page   = "404.html"
