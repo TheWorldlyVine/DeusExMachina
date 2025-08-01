@@ -15,8 +15,19 @@ dependencies {
     // Core dependencies
     compileOnly 'com.google.cloud.functions:functions-framework-api:1.1.0'
     
-    // Shared utilities
-    implementation project(':shared')
+    // Note: Shared utilities are copied directly into this project for Cloud Functions deployment
+    
+    // Dependencies from shared module
+    implementation 'com.google.guava:guava:32.1.3-jre'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'jakarta.el:jakarta.el-api:5.0.1'
+    implementation 'org.glassfish:jakarta.el:5.0.0-M1'
+    implementation 'org.apache.commons:commons-lang3:3.13.0'
+    implementation 'org.apache.commons:commons-text:1.11.0'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.9'
     
     // Authentication libraries
     implementation 'com.auth0:java-jwt:4.4.0'
@@ -36,15 +47,6 @@ dependencies {
     
     // Email service
     implementation 'com.sendgrid:sendgrid-java:4.10.1'
-    
-    // JSON processing
-    implementation 'com.google.code.gson:gson:2.10.1'
-    
-    // Validation
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-    implementation 'jakarta.el:jakarta.el-api:5.0.1'
-    implementation 'org.glassfish:jakarta.el:5.0.0-M1'
     
     // Dependency Injection
     implementation 'com.google.inject:guice:7.0.0'
