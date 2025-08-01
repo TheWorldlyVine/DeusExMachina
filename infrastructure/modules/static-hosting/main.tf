@@ -1,7 +1,7 @@
 # Static Hosting Module for DeusExMachina Frontend
 
 locals {
-  bucket_name = "${var.project_id}-${var.environment}-static-site"
+  bucket_name = "${var.project_id}-${var.environment}-static"
 }
 
 # Cloud Storage bucket for static files
