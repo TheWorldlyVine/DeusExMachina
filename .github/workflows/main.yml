@@ -43,8 +43,8 @@ jobs:
 
   # Java Backend CI/CD
   backend:
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    needs: [changes, infrastructure]
+    if: always() && needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -98,8 +98,8 @@ jobs:
 
   # Frontend CI/CD
   frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    needs: [changes, infrastructure]
+    if: always() && (needs.changes.outputs.frontend == 'true' || needs.infrastructure.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -249,7 +249,7 @@ jobs:
   # Infrastructure CI/CD
   infrastructure:
     needs: changes
-    if: needs.changes.outputs.infrastructure == 'true'
+    if: always() && (needs.changes.outputs.infrastructure == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -274,13 +274,13 @@ jobs:
       
       - name: Terraform Init
         run: |
-          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
           terraform init
       
       - name: Terraform Plan
         run: |
-          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
-          terraform plan -out=tfplan
+          cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'production' }}
+          terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -out=tfplan
       
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
@@ -291,5 +291,5 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: |
-          cd infrastructure/environments/prod
+          cd infrastructure/environments/production
           terraform apply -auto-approve tfplan
