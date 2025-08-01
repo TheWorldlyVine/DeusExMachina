@@ -58,11 +58,3 @@ tasks.register("runFunction", JavaExec) {
 jar {
     enabled = true
 }
-
-// Workaround for Cloud Functions using deprecated archivePath
-tasks.withType(Jar) {
-    doFirst {
-        // Provide archivePath for backward compatibility
-        ext.archivePath = archiveFile.get().asFile
-    }
-}
