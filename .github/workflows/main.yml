@@ -106,6 +106,17 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       
+      - name: Set function entry point
+        id: entry_point
+        run: |
+          if [ "${{ matrix.function }}" = "auth-function" ]; then
+            echo "entry_point=com.deusexmachina.functions.AuthFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "api-function" ]; then
+            echo "entry_point=com.deusexmachina.functions.ApiFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "processor-function" ]; then
+            echo "entry_point=com.deusexmachina.functions.ProcessorFunction" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Deploy to GCP
         if: github.ref == 'refs/heads/main'
         uses: google-github-actions/deploy-cloud-functions@v3
@@ -113,7 +124,7 @@ jobs:
           name: ${{ matrix.function }}
           runtime: java21
           source_dir: apps/backend/${{ matrix.function }}
-          entry_point: com.deusexmachina.functions.AuthFunction
+          entry_point: ${{ steps.entry_point.outputs.entry_point }}
           region: us-central1
 
   # Frontend CI/CD

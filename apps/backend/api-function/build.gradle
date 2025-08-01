@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    // Core dependencies
+    compileOnly 'com.google.cloud.functions:functions-framework-api:1.1.0'
+    
+    // Shared utilities
+    implementation project(':shared')
+    
+    // JSON processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Local development invoker
+    invoker 'com.google.cloud.functions.invoker:java-function-invoker:1.3.2'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.truth:truth:1.1.5'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+}
+
+configurations {
+    invoker
+}
+
+// Task for running function locally
+tasks.register("runFunction", JavaExec) {
+    main = 'com.google.cloud.functions.invoker.runner.Invoker'
+    classpath(configurations.invoker)
+    inputs.files(configurations.runtimeClasspath, sourceSets.main.output)
+    args(
+        '--target', 'com.deusexmachina.functions.ApiFunction',
+        '--port', '8081'
+    )
+    doFirst {
+        args('--classpath', files(configurations.runtimeClasspath, sourceSets.main.output).asPath)
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.deusexmachina.functions.ApiFunction'
+    }
+}
