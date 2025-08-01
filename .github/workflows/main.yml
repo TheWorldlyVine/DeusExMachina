@@ -5,6 +5,23 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_frontend:
+        description: 'Deploy frontend applications'
+        required: false
+        default: true
+        type: boolean
+      deploy_backend:
+        description: 'Deploy backend functions'
+        required: false
+        default: false
+        type: boolean
+      deploy_infrastructure:
+        description: 'Deploy infrastructure'
+        required: false
+        default: false
+        type: boolean
 
 env:
   NODE_VERSION: '20'
@@ -17,9 +34,9 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      infrastructure: ${{ steps.filter.outputs.infrastructure }}
+      backend: ${{ steps.filter.outputs.backend || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_backend == 'true') }}
+      frontend: ${{ steps.filter.outputs.frontend || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_frontend == 'true') }}
+      infrastructure: ${{ steps.filter.outputs.infrastructure || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_infrastructure == 'true') }}
     steps:
       - uses: actions/checkout@v4
       
@@ -43,8 +60,8 @@ jobs:
 
   # Java Backend CI/CD
   backend:
-    needs: [changes, infrastructure]
-    if: always() && needs.changes.outputs.backend == 'true'
+    needs: [changes]
+    if: always() && (needs.changes.outputs.backend == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_backend == 'true'))
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -98,8 +115,8 @@ jobs:
 
   # Frontend CI/CD
   frontend:
-    needs: [changes, infrastructure]
-    if: always() && (needs.changes.outputs.frontend == 'true' || needs.infrastructure.result == 'success')
+    needs: [changes]
+    if: always() && (needs.changes.outputs.frontend == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_frontend == 'true'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -251,7 +268,7 @@ jobs:
   # Infrastructure CI/CD
   infrastructure:
     needs: changes
-    if: always() && (needs.changes.outputs.infrastructure == 'true' || github.event_name == 'workflow_dispatch')
+    if: always() && (needs.changes.outputs.infrastructure == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_infrastructure == 'true'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
