@@ -22,6 +22,10 @@ import java.io.IOException;
  */
 public class AuthModule extends AbstractModule {
     
+    public AuthModule() {
+        System.out.println("AuthModule: Initializing module");
+    }
+    
     @Override
     protected void configure() {
         // Bind repositories
@@ -35,6 +39,7 @@ public class AuthModule extends AbstractModule {
         bind(PasswordService.class).to(PasswordServiceImpl.class);
         bind(TokenService.class).to(TokenServiceImpl.class);
         // Use CloudPubSubEmailService for scalable email delivery
+        System.out.println("AuthModule: Binding EmailService to CloudPubSubEmailService");
         bind(EmailService.class).to(com.deusexmachina.email.service.CloudPubSubEmailService.class);
         bind(com.deusexmachina.auth.service.AuthorizationService.class)
                 .to(com.deusexmachina.auth.service.impl.AuthorizationServiceImpl.class);

@@ -38,9 +38,23 @@ public class AuthFunction implements HttpFunction {
     private final AuthenticationService authService;
     
     public AuthFunction() {
-        // Initialize dependency injection
-        Injector injector = Guice.createInjector(new AuthModule());
-        this.authService = injector.getInstance(AuthenticationService.class);
+        logger.info("AuthFunction: Starting initialization");
+        System.out.println("AuthFunction: Creating Guice injector");
+        
+        try {
+            // Initialize dependency injection
+            Injector injector = Guice.createInjector(new AuthModule());
+            System.out.println("AuthFunction: Injector created successfully");
+            
+            this.authService = injector.getInstance(AuthenticationService.class);
+            System.out.println("AuthFunction: AuthenticationService retrieved successfully");
+            
+            logger.info("AuthFunction: Initialization complete");
+        } catch (Exception e) {
+            System.err.println("AuthFunction: Failed to initialize - " + e.getMessage());
+            logger.error("AuthFunction: Failed to initialize", e);
+            throw e;
+        }
     }
     
     @Override
