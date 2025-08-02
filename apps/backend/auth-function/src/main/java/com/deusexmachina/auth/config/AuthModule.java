@@ -44,9 +44,7 @@ public class AuthModule extends AbstractModule {
     }
     
     private void bindConfiguration() {
-        // Email configuration
-        bind(String.class).annotatedWith(Names.named("sendgrid.api.key"))
-                .toInstance(getEnvOrDefault("SENDGRID_API_KEY", ""));
+        // Email configuration (Note: SendGrid removed, using Cloud Pub/Sub instead)
         bind(String.class).annotatedWith(Names.named("email.from.address"))
                 .toInstance(getEnvOrDefault("EMAIL_FROM_ADDRESS", "noreply@deusexmachina.com"));
         bind(String.class).annotatedWith(Names.named("email.from.name"))
