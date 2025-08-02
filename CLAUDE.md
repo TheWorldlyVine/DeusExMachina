@@ -9,6 +9,7 @@ This document contains important guidelines and best practices that Claude shoul
 - Review Architecture Decision Records (ADRs) in `/docs/adrs/` to understand past decisions
 - Check technical specifications in `/docs/technical-specs/` for implementation details
 - Review PRDs in `/docs/prds/` to understand product requirements
+- **For frontend apps**: Follow `/docs/checklists/frontend-app-setup-checklist.md`
 - If documentation is missing or unclear, ask for clarification before proceeding
 
 ### 2. Test-Driven Development (TDD)
@@ -157,6 +158,11 @@ pnpm run build
 4. **Consider the long-term maintainability of any solution**
 5. **Remember that this is a production-ready system - act accordingly**
 6. **ALWAYS run `pnpm run pre-commit` before committing to avoid CI failures**
+7. **Before creating new infrastructure, understand existing deployment patterns**:
+   - Check `.github/workflows/` for CI/CD configuration
+   - Review how similar components are deployed
+   - Read the frontend static hosting specification
+   - Understand that frontend apps deploy to subdirectories automatically
 
 ## Continuous Improvement
 

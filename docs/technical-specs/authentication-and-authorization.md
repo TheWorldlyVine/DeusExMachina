@@ -1690,4 +1690,165 @@ trackAuthEvent('signup_completed', { method: 'email' });
 trackAuthEvent('signup_failed', { error: error.message });
 ```
 
+## Production Deployment Configuration
+
+### Overview
+The authentication frontend is deployed as part of the web-app to the existing static hosting infrastructure. This section details the deployment configuration required for production.
+
+### Reference Documentation
+- **Frontend Static Hosting Spec**: `/docs/technical-specs/frontend-static-hosting-and-deployment.md`
+- **CI/CD Pipeline**: `.github/workflows/main.yml`
+
+### Deployment Architecture
+```
+┌─────────────────────┐
+│   Static Bucket     │
+├─────────────────────┤
+│ /                   │ ← Landing Page (root)
+│ /web-app/           │ ← Web Application
+│ /web-app/signup     │ ← Signup Page (client-side route)
+│ /web-app/login      │ ← Login Page (client-side route)
+│ /web-app/verify     │ ← Email Verification (client-side route)
+└─────────────────────┘
+```
+
+### Required Configuration
+
+#### 1. Vite Configuration
+```typescript
+// apps/frontend/web-app/vite.config.ts
+export default defineConfig({
+  plugins: [react()],
+  base: '/web-app/',  // REQUIRED: Set base path for subdirectory deployment
+  // ... rest of config
+});
+```
+
+#### 2. Router Configuration
+```typescript
+// apps/frontend/web-app/src/router.tsx
+export const router = createBrowserRouter([
+  // routes...
+], {
+  basename: '/web-app'  // REQUIRED: Match the deployment path
+});
+```
+
+#### 3. 404 Handling for Client-Side Routing
+```html
+<!-- apps/frontend/web-app/public/404.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      // Redirect 404s to index.html for client-side routing
+      const path = window.location.pathname;
+      const base = '/web-app';
+      
+      if (path.startsWith(base)) {
+        window.location.replace(base + '/index.html');
+      } else {
+        window.location.replace(base + path);
+      }
+    </script>
+  </head>
+  <body></body>
+</html>
+```
+
+#### 4. API Endpoint Configuration
+```typescript
+// apps/frontend/web-app/src/config/api.ts
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://<region>-<project-id>.cloudfunctions.net'
+  : 'http://localhost:8080';
+
+export const API_ENDPOINTS = {
+  auth: {
+    signup: `${API_BASE_URL}/auth-function/signup`,
+    login: `${API_BASE_URL}/auth-function/login`,
+    verify: `${API_BASE_URL}/auth-function/verify-email`,
+    refresh: `${API_BASE_URL}/auth-function/refresh`,
+  }
+};
+```
+
+### Deployment Process
+
+#### Automatic Deployment
+The CI/CD pipeline automatically deploys the web-app when changes are pushed to main:
+
+1. **Build Phase**: 
+   - Runs `pnpm build` in the web-app directory
+   - Outputs to `apps/frontend/web-app/dist/`
+
+2. **Deploy Phase**:
+   - Uploads dist contents to `gs://<bucket>/web-app/`
+   - Sets appropriate cache headers:
+     - HTML: 5 minutes
+     - JS/CSS: 1 year (with hash)
+     - Images: 30 days
+
+3. **CDN Invalidation**:
+   - Automatically invalidates CDN cache after deployment
+
+#### Manual Deployment (for testing)
+```bash
+# Build the app
+cd apps/frontend/web-app
+pnpm build
+
+# Deploy to bucket (requires gcloud auth)
+gsutil -m rsync -r -d dist/ gs://<bucket-name>/web-app/
+
+# Invalidate CDN cache
+gcloud compute url-maps invalidate-cdn-cache <url-map-name> --path "/web-app/*"
+```
+
+### Production URLs
+
+After deployment, the auth pages are accessible at:
+- **Base URL**: `https://<static-hosting-url>/web-app/`
+- **Signup**: `https://<static-hosting-url>/web-app/signup`
+- **Login**: `https://<static-hosting-url>/web-app/login`
+- **Email Verification**: `https://<static-hosting-url>/web-app/verify-email`
+- **Password Reset**: `https://<static-hosting-url>/web-app/reset-password`
+
+### Security Headers
+The static hosting module automatically applies security headers including:
+- Strict-Transport-Security (HSTS)
+- X-Content-Type-Options
+- X-Frame-Options
+- Content-Security-Policy (configured to allow Google OAuth)
+
+### Performance Considerations
+
+1. **Code Splitting**: Auth pages are lazy-loaded to reduce initial bundle size
+2. **Asset Optimization**: All assets are hashed for long-term caching
+3. **CDN Distribution**: Global edge caching for low latency
+4. **Compression**: Automatic gzip/brotli compression
+
+### Monitoring
+
+1. **Deployment Status**: Check GitHub Actions for build/deploy status
+2. **Uptime Monitoring**: Cloud Monitoring checks `/web-app/` availability
+3. **Performance**: Lighthouse CI runs on deployment
+4. **Error Tracking**: Client-side errors sent to error tracking service
+
+### Rollback Procedure
+
+If issues occur after deployment:
+1. **Immediate**: Revert the commit and push to trigger redeploy
+2. **Manual**: Use gsutil to sync previous build from backup
+3. **CDN**: Invalidate cache after rollback
+
+### Environment Variables
+
+Production environment variables are set during build:
+```bash
+VITE_API_URL=https://<region>-<project-id>.cloudfunctions.net
+VITE_GOOGLE_CLIENT_ID=<oauth-client-id>
+VITE_SENTRY_DSN=<sentry-dsn>
+```
+
 This technical specification provides a comprehensive implementation plan for the authentication and authorization system that meets all requirements while leveraging the existing GCP infrastructure and maintaining high security standards.
