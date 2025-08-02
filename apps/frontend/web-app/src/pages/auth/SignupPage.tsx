@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import { signupSchema, SignupFormData } from '@/utils/validation'
 import { authService } from '@/services/auth'
 import { useAuthStore } from '@/stores/authStore'
@@ -33,8 +34,13 @@ export function SignupPage() {
       setAuth(data.user, data.token)
       navigate('/verify-email')
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Signup failed'
+    onError: (error: Error) => {
+      let message = 'Signup failed'
+      if (error instanceof AxiosError) {
+        message = error.response?.data?.message || error.message || message
+      } else {
+        message = error.message || message
+      }
       setServerError(message)
       setValue('password', '')
       setValue('confirmPassword', '')
