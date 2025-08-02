@@ -16,7 +16,7 @@ export interface Document {
   sceneCount: number
   currentVersion?: string
   settings?: DocumentSettings
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export type DocumentStatus = 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'ARCHIVED'
@@ -27,7 +27,7 @@ export interface DocumentSettings {
   style?: string
   autoSave?: boolean
   autoSaveIntervalSeconds?: number
-  customSettings?: Record<string, any>
+  customSettings?: Record<string, unknown>
 }
 
 export interface CreateDocumentInput {

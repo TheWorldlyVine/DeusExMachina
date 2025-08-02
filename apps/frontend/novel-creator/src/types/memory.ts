@@ -11,7 +11,7 @@ export interface Memory {
   accessCount: number
   lastAccessed?: Date
   tags?: string[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   chapterRef?: string
   sceneRef?: string
   active: boolean
@@ -32,7 +32,7 @@ export interface CreateMemoryInput {
   entityType?: 'character' | 'location' | 'object'
   importance?: number
   tags?: string[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   chapterRef?: string
   sceneRef?: string
 }

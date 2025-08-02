@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { memoryService } from '@/services/memory'
-import type { Memory, MemoryType, CreateMemoryInput } from '@/types/memory'
+import type { Memory, CreateMemoryInput } from '@/types/memory'
 
 interface MemoryState {
   memories: Memory[]

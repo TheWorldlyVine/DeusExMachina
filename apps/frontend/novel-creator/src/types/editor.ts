@@ -33,7 +33,7 @@ export interface Scene {
   wordCount: number
   characterIds?: string[]
   locationId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   notes?: string
 }
 

@@ -75,7 +75,7 @@ const editorSlice = createSlice({
     markClean: (state) => {
       state.isDirty = false
     },
-    clearEditor: (state) => {
+    clearEditor: () => {
       return initialState
     },
   },

@@ -3,7 +3,7 @@ export interface GenerationRequest {
   generationType: GenerationType
   contextId: string
   parameters?: GenerationParameters
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export type GenerationType = 
@@ -37,7 +37,7 @@ export interface GenerationResponse {
   modelUsed: string
   metrics?: GenerationMetrics
   warnings?: string[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   timestamp: Date
 }
 
