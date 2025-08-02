@@ -60,7 +60,7 @@ resource "google_cloudfunctions2_function" "function" {
   build_config {
     runtime     = var.runtime
     entry_point = var.entry_point
-    
+
     source {
       storage_source {
         bucket = google_storage_bucket.function_bucket.name
@@ -75,7 +75,7 @@ resource "google_cloudfunctions2_function" "function" {
     available_memory      = var.memory
     timeout_seconds       = var.timeout
     environment_variables = var.environment_variables
-
+    
     service_account_email = google_service_account.function_sa.email
   }
 
