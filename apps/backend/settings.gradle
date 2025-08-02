@@ -5,6 +5,8 @@ include ':auth-function'
 include ':api-function'
 include ':processor-function'
 include ':novel-ai-service'
+include ':novel-memory-service'
+include ':email-processor-function'
 
 // Define project paths
 project(':shared').projectDir = file('shared')
@@ -12,3 +14,5 @@ project(':auth-function').projectDir = file('auth-function')
 project(':api-function').projectDir = file('api-function')
 project(':processor-function').projectDir = file('processor-function')
 project(':novel-ai-service').projectDir = file('novel-ai-service')
+project(':novel-memory-service').projectDir = file('novel-memory-service')
+project(':email-processor-function').projectDir = file('email-processor-function')

@@ -1,0 +1,71 @@
+application:
+  name: novel-memory-service
+  version: 1.0.0
+
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID}
+
+firestore:
+  database:
+    id: ${FIRESTORE_DATABASE_ID:(default)}
+  collections:
+    memories: novel-memories
+    characters: novel-characters
+    plots: novel-plots
+    worldFacts: novel-world-facts
+    contexts: novel-contexts
+  
+memory:
+  score:
+    decayFactor: 0.95
+    minRelevance: 0.3
+    maxItems: 100
+  cache:
+    ttl: 600 # 10 minutes
+    maxSize: 10000
+  batch:
+    size: 500
+    timeout: 30
+    
+search:
+  maxResults: 50
+  timeout: 5
+  
+embedding:
+  service:
+    url: ${EMBEDDING_SERVICE_URL:https://embedding-service-${GCP_PROJECT_ID}.cloudfunctions.net}
+  cache:
+    enabled: true
+    ttl: 3600
+    
+monitoring:
+  metrics:
+    enabled: true
+    prefix: novel.memory.service
+  tracing:
+    enabled: true
+    samplingRate: 0.1
+    
+logging:
+  level:
+    root: INFO
+    com.deusexmachina: DEBUG
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+    
+cors:
+  allowedOrigins:
+    - https://*.deusexmachina.com
+    - http://localhost:3000
+  allowedMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowedHeaders:
+    - Authorization
+    - Content-Type
+    - X-Request-ID
+  maxAge: 3600
