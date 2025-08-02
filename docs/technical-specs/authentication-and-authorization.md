@@ -677,4 +677,1017 @@ GOOGLE_OAUTH_CLIENT_SECRET=xxx
 OAUTH_REDIRECT_URL=https://app.deusexmachina.com/auth/callback
 ```
 
+## Frontend Implementation (TDD Approach)
+
+### Overview
+This section defines the frontend implementation for the authentication system using Test-Driven Development (TDD) principles. We'll build React components with TypeScript, following the Red-Green-Refactor cycle and maintaining >80% test coverage.
+
+### Authentication Pages Architecture
+
+#### Route Structure
+```typescript
+// apps/frontend/web-app/src/routes/auth.routes.tsx
+const authRoutes = [
+  { path: '/signup', element: <SignupPage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/verify-email', element: <VerifyEmailPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/account', element: <AccountPage />, protected: true },
+];
+```
+
+### Signup Implementation (TDD)
+
+#### Step 1: Test Specifications (Red Phase)
+
+##### SignupPage Component Tests
+```typescript
+// apps/frontend/web-app/src/pages/auth/SignupPage.test.tsx
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { SignupPage } from './SignupPage';
+import { AuthProvider } from '../../contexts/AuthContext';
+import { BrowserRouter } from 'react-router-dom';
+
+const renderWithProviders = (component: React.ReactNode) => {
+  return render(
+    <BrowserRouter>
+      <AuthProvider>
+        {component}
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
+
+describe('SignupPage', () => {
+  it('should render signup form with all required fields', () => {
+    renderWithProviders(<SignupPage />);
+    
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
+  });
+
+  it('should show real-time email validation', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    const emailInput = screen.getByLabelText(/email address/i);
+    
+    // Invalid email
+    await user.type(emailInput, 'invalid-email');
+    await user.tab();
+    expect(screen.getByText(/please enter a valid email/i)).toBeInTheDocument();
+    
+    // Valid email
+    await user.clear(emailInput);
+    await user.type(emailInput, 'user@example.com');
+    await user.tab();
+    expect(screen.queryByText(/please enter a valid email/i)).not.toBeInTheDocument();
+  });
+
+  it('should show password strength meter', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    
+    // Weak password
+    await user.type(passwordInput, 'weak');
+    expect(screen.getByText(/weak password/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25');
+    
+    // Strong password
+    await user.clear(passwordInput);
+    await user.type(passwordInput, 'StrongP@ssw0rd123!');
+    expect(screen.getByText(/strong password/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+  });
+
+  it('should validate password confirmation matches', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const confirmInput = screen.getByLabelText(/confirm password/i);
+    
+    await user.type(passwordInput, 'StrongP@ssw0rd123!');
+    await user.type(confirmInput, 'DifferentPassword');
+    await user.tab();
+    
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+  });
+
+  it('should handle successful signup', async () => {
+    const mockSignup = vi.fn().mockResolvedValue({ success: true });
+    vi.mock('../../services/authService', () => ({
+      signup: mockSignup
+    }));
+    
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    await user.type(screen.getByLabelText(/email address/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.click(screen.getByRole('checkbox', { name: /accept terms/i }));
+    
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+    
+    await waitFor(() => {
+      expect(mockSignup).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        password: 'StrongP@ssw0rd123!',
+        displayName: 'Test User',
+        acceptedTerms: true
+      });
+    });
+    
+    expect(screen.getByText(/verification email sent/i)).toBeInTheDocument();
+  });
+
+  it('should handle signup errors', async () => {
+    const mockSignup = vi.fn().mockRejectedValue(new Error('Email already exists'));
+    vi.mock('../../services/authService', () => ({
+      signup: mockSignup
+    }));
+    
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    // Fill form
+    await user.type(screen.getByLabelText(/email address/i), 'existing@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.click(screen.getByRole('checkbox', { name: /accept terms/i }));
+    
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+    
+    await waitFor(() => {
+      expect(screen.getByText(/email already exists/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should disable submit button during submission', async () => {
+    const mockSignup = vi.fn().mockImplementation(() => 
+      new Promise(resolve => setTimeout(resolve, 1000))
+    );
+    vi.mock('../../services/authService', () => ({
+      signup: mockSignup
+    }));
+    
+    const user = userEvent.setup();
+    renderWithProviders(<SignupPage />);
+    
+    const submitButton = screen.getByRole('button', { name: /sign up/i });
+    
+    // Fill form
+    await user.type(screen.getByLabelText(/email address/i), 'user@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'StrongP@ssw0rd123!');
+    await user.type(screen.getByLabelText(/display name/i), 'Test User');
+    await user.click(screen.getByRole('checkbox', { name: /accept terms/i }));
+    
+    await user.click(submitButton);
+    
+    expect(submitButton).toBeDisabled();
+    expect(submitButton).toHaveTextContent(/signing up/i);
+  });
+
+  it('should be accessible', async () => {
+    const { container } = renderWithProviders(<SignupPage />);
+    
+    // Check for proper heading hierarchy
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/sign up/i);
+    
+    // Check for form landmarks
+    expect(screen.getByRole('form')).toHaveAccessibleName(/sign up form/i);
+    
+    // Check for proper labeling
+    const inputs = screen.getAllByRole('textbox');
+    inputs.forEach(input => {
+      expect(input).toHaveAccessibleName();
+    });
+    
+    // Run axe accessibility tests
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+```
+
+##### PasswordStrengthMeter Component Tests
+```typescript
+// packages/ui-components/src/components/PasswordStrengthMeter/PasswordStrengthMeter.test.tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+
+describe('PasswordStrengthMeter', () => {
+  it('should show weak strength for simple passwords', () => {
+    render(<PasswordStrengthMeter password="123456" />);
+    
+    expect(screen.getByText(/weak/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25');
+    expect(screen.getByRole('progressbar')).toHaveClass('bg-red-500');
+  });
+
+  it('should show medium strength for moderate passwords', () => {
+    render(<PasswordStrengthMeter password="Password123" />);
+    
+    expect(screen.getByText(/medium/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+    expect(screen.getByRole('progressbar')).toHaveClass('bg-yellow-500');
+  });
+
+  it('should show strong strength for complex passwords', () => {
+    render(<PasswordStrengthMeter password="MyStr0ng!P@ssw0rd" />);
+    
+    expect(screen.getByText(/strong/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+    expect(screen.getByRole('progressbar')).toHaveClass('bg-green-500');
+  });
+
+  it('should list missing requirements', () => {
+    render(<PasswordStrengthMeter password="weak" showRequirements />);
+    
+    expect(screen.getByText(/at least 8 characters/i)).toHaveClass('text-red-600');
+    expect(screen.getByText(/uppercase letter/i)).toHaveClass('text-red-600');
+    expect(screen.getByText(/number/i)).toHaveClass('text-red-600');
+    expect(screen.getByText(/special character/i)).toHaveClass('text-red-600');
+  });
+
+  it('should check off met requirements', () => {
+    render(<PasswordStrengthMeter password="MyStr0ng!P@ssw0rd123" showRequirements />);
+    
+    expect(screen.getByText(/at least 8 characters/i)).toHaveClass('text-green-600');
+    expect(screen.getByText(/uppercase letter/i)).toHaveClass('text-green-600');
+    expect(screen.getByText(/lowercase letter/i)).toHaveClass('text-green-600');
+    expect(screen.getByText(/number/i)).toHaveClass('text-green-600');
+    expect(screen.getByText(/special character/i)).toHaveClass('text-green-600');
+  });
+});
+```
+
+##### API Integration Tests
+```typescript
+// apps/frontend/web-app/src/services/authService.test.ts
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { signup } from './authService';
+import { apiClient } from '../utils/apiClient';
+
+vi.mock('../utils/apiClient');
+
+describe('authService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('signup', () => {
+    it('should call API with correct payload', async () => {
+      const mockResponse = {
+        userId: '123',
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expiresIn: 900
+      };
+      
+      vi.mocked(apiClient.post).mockResolvedValue({ data: mockResponse });
+      
+      const result = await signup({
+        email: 'user@example.com',
+        password: 'password123',
+        displayName: 'Test User',
+        acceptedTerms: true
+      });
+      
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/signup', {
+        email: 'user@example.com',
+        password: 'password123',
+        displayName: 'Test User',
+        acceptedTerms: true
+      });
+      
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle validation errors', async () => {
+      const mockError = {
+        response: {
+          status: 400,
+          data: {
+            error: 'Validation failed',
+            details: {
+              email: 'Email already exists'
+            }
+          }
+        }
+      };
+      
+      vi.mocked(apiClient.post).mockRejectedValue(mockError);
+      
+      await expect(signup({
+        email: 'existing@example.com',
+        password: 'password123',
+        displayName: 'Test User',
+        acceptedTerms: true
+      })).rejects.toThrow('Email already exists');
+    });
+
+    it('should handle network errors', async () => {
+      vi.mocked(apiClient.post).mockRejectedValue(new Error('Network error'));
+      
+      await expect(signup({
+        email: 'user@example.com',
+        password: 'password123',
+        displayName: 'Test User',
+        acceptedTerms: true
+      })).rejects.toThrow('Network error');
+    });
+  });
+});
+```
+
+#### Step 2: Implementation (Green Phase)
+
+##### SignupPage Component
+```typescript
+// apps/frontend/web-app/src/pages/auth/SignupPage.tsx
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button, Input, Alert } from '@deusexmachina/ui-components';
+import { PasswordStrengthMeter } from '@deusexmachina/ui-components';
+import { GoogleOAuthButton } from '../../components/auth/GoogleOAuthButton';
+import { useAuth } from '../../contexts/AuthContext';
+import { signup } from '../../services/authService';
+
+const signupSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+    .regex(/[0-9]/, 'Password must contain a number')
+    .regex(/[!@#$%^&*]/, 'Password must contain a special character'),
+  confirmPassword: z.string(),
+  displayName: z.string().min(2, 'Display name must be at least 2 characters'),
+  acceptedTerms: z.boolean().refine(val => val === true, {
+    message: 'You must accept the terms and conditions'
+  })
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
+
+export const SignupPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema)
+  });
+
+  const password = watch('password', '');
+
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      setIsSubmitting(true);
+      setApiError(null);
+
+      const response = await signup({
+        email: data.email,
+        password: data.password,
+        displayName: data.displayName,
+        acceptedTerms: data.acceptedTerms
+      });
+
+      // Store auth tokens
+      setAuth({
+        user: {
+          id: response.userId,
+          email: data.email,
+          displayName: data.displayName,
+          emailVerified: false
+        },
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken
+      });
+
+      setShowSuccess(true);
+      
+      // Redirect to dashboard after 3 seconds
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
+    } catch (error: any) {
+      setApiError(error.message || 'An error occurred during signup');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <Alert
+            variant="success"
+            title="Account created successfully!"
+            description="We've sent a verification email to your inbox. Please check your email to verify your account."
+          />
+          <p className="text-center text-sm text-gray-600">
+            Redirecting to dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Create your account
+          </h1>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              sign in to your existing account
+            </Link>
+          </p>
+        </div>
+
+        <form
+          className="mt-8 space-y-6"
+          onSubmit={handleSubmit(onSubmit)}
+          aria-label="Sign up form"
+        >
+          {apiError && (
+            <Alert variant="error" title="Signup failed" description={apiError} />
+          )}
+
+          <div className="space-y-4">
+            <Input
+              {...register('email')}
+              type="email"
+              label="Email address"
+              autoComplete="email"
+              error={errors.email?.message}
+              disabled={isSubmitting}
+            />
+
+            <Input
+              {...register('displayName')}
+              type="text"
+              label="Display name"
+              autoComplete="name"
+              error={errors.displayName?.message}
+              disabled={isSubmitting}
+            />
+
+            <div>
+              <Input
+                {...register('password')}
+                type="password"
+                label="Password"
+                autoComplete="new-password"
+                error={errors.password?.message}
+                disabled={isSubmitting}
+              />
+              {password && (
+                <div className="mt-2">
+                  <PasswordStrengthMeter password={password} showRequirements />
+                </div>
+              )}
+            </div>
+
+            <Input
+              {...register('confirmPassword')}
+              type="password"
+              label="Confirm password"
+              autoComplete="new-password"
+              error={errors.confirmPassword?.message}
+              disabled={isSubmitting}
+            />
+
+            <div className="flex items-start">
+              <input
+                {...register('acceptedTerms')}
+                id="acceptedTerms"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                disabled={isSubmitting}
+              />
+              <label htmlFor="acceptedTerms" className="ml-2 block text-sm text-gray-900">
+                I accept the{' '}
+                <Link to="/terms" className="text-blue-600 hover:text-blue-500">
+                  Terms and Conditions
+                </Link>
+                {' '}and{' '}
+                <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+            {errors.acceptedTerms && (
+              <p className="text-sm text-red-600">{errors.acceptedTerms.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <Button
+              type="submit"
+              fullWidth
+              loading={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Signing up...' : 'Sign up'}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <GoogleOAuthButton
+              disabled={isSubmitting}
+              onSuccess={(response) => {
+                setAuth(response);
+                navigate('/dashboard');
+              }}
+              onError={(error) => {
+                setApiError(error.message);
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+```
+
+##### PasswordStrengthMeter Component
+```typescript
+// packages/ui-components/src/components/PasswordStrengthMeter/PasswordStrengthMeter.tsx
+import React from 'react';
+import { cn } from '../../utils/cn';
+
+interface PasswordStrengthMeterProps {
+  password: string;
+  showRequirements?: boolean;
+  className?: string;
+}
+
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const requirements: PasswordRequirement[] = [
+  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
+  { label: 'Uppercase letter', test: (p) => /[A-Z]/.test(p) },
+  { label: 'Lowercase letter', test: (p) => /[a-z]/.test(p) },
+  { label: 'Number', test: (p) => /[0-9]/.test(p) },
+  { label: 'Special character', test: (p) => /[!@#$%^&*]/.test(p) },
+];
+
+export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({
+  password,
+  showRequirements = false,
+  className
+}) => {
+  const calculateStrength = (): { score: number; label: string; color: string } => {
+    if (!password) return { score: 0, label: 'No password', color: 'bg-gray-300' };
+    
+    const passedRequirements = requirements.filter(req => req.test(password)).length;
+    
+    if (passedRequirements <= 2) return { score: 25, label: 'Weak', color: 'bg-red-500' };
+    if (passedRequirements <= 3) return { score: 50, label: 'Medium', color: 'bg-yellow-500' };
+    if (passedRequirements <= 4) return { score: 75, label: 'Good', color: 'bg-blue-500' };
+    return { score: 100, label: 'Strong', color: 'bg-green-500' };
+  };
+
+  const { score, label, color } = calculateStrength();
+
+  return (
+    <div className={cn('space-y-2', className)}>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-gray-700">Password strength</span>
+        <span className={cn(
+          'text-sm font-medium',
+          score <= 25 && 'text-red-600',
+          score > 25 && score <= 50 && 'text-yellow-600',
+          score > 50 && score <= 75 && 'text-blue-600',
+          score > 75 && 'text-green-600'
+        )}>
+          {label}
+        </span>
+      </div>
+      
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className={cn('h-2 rounded-full transition-all duration-300', color)}
+          style={{ width: `${score}%` }}
+          role="progressbar"
+          aria-valuenow={score}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Password strength: ${label}`}
+        />
+      </div>
+
+      {showRequirements && (
+        <ul className="mt-2 space-y-1">
+          {requirements.map((req, index) => {
+            const passed = password ? req.test(password) : false;
+            return (
+              <li
+                key={index}
+                className={cn(
+                  'flex items-center text-sm',
+                  passed ? 'text-green-600' : 'text-red-600'
+                )}
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  {passed ? (
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  ) : (
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  )}
+                </svg>
+                {req.label}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
+```
+
+##### Auth Service Implementation
+```typescript
+// apps/frontend/web-app/src/services/authService.ts
+import { apiClient } from '../utils/apiClient';
+import { AuthResponse, SignupRequest } from '../types/auth';
+
+export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
+  try {
+    const response = await apiClient.post<AuthResponse>('/api/auth/signup', data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 400 && error.response?.data?.details?.email) {
+      throw new Error(error.response.data.details.email);
+    }
+    throw error;
+  }
+};
+```
+
+#### Step 3: Refactor (Refactor Phase)
+
+##### Extracting Form Field Component
+```typescript
+// packages/ui-components/src/components/FormField/FormField.tsx
+import React from 'react';
+import { UseFormRegisterReturn } from 'react-hook-form';
+import { Input, InputProps } from '../Input/Input';
+
+interface FormFieldProps extends Omit<InputProps, 'name'> {
+  registration: UseFormRegisterReturn;
+  error?: string;
+}
+
+export const FormField: React.FC<FormFieldProps> = ({
+  registration,
+  error,
+  ...inputProps
+}) => {
+  return (
+    <Input
+      {...registration}
+      {...inputProps}
+      error={error}
+      aria-invalid={!!error}
+      aria-describedby={error ? `${registration.name}-error` : undefined}
+    />
+  );
+};
+```
+
+##### Extracting Validation Rules
+```typescript
+// apps/frontend/web-app/src/utils/validation.ts
+import { z } from 'zod';
+
+export const emailSchema = z.string().email('Please enter a valid email');
+
+export const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+  .regex(/[0-9]/, 'Password must contain a number')
+  .regex(/[!@#$%^&*]/, 'Password must contain a special character');
+
+export const displayNameSchema = z.string()
+  .min(2, 'Display name must be at least 2 characters')
+  .max(50, 'Display name must be less than 50 characters');
+```
+
+### Shared Auth Components
+
+#### AuthForm Wrapper
+```typescript
+// apps/frontend/web-app/src/components/auth/AuthForm.tsx
+import React from 'react';
+
+interface AuthFormProps {
+  title: string;
+  subtitle?: React.ReactNode;
+  onSubmit: (e: React.FormEvent) => void;
+  children: React.ReactNode;
+  error?: string | null;
+}
+
+export const AuthForm: React.FC<AuthFormProps> = ({
+  title,
+  subtitle,
+  onSubmit,
+  children,
+  error
+}) => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-2 text-center text-sm text-gray-600">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        <form
+          className="mt-8 space-y-6"
+          onSubmit={onSubmit}
+          aria-label={`${title} form`}
+        >
+          {error && (
+            <Alert variant="error" title="Error" description={error} />
+          )}
+          {children}
+        </form>
+      </div>
+    </div>
+  );
+};
+```
+
+#### AuthGuard Route Protection
+```typescript
+// apps/frontend/web-app/src/components/auth/AuthGuard.tsx
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { Spinner } from '@deusexmachina/ui-components';
+
+interface AuthGuardProps {
+  children: React.ReactNode;
+  requireEmailVerification?: boolean;
+  requiredRole?: string;
+}
+
+export const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  requireEmailVerification = false,
+  requiredRole
+}) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireEmailVerification && !user.emailVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  if (requiredRole && !user.roles?.includes(requiredRole)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+};
+```
+
+### E2E Testing Strategy
+
+#### Cypress E2E Tests
+```typescript
+// apps/frontend/web-app/cypress/e2e/auth/signup.cy.ts
+describe('Signup Flow', () => {
+  beforeEach(() => {
+    cy.visit('/signup');
+  });
+
+  it('should complete signup flow successfully', () => {
+    // Generate unique email
+    const email = `test${Date.now()}@example.com`;
+    
+    // Fill out form
+    cy.findByLabelText(/email address/i).type(email);
+    cy.findByLabelText(/display name/i).type('Test User');
+    cy.findByLabelText(/^password$/i).type('TestP@ssw0rd123!');
+    cy.findByLabelText(/confirm password/i).type('TestP@ssw0rd123!');
+    
+    // Check password strength meter
+    cy.findByText(/strong password/i).should('be.visible');
+    cy.findByRole('progressbar').should('have.attr', 'aria-valuenow', '100');
+    
+    // Accept terms
+    cy.findByRole('checkbox', { name: /accept terms/i }).check();
+    
+    // Submit form
+    cy.findByRole('button', { name: /sign up/i }).click();
+    
+    // Verify success message
+    cy.findByText(/verification email sent/i).should('be.visible');
+    
+    // Should redirect to dashboard
+    cy.url().should('include', '/dashboard', { timeout: 4000 });
+  });
+
+  it('should handle existing email error', () => {
+    cy.intercept('POST', '/api/auth/signup', {
+      statusCode: 400,
+      body: {
+        error: 'Validation failed',
+        details: {
+          email: 'Email already exists'
+        }
+      }
+    });
+    
+    cy.findByLabelText(/email address/i).type('existing@example.com');
+    cy.findByLabelText(/display name/i).type('Test User');
+    cy.findByLabelText(/^password$/i).type('TestP@ssw0rd123!');
+    cy.findByLabelText(/confirm password/i).type('TestP@ssw0rd123!');
+    cy.findByRole('checkbox', { name: /accept terms/i }).check();
+    cy.findByRole('button', { name: /sign up/i }).click();
+    
+    cy.findByText(/email already exists/i).should('be.visible');
+  });
+
+  it('should validate form fields', () => {
+    // Try to submit empty form
+    cy.findByRole('button', { name: /sign up/i }).click();
+    
+    // Check for validation errors
+    cy.findByText(/please enter a valid email/i).should('be.visible');
+    cy.findByText(/password must be at least 8 characters/i).should('be.visible');
+    cy.findByText(/display name must be at least 2 characters/i).should('be.visible');
+    cy.findByText(/you must accept the terms/i).should('be.visible');
+  });
+
+  it('should handle Google OAuth', () => {
+    cy.findByRole('button', { name: /continue with google/i }).click();
+    
+    // Would redirect to Google OAuth page
+    cy.origin('https://accounts.google.com', () => {
+      // Mock Google OAuth flow
+    });
+  });
+});
+```
+
+### Performance Optimization
+
+#### Code Splitting
+```typescript
+// apps/frontend/web-app/src/routes/index.tsx
+import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Spinner } from '@deusexmachina/ui-components';
+
+// Lazy load auth pages
+const SignupPage = lazy(() => import('../pages/auth/SignupPage'));
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
+const VerifyEmailPage = lazy(() => import('../pages/auth/VerifyEmailPage'));
+const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage'));
+const AccountPage = lazy(() => import('../pages/auth/AccountPage'));
+
+export const AppRoutes = () => {
+  return (
+    <Suspense fallback={<Spinner fullScreen />}>
+      <Routes>
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="/account"
+          element={
+            <AuthGuard requireEmailVerification>
+              <AccountPage />
+            </AuthGuard>
+          }
+        />
+      </Routes>
+    </Suspense>
+  );
+};
+```
+
+### Monitoring & Analytics
+
+#### Error Tracking
+```typescript
+// apps/frontend/web-app/src/utils/errorTracking.ts
+import * as Sentry from '@sentry/react';
+
+export const trackAuthError = (error: Error, context: Record<string, any>) => {
+  Sentry.captureException(error, {
+    tags: {
+      component: 'auth',
+      ...context
+    }
+  });
+};
+
+// Usage in signup
+catch (error: any) {
+  trackAuthError(error, {
+    action: 'signup',
+    email: data.email // Hashed for privacy
+  });
+  setApiError(error.message);
+}
+```
+
+#### Analytics Events
+```typescript
+// apps/frontend/web-app/src/utils/analytics.ts
+import { analytics } from './analytics-client';
+
+export const trackAuthEvent = (event: string, properties?: Record<string, any>) => {
+  analytics.track(event, {
+    ...properties,
+    timestamp: new Date().toISOString()
+  });
+};
+
+// Usage
+trackAuthEvent('signup_started');
+trackAuthEvent('signup_completed', { method: 'email' });
+trackAuthEvent('signup_failed', { error: error.message });
+```
+
 This technical specification provides a comprehensive implementation plan for the authentication and authorization system that meets all requirements while leveraging the existing GCP infrastructure and maintaining high security standards.
