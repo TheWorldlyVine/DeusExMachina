@@ -1,5 +1,7 @@
 # Firestore Database Configuration
 # This represents the manually created Firestore database
+# NOTE: Created manually due to permission constraints. To import:
+# terraform import google_firestore_database.main "projects/deus-ex-machina-prod/databases/(default)"
 
 resource "google_firestore_database" "main" {
   project     = var.project_id
@@ -12,6 +14,11 @@ resource "google_firestore_database" "main" {
 
   # Point in time recovery
   point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_ENABLED"
+
+  # Prevent accidental deletion
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # IAM binding for Cloud Functions to access Firestore

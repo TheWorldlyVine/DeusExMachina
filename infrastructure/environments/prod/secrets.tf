@@ -1,5 +1,7 @@
 # Secret Manager Resources
 # This represents the manually created secrets
+# NOTE: Created manually due to permission constraints. To import:
+# terraform import google_secret_manager_secret.jwt_secret "projects/deus-ex-machina-prod/secrets/jwt-secret"
 
 resource "google_secret_manager_secret" "jwt_secret" {
   project   = var.project_id
@@ -7,6 +9,11 @@ resource "google_secret_manager_secret" "jwt_secret" {
 
   replication {
     auto {}
+  }
+
+  # Prevent accidental deletion
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
