@@ -9,6 +9,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.deusexmachina.novel.document.config.DocumentServiceModule;
 import com.deusexmachina.novel.document.controller.DocumentController;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,7 +266,19 @@ public class NovelDocumentFunction implements HttpFunction {
     }
     
     private String extractUserId(HttpRequest request) {
-        // TODO: Extract from JWT token in Authorization header
+        // Extract from JWT token in Authorization header
+        Optional<String> authHeader = request.getFirstHeader("Authorization");
+        if (authHeader.isPresent() && authHeader.get().startsWith("Bearer ")) {
+            try {
+                String token = authHeader.get().substring(7); // Remove "Bearer " prefix
+                DecodedJWT jwt = JWT.decode(token);
+                return jwt.getSubject(); // The user ID is in the 'sub' claim
+            } catch (Exception e) {
+                logger.warn("Failed to extract user ID from JWT token", e);
+            }
+        }
+        
+        // Fallback to X-User-Id header or anonymous
         return request.getFirstHeader("X-User-Id").orElse("anonymous");
     }
 }
