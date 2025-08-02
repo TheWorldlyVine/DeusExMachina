@@ -126,6 +126,9 @@ jobs:
           source_dir: apps/backend/${{ matrix.function }}
           entry_point: ${{ steps.entry_point.outputs.entry_point }}
           region: us-central1
+          memory: ${{ matrix.function == 'api-function' && '1Gi' || '512Mi' }}
+          max_instances: ${{ matrix.function == 'api-function' && '200' || matrix.function == 'processor-function' && '50' || '100' }}
+          timeout: ${{ matrix.function == 'processor-function' && '540' || '300' }}
 
   # Frontend CI/CD
   frontend:
