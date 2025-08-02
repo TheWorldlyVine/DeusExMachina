@@ -177,9 +177,10 @@ resource "google_pubsub_subscription" "email_events_dlq" {
 
 # Service account for Application Integration
 resource "google_service_account" "email_processor" {
-  account_id   = "${var.project_name}-email-processor"
+  account_id   = "email-processor"
   display_name = "Email Processor Service Account"
   description  = "Service account for Application Integration email workflow"
+  project      = var.project_id
 }
 
 # IAM roles for the service account

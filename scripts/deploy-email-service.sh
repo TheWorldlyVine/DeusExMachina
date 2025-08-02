@@ -31,7 +31,7 @@ if ! gcloud services list --enabled --filter="name:integrations.googleapis.com" 
 fi
 
 # Get the service account email
-SERVICE_ACCOUNT="deusexmachina-email-processor@$PROJECT_ID.iam.gserviceaccount.com"
+SERVICE_ACCOUNT="email-processor@$PROJECT_ID.iam.gserviceaccount.com"
 
 # Check if service account exists
 echo "Checking service account..."
