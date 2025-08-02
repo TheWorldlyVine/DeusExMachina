@@ -41,7 +41,8 @@ output "deployment_instructions" {
   value       = module.static_hosting.deployment_instructions
 }
 
-output "github_actions_service_account" {
-  value       = module.github_actions.service_account_email
-  description = "Email of the GitHub Actions service account with permissions"
-}
+# Commented out while github_actions module is disabled
+# output "github_actions_service_account" {
+#   value       = module.github_actions.service_account_email
+#   description = "Email of the GitHub Actions service account with permissions"
+# }

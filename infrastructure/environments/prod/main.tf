@@ -169,11 +169,15 @@ module "static_hosting" {
 }
 
 # GitHub Actions Service Account Permissions
-module "github_actions" {
-  source = "../../modules/github-actions"
-
-  project_id = local.project_id
-
-  # The service account email should match what's in your GitHub Actions workflow
-  github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
-}
+# NOTE: This module manages IAM permissions for the GitHub Actions service account.
+# It must be applied by a user with IAM admin permissions, not by the service account itself.
+# Uncomment and run locally with admin credentials to grant permissions.
+#
+# module "github_actions" {
+#   source = "../../modules/github-actions"
+#
+#   project_id = local.project_id
+#
+#   # The service account email should match what's in your GitHub Actions workflow
+#   github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
+# }
