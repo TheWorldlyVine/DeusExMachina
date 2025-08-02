@@ -125,34 +125,114 @@ public class NovelDocumentFunction implements HttpFunction {
     }
     
     private void handleDocumentRequest(HttpRequest request, HttpResponse response) throws IOException {
+        DocumentController controller = getDocumentController();
+        if (controller == null) {
+            handleError(response, "Document controller not available", 503);
+            return;
+        }
+        
         String path = request.getPath();
         String method = request.getMethod();
         
-        if ("/document".equals(path) && "POST".equals(method)) {
-            // Create new document
-            handleError(response, "Document creation not yet implemented", 501);
-        } else if (path.matches("/document/[^/]+") && "GET".equals(method)) {
-            // Get specific document
-            handleError(response, "Document retrieval not yet implemented", 501);
-        } else if (path.matches("/document/[^/]+") && "PUT".equals(method)) {
-            // Update document
-            handleError(response, "Document update not yet implemented", 501);
-        } else if (path.matches("/document/[^/]+") && "DELETE".equals(method)) {
-            // Delete document
-            handleError(response, "Document deletion not yet implemented", 501);
-        } else {
-            handleNotFound(response);
+        try {
+            if ("/document".equals(path) && "POST".equals(method)) {
+                controller.createDocument(request, response);
+            } else if (path.matches("/document/[^/]+") && "GET".equals(method)) {
+                String documentId = extractIdFromPath(path, "/document/");
+                controller.getDocument(documentId, response);
+            } else if (path.matches("/document/[^/]+") && "PUT".equals(method)) {
+                String documentId = extractIdFromPath(path, "/document/");
+                controller.updateDocument(documentId, request, response);
+            } else if (path.matches("/document/[^/]+") && "DELETE".equals(method)) {
+                String documentId = extractIdFromPath(path, "/document/");
+                controller.deleteDocument(documentId, response);
+            } else if ("/documents".equals(path) && "GET".equals(method)) {
+                String userId = extractUserId(request);
+                controller.listDocuments(userId, response);
+            } else {
+                handleNotFound(response);
+            }
+        } catch (Exception e) {
+            logger.error("Error in document request handling", e);
+            handleError(response, "Error processing document request: " + e.getMessage(), 500);
         }
     }
     
     private void handleChapterRequest(HttpRequest request, HttpResponse response) throws IOException {
-        // Chapter operations
-        handleError(response, "Chapter operations not yet implemented", 501);
+        DocumentController controller = getDocumentController();
+        if (controller == null) {
+            handleError(response, "Document controller not available", 503);
+            return;
+        }
+        
+        String path = request.getPath();
+        String method = request.getMethod();
+        
+        try {
+            if (path.matches("/chapter/[^/]+/[^/]+") && "POST".equals(method)) {
+                // POST /chapter/{documentId}/{chapterNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                controller.createChapter(documentId, request, response);
+            } else if (path.matches("/chapter/[^/]+/[^/]+") && "PUT".equals(method)) {
+                // PUT /chapter/{documentId}/{chapterNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                String chapterNumber = parts[3];
+                controller.updateChapter(documentId, chapterNumber, request, response);
+            } else if (path.matches("/chapter/[^/]+/[^/]+") && "DELETE".equals(method)) {
+                // DELETE /chapter/{documentId}/{chapterNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                String chapterNumber = parts[3];
+                controller.deleteChapter(documentId, chapterNumber, response);
+            } else {
+                handleNotFound(response);
+            }
+        } catch (Exception e) {
+            logger.error("Error in chapter request handling", e);
+            handleError(response, "Error processing chapter request: " + e.getMessage(), 500);
+        }
     }
     
     private void handleSceneRequest(HttpRequest request, HttpResponse response) throws IOException {
-        // Scene operations
-        handleError(response, "Scene operations not yet implemented", 501);
+        DocumentController controller = getDocumentController();
+        if (controller == null) {
+            handleError(response, "Document controller not available", 503);
+            return;
+        }
+        
+        String path = request.getPath();
+        String method = request.getMethod();
+        
+        try {
+            if (path.matches("/scene/[^/]+/[^/]+/[^/]+") && "POST".equals(method)) {
+                // POST /scene/{documentId}/{chapterNumber}/{sceneNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                String chapterNumber = parts[3];
+                controller.createScene(documentId, chapterNumber, request, response);
+            } else if (path.matches("/scene/[^/]+/[^/]+/[^/]+") && "PUT".equals(method)) {
+                // PUT /scene/{documentId}/{chapterNumber}/{sceneNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                String chapterNumber = parts[3];
+                String sceneNumber = parts[4];
+                controller.updateScene(documentId, chapterNumber, sceneNumber, request, response);
+            } else if (path.matches("/scene/[^/]+/[^/]+/[^/]+") && "DELETE".equals(method)) {
+                // DELETE /scene/{documentId}/{chapterNumber}/{sceneNumber}
+                String[] parts = path.split("/");
+                String documentId = parts[2];
+                String chapterNumber = parts[3];
+                String sceneNumber = parts[4];
+                controller.deleteScene(documentId, chapterNumber, sceneNumber, response);
+            } else {
+                handleNotFound(response);
+            }
+        } catch (Exception e) {
+            logger.error("Error in scene request handling", e);
+            handleError(response, "Error processing scene request: " + e.getMessage(), 500);
+        }
     }
     
     private void handleNotFound(HttpResponse response) throws IOException {
@@ -171,5 +251,14 @@ public class NovelDocumentFunction implements HttpFunction {
         try (BufferedWriter writer = response.getWriter()) {
             gson.toJson(error, writer);
         }
+    }
+    
+    private String extractIdFromPath(String path, String prefix) {
+        return path.substring(prefix.length());
+    }
+    
+    private String extractUserId(HttpRequest request) {
+        // TODO: Extract from JWT token in Authorization header
+        return request.getFirstHeader("X-User-Id").orElse("anonymous");
     }
 }

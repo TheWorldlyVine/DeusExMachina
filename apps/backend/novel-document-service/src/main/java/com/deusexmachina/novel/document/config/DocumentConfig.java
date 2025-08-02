@@ -16,4 +16,5 @@ public class DocumentConfig {
     private final int cacheMaxSize;
     private final String chunkingStrategy;
     private final int chunkOverlap;
+    private final String storageBucket;
 }

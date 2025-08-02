@@ -3,7 +3,8 @@
     "allow": [
       "Bash(gh run view:*)",
       "Bash(pnpm add:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(../gradlew build)"
     ],
     "deny": []
   }

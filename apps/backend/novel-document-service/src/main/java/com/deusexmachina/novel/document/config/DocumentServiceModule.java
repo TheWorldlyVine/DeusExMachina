@@ -105,6 +105,7 @@ public class DocumentServiceModule extends AbstractModule {
                 .cacheMaxSize(config.getInt("document.cache.maxSize"))
                 .chunkingStrategy(config.getString("chunking.strategy"))
                 .chunkOverlap(config.getInt("chunking.overlap"))
+                .storageBucket(config.getString("storage.bucket.name"))
                 .build();
     }
     
