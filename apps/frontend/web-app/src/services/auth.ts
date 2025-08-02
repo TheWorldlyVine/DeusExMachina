@@ -24,36 +24,57 @@ export interface LoginData {
 }
 
 class AuthService {
-  private baseURL = AUTH_API_URL
+  constructor() {
+    // Bind methods to preserve 'this' context
+    this.signup = this.signup.bind(this)
+    this.login = this.login.bind(this)
+    this.logout = this.logout.bind(this)
+    this.verifyEmail = this.verifyEmail.bind(this)
+    this.resendVerificationEmail = this.resendVerificationEmail.bind(this)
+    this.requestPasswordReset = this.requestPasswordReset.bind(this)
+    this.resetPassword = this.resetPassword.bind(this)
+  }
+
+  private getBaseURL() {
+    return AUTH_API_URL
+  }
 
   async signup(data: SignupData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${this.baseURL}/auth/register`, data)
+    const url = `${this.getBaseURL()}/auth/register`
+    console.log('Signup URL:', url) // Debug logging
+    const response = await axios.post<AuthResponse>(url, data)
     return response.data
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${this.baseURL}/auth/login`, data)
+    const url = `${this.getBaseURL()}/auth/login`
+    const response = await axios.post<AuthResponse>(url, data)
     return response.data
   }
 
   async logout(): Promise<void> {
-    await axios.post(`${this.baseURL}/auth/logout`)
+    const url = `${this.getBaseURL()}/auth/logout`
+    await axios.post(url)
   }
 
   async verifyEmail(token: string): Promise<void> {
-    await axios.post(`${this.baseURL}/auth/verify-email`, { token })
+    const url = `${this.getBaseURL()}/auth/verify-email`
+    await axios.post(url, { token })
   }
 
   async resendVerificationEmail(): Promise<void> {
-    await axios.post(`${this.baseURL}/auth/resend-verification`)
+    const url = `${this.getBaseURL()}/auth/resend-verification`
+    await axios.post(url)
   }
 
   async requestPasswordReset(email: string): Promise<void> {
-    await axios.post(`${this.baseURL}/auth/reset-password`, { email })
+    const url = `${this.getBaseURL()}/auth/reset-password`
+    await axios.post(url, { email })
   }
 
   async resetPassword(token: string, password: string): Promise<void> {
-    await axios.post(`${this.baseURL}/auth/confirm-reset`, { token, newPassword: password })
+    const url = `${this.getBaseURL()}/auth/confirm-reset`
+    await axios.post(url, { token, newPassword: password })
   }
 }
 
