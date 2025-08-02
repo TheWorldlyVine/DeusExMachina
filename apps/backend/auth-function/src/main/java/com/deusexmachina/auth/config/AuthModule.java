@@ -57,19 +57,24 @@ public class AuthModule extends AbstractModule {
                 .toInstance(getEnvOrDefault("GOOGLE_CLIENT_ID", ""));
         
         // Pub/Sub configuration
+        String projectId = System.getenv("GCP_PROJECT_ID");
+        if (projectId == null || projectId.isEmpty()) {
+            projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
+        }
+        if (projectId == null || projectId.isEmpty()) {
+            projectId = "deus-ex-machina-prod"; // Fallback
+        }
         bind(String.class).annotatedWith(Names.named("gcp.project.id"))
-                .toInstance(getEnvOrDefault("GCP_PROJECT_ID", System.getenv("GOOGLE_CLOUD_PROJECT")));
+                .toInstance(projectId);
         bind(String.class).annotatedWith(Names.named("pubsub.topic.email-events"))
-                .toInstance(getEnvOrDefault("EMAIL_TOPIC_NAME", "deusexmachina-email-events"));
+                .toInstance(getEnvOrDefault("EMAIL_TOPIC_NAME", "deus-ex-machina-email-events"));
         bind(String.class).annotatedWith(Names.named("service.name"))
                 .toInstance("auth-function");
     }
     
     @Provides
     @Singleton
-    Firestore provideFirestore() {
-        String projectId = getEnvOrDefault("GOOGLE_CLOUD_PROJECT", "deus-ex-machina-prod");
-        
+    Firestore provideFirestore(@Named("gcp.project.id") String projectId) {
         return FirestoreOptions.newBuilder()
                 .setProjectId(projectId)
                 .build()
@@ -88,6 +93,9 @@ public class AuthModule extends AbstractModule {
     
     private String getEnvOrDefault(String key, String defaultValue) {
         String value = System.getenv(key);
-        return value != null && !value.isEmpty() ? value : defaultValue;
+        if (value != null && !value.isEmpty()) {
+            return value;
+        }
+        return defaultValue != null ? defaultValue : "";
     }
 }
