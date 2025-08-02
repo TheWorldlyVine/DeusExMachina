@@ -10,11 +10,6 @@ resource "google_secret_manager_secret" "jwt_secret" {
   replication {
     auto {}
   }
-
-  # Prevent accidental deletion
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Note: The actual secret version should be created manually or via CI/CD

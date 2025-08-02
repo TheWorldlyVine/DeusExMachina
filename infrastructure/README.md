@@ -4,86 +4,54 @@ This directory contains the Terraform configuration for the DeusExMachina infras
 
 ## Current State (as of August 2, 2025)
 
-### Hybrid Infrastructure Management
+### Infrastructure Management
 
-Due to permission constraints with the GitHub Actions service account, we currently use a hybrid approach.
+The `terraform-sa` service account now has full permissions to manage all infrastructure resources.
 
-**IMPORTANT**: The Terraform apply will fail on first run due to missing permissions. This is expected. Follow the manual setup steps below to create the resources, then import them into Terraform state.
+**Permissions Granted**:
+- `roles/datastore.owner` - For Firestore management
+- `roles/secretmanager.admin` - For Secret Manager
+- `roles/iam.securityAdmin` - For IAM bindings
+- `roles/editor` - General project permissions
 
-1. **Managed by Terraform**:
+### Managed Resources
+
+1. **Fully Managed by Terraform**:
    - Static hosting infrastructure (Storage bucket, CDN, Load Balancer)
    - Cloud Functions public access permissions
    - Cloud Armor security policies
    - SSL certificates
-
-2. **Created Manually**:
    - Firestore database
-   - Secret Manager secrets (jwt-secret)
-   - IAM bindings for service accounts
-   - Cloud Functions themselves (deployed via CI/CD)
+   - Secret Manager secrets
+   - IAM bindings
 
-3. **Defined in Terraform but Not Applied**:
-   - Firestore database configuration (firestore.tf)
-   - Secret Manager resources (secrets.tf)
-   - Full Cloud Functions module
+2. **Deployed via CI/CD**:
+   - Cloud Functions themselves (source code deployment)
+
+3. **Future Resources** (defined but not yet created):
    - VPC network
    - Cloud SQL and Redis instances
 
-### Required Permissions for Full Terraform Management
+### Initial Setup for Existing Resources
 
-To manage all resources via Terraform, the service account needs:
-- `roles/datastore.admin` - For Firestore
-- `roles/secretmanager.admin` - For Secret Manager
-- `roles/cloudfunctions.admin` - For Cloud Functions
-- `roles/iam.securityAdmin` - For IAM bindings
-- `roles/compute.admin` - For networking resources
-
-### Initial Setup Process
-
-1. **First Time Setup** - Create resources manually:
-
-```bash
-# Create Firestore database (if not exists)
-gcloud firestore databases create \
-  --location=us-central1 \
-  --project=deus-ex-machina-prod
-
-# Create JWT secret (if not exists)
-echo -n "$(openssl rand -base64 32)" | gcloud secrets create jwt-secret \
-  --data-file=- \
-  --project=deus-ex-machina-prod
-
-# Grant permissions
-gcloud projects add-iam-policy-binding deus-ex-machina-prod \
-  --member="serviceAccount:$(gcloud projects describe deus-ex-machina-prod --format='value(projectNumber)')-compute@developer.gserviceaccount.com" \
-  --role="roles/datastore.user"
-
-gcloud projects add-iam-policy-binding deus-ex-machina-prod \
-  --member="serviceAccount:$(gcloud projects describe deus-ex-machina-prod --format='value(projectNumber)')-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
-```
-
-2. **Import existing resources into Terraform**:
+If you have existing resources that were created manually, you can import them:
 
 ```bash
 cd infrastructure/environments/prod
 
-# Import Firestore database
+# Import existing Firestore database
 terraform import google_firestore_database.main "projects/deus-ex-machina-prod/databases/(default)"
 
-# Import JWT secret
+# Import existing JWT secret
 terraform import google_secret_manager_secret.jwt_secret "projects/deus-ex-machina-prod/secrets/jwt-secret"
 
-# Import IAM bindings (if they exist)
-terraform import google_project_iam_member.firestore_user "deus-ex-machina-prod roles/datastore.user serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com"
-terraform import google_project_iam_member.secret_accessor "deus-ex-machina-prod roles/secretmanager.secretAccessor serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com"
+# Import existing IAM bindings (if they exist)
+PROJECT_NUMBER=$(gcloud projects describe deus-ex-machina-prod --format='value(projectNumber)')
+terraform import google_project_iam_member.firestore_user "deus-ex-machina-prod roles/datastore.user serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+terraform import google_project_iam_member.secret_accessor "deus-ex-machina-prod roles/secretmanager.secretAccessor serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 ```
 
-3. **Run Terraform apply** - Now it should succeed without permission errors
-
-### Manual Resource Recreation Commands
-
-If you need to recreate the manually managed resources from scratch:
+### Manual Commands (for reference)
 
 ```bash
 # Create Firestore database

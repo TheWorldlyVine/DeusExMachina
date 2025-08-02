@@ -14,11 +14,6 @@ resource "google_firestore_database" "main" {
 
   # Point in time recovery
   point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_ENABLED"
-
-  # Prevent accidental deletion
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # IAM binding for Cloud Functions to access Firestore
