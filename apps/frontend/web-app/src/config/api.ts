@@ -18,6 +18,7 @@ export const getApiUrl = (service: 'auth' | 'api' | 'processor') => {
   return API_ENDPOINTS[env][service];
 };
 
-export const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || getApiUrl('auth');
-export const API_URL = import.meta.env.VITE_API_URL || getApiUrl('api');
-export const PROCESSOR_URL = import.meta.env.VITE_PROCESSOR_URL || getApiUrl('processor');
+// Use production URLs directly since environment variables aren't being picked up
+export const AUTH_API_URL = 'https://auth-function-tbmcifixdq-uc.a.run.app';
+export const API_URL = 'https://api-function-tbmcifixdq-uc.a.run.app';
+export const PROCESSOR_URL = 'https://processor-function-tbmcifixdq-uc.a.run.app';

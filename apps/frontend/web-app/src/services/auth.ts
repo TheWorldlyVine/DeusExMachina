@@ -14,6 +14,8 @@ export interface AuthResponse {
 export interface SignupData {
   email: string
   password: string
+  displayName: string
+  acceptedTerms: boolean
 }
 
 export interface LoginData {

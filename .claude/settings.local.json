@@ -34,7 +34,10 @@
       "Bash(gcloud functions add-invoker-policy-binding:*)",
       "Bash(--region=us-central1 )",
       "Bash(--member=\"allUsers\" )",
-      "Bash(gcloud functions describe:*)"
+      "Bash(gcloud functions describe:*)",
+      "Bash(gh run list:*)",
+      "Bash(gcloud functions logs read:*)",
+      "Bash(gsutil -m cp -r apps/frontend/web-app/dist/* gs://deus-ex-machina-prod-static/web-app/)"
     ],
     "deny": []
   }
