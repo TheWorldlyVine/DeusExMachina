@@ -5,6 +5,8 @@ import com.deusexmachina.auth.dto.*;
 import com.deusexmachina.auth.exception.AuthException;
 import com.deusexmachina.auth.service.AuthenticationService;
 import com.deusexmachina.auth.service.EmailService;
+import com.deusexmachina.auth.service.TokenService;
+import com.deusexmachina.auth.repository.UserRepository;
 import com.deusexmachina.shared.utils.JsonUtils;
 import com.deusexmachina.shared.utils.ResponseUtils;
 import com.deusexmachina.shared.validation.ValidationUtils;
@@ -18,6 +20,7 @@ import com.google.inject.Injector;
 import jakarta.validation.ConstraintViolation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.io.IOException;
 import java.util.Set;
@@ -37,6 +40,8 @@ public class AuthFunction implements HttpFunction {
     private static final long REQUEST_TIMEOUT_SECONDS = 30;
     
     private final AuthenticationService authService;
+    private final TokenService tokenService;
+    private final UserRepository userRepository;
     
     public AuthFunction() {
         logger.info("AuthFunction: Starting initialization");
@@ -48,7 +53,9 @@ public class AuthFunction implements HttpFunction {
             System.out.println("AuthFunction: Injector created successfully");
             
             this.authService = injector.getInstance(AuthenticationService.class);
-            System.out.println("AuthFunction: AuthenticationService retrieved successfully");
+            this.tokenService = injector.getInstance(TokenService.class);
+            this.userRepository = injector.getInstance(UserRepository.class);
+            System.out.println("AuthFunction: Services retrieved successfully");
             
             // Force email service initialization to test
             try {
@@ -352,16 +359,33 @@ public class AuthFunction implements HttpFunction {
         
         String token = authHeader.substring(7);
         
-        // Validate token and get user info
-        var userInfo = authService.validateToken(token)
-                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        
-        JsonObject userResponse = new JsonObject();
-        userResponse.addProperty("user_id", userInfo.userId());
-        userResponse.addProperty("email", userInfo.email());
-        userResponse.addProperty("display_name", userInfo.displayName());
-        userResponse.addProperty("email_verified", userInfo.emailVerified());
-        
-        ResponseUtils.sendSuccess(response, userResponse);
+        try {
+            // Validate token using TokenService
+            DecodedJWT decodedToken = tokenService.verifyAccessToken(token);
+            String userId = decodedToken.getSubject();
+            
+            // Fetch user information from repository
+            var userOptional = userRepository.findById(userId)
+                    .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            
+            if (userOptional.isEmpty()) {
+                ResponseUtils.sendError(response, 401, "Invalid token - user not found");
+                return;
+            }
+            
+            var user = userOptional.get();
+            
+            // Build response matching frontend expectations
+            JsonObject userResponse = new JsonObject();
+            userResponse.addProperty("user_id", user.getUserId());
+            userResponse.addProperty("email", user.getEmail());
+            userResponse.addProperty("display_name", user.getDisplayName());
+            userResponse.addProperty("email_verified", user.isEmailVerified());
+            
+            ResponseUtils.sendSuccess(response, userResponse);
+        } catch (Exception e) {
+            logger.warn("Token validation failed: {}", e.getMessage());
+            ResponseUtils.sendError(response, 401, "Invalid token");
+        }
     }
 }
