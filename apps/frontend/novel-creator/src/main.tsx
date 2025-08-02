@@ -26,7 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       <ApolloProvider client={apolloClient}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+          <BrowserRouter basename="/novel-creator">
             <App />
             <Toaster position="bottom-right" />
           </BrowserRouter>
