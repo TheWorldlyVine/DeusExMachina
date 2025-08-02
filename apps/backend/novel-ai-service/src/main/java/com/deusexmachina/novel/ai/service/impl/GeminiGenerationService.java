@@ -63,8 +63,8 @@ public class GeminiGenerationService implements GenerationService {
             GenerativeModel model = new GenerativeModel(modelName, vertexAI);
             
             // Configure generation parameters
-            model.setGenerationConfig(buildGenerationConfig(request.getParameters()));
-            model.setSafetySettings(buildSafetySettings(request.getParameters().getSafetyLevel()));
+            GenerativeModel configuredModel = model.withGenerationConfig(buildGenerationConfig(request.getParameters()))
+                .withSafetySettings(buildSafetySettings(request.getParameters().getSafetyLevel()));
             
             // Build the prompt with context
             String enhancedPrompt = buildEnhancedPrompt(request);
@@ -74,7 +74,7 @@ public class GeminiGenerationService implements GenerationService {
             
             // Generate content
             Content content = ContentMaker.fromString(enhancedPrompt);
-            GenerateContentResponse response = model.generateContent(content);
+            GenerateContentResponse response = configuredModel.generateContent(content);
             
             // Extract generated text
             String generatedText = ResponseHandler.getText(response);
@@ -111,14 +111,14 @@ public class GeminiGenerationService implements GenerationService {
                 String modelName = selectModel(request);
                 GenerativeModel model = new GenerativeModel(modelName, vertexAI);
                 
-                model.setGenerationConfig(buildGenerationConfig(request.getParameters()));
-                model.setSafetySettings(buildSafetySettings(request.getParameters().getSafetyLevel()));
+                GenerativeModel configuredModel = model.withGenerationConfig(buildGenerationConfig(request.getParameters()))
+                    .withSafetySettings(buildSafetySettings(request.getParameters().getSafetyLevel()));
                 
                 String enhancedPrompt = buildEnhancedPrompt(request);
                 Content content = ContentMaker.fromString(enhancedPrompt);
                 
                 // Stream generation
-                var responseStream = model.generateContentStream(content);
+                var responseStream = configuredModel.generateContentStream(content);
                 
                 responseStream.forEach(partialResponse -> {
                     String chunk = ResponseHandler.getText(partialResponse);
@@ -168,10 +168,10 @@ public class GeminiGenerationService implements GenerationService {
     }
     
     private List<SafetySetting> buildSafetySettings(GenerationParameters.SafetyLevel level) {
-        HarmBlockThreshold threshold = switch (level) {
-            case MINIMAL -> HarmBlockThreshold.BLOCK_ONLY_HIGH;
-            case MODERATE -> HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE;
-            case STRICT -> HarmBlockThreshold.BLOCK_LOW_AND_ABOVE;
+        SafetySetting.HarmBlockThreshold threshold = switch (level) {
+            case MINIMAL -> SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH;
+            case MODERATE -> SafetySetting.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE;
+            case STRICT -> SafetySetting.HarmBlockThreshold.BLOCK_LOW_AND_ABOVE;
         };
         
         return Arrays.asList(

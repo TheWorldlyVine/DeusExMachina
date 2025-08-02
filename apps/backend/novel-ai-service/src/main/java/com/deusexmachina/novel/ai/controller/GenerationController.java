@@ -113,8 +113,8 @@ public class GenerationController {
             
             // Set up streaming response
             response.setContentType("text/event-stream");
-            response.setHeader("Cache-Control", "no-cache");
-            response.setHeader("Connection", "keep-alive");
+            response.appendHeader("Cache-Control", "no-cache");
+            response.appendHeader("Connection", "keep-alive");
             
             BufferedWriter writer = response.getWriter();
             
