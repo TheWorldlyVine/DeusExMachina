@@ -50,10 +50,10 @@ resource "google_project_iam_member" "github_actions_compute_viewer" {
   member  = "serviceAccount:${var.github_service_account_email}"
 }
 
-# Grant permissions to invalidate CDN cache
-resource "google_project_iam_member" "github_actions_compute_cache_admin" {
+# Grant Compute Admin role for managing compute resources including CDN
+resource "google_project_iam_member" "github_actions_compute_admin" {
   project = var.project_id
-  role    = "roles/compute.urlMapAdmin"
+  role    = "roles/compute.admin"
   member  = "serviceAccount:${var.github_service_account_email}"
 }
 
