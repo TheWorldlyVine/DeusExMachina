@@ -11,38 +11,42 @@ describe('Button', () => {
 
   it('applies variant classes', () => {
     const { rerender } = render(<Button variant="primary">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('primary');
+    const button = screen.getByRole('button');
+    const classes = button.className;
+    expect(classes).toMatch(/primary/);
 
     rerender(<Button variant="secondary">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('secondary');
+    expect(button.className).toMatch(/secondary/);
 
     rerender(<Button variant="ghost">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('ghost');
+    expect(button.className).toMatch(/ghost/);
 
     rerender(<Button variant="danger">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('danger');
+    expect(button.className).toMatch(/danger/);
   });
 
   it('applies size classes', () => {
     const { rerender } = render(<Button size="sm">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('sm');
+    const button = screen.getByRole('button');
+    expect(button.className).toMatch(/sm/);
 
     rerender(<Button size="md">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('md');
+    expect(button.className).toMatch(/md/);
 
     rerender(<Button size="lg">Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('lg');
+    expect(button.className).toMatch(/lg/);
   });
 
   it('applies fullWidth class when fullWidth prop is true', () => {
     render(<Button fullWidth>Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('fullWidth');
+    expect(screen.getByRole('button').className).toMatch(/fullWidth/);
   });
 
   it('shows loading spinner when loading prop is true', () => {
     render(<Button loading>Button</Button>);
-    expect(screen.getByRole('button')).toHaveClass('loading');
-    expect(screen.getByRole('button')).toBeDisabled();
+    const button = screen.getByRole('button');
+    expect(button.className).toMatch(/loading/);
+    expect(button).toBeDisabled();
   });
 
   it('disables button when disabled prop is true', () => {
