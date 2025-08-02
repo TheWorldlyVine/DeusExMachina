@@ -356,6 +356,16 @@ jobs:
             -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-terraform-state" \
             -backend-config="prefix=terraform/state"
       
+      - name: Import Existing Resources
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd infrastructure/environments/prod
+          # Import existing resources to prevent "already exists" errors
+          if [ -f "./import-existing-resources.sh" ]; then
+            echo "Running import script..."
+            ./import-existing-resources.sh || echo "Some imports failed, continuing..."
+          fi
+      
       - name: Terraform Plan
         run: |
           cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}

@@ -1,6 +1,6 @@
 # Firestore Database Configuration
 # This represents the manually created Firestore database
-# NOTE: Created manually due to permission constraints. To import:
+# NOTE: To import existing database:
 # terraform import google_firestore_database.main "projects/deus-ex-machina-prod/databases/(default)"
 
 resource "google_firestore_database" "main" {
