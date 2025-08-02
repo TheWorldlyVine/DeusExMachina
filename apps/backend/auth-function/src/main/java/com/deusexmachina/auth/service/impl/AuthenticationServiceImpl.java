@@ -108,9 +108,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                             Instant.now().plus(24, ChronoUnit.HOURS)));
                     
                     // Send verification email
+                    logger.info("Attempting to send verification email to: {}", user.getEmail());
                     emailService.sendVerificationEmail(user.getEmail(), verificationToken)
                             .exceptionally(e -> {
-                                logger.error("Failed to send verification email", e);
+                                logger.error("Failed to send verification email to: {} - Error: {}", 
+                                    user.getEmail(), e.getMessage(), e);
                                 return null;
                             });
                     

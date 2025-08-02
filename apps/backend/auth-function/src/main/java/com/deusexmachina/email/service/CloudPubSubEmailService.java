@@ -45,18 +45,30 @@ public class CloudPubSubEmailService implements EmailService {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.findAndRegisterModules(); // For Java 8 time support
         
-        TopicName topic = TopicName.of(projectId, topicName);
-        this.publisher = Publisher.newBuilder(topic)
-            .setEnableCompression(true)
-            .build();
+        logger.info("Initializing CloudPubSubEmailService - projectId: {}, topicName: {}, sourceName: {}", 
+            projectId, topicName, sourceName);
         
-        logger.info("Initialized CloudPubSubEmailService with topic: {}", topic);
+        try {
+            TopicName topic = TopicName.of(projectId, topicName);
+            this.publisher = Publisher.newBuilder(topic)
+                .setEnableCompression(true)
+                .build();
+            
+            logger.info("Successfully initialized CloudPubSubEmailService with topic: {}", topic);
+        } catch (Exception e) {
+            logger.error("Failed to initialize CloudPubSubEmailService", e);
+            throw e;
+        }
     }
     
     @Override
     public CompletableFuture<Void> sendVerificationEmail(String email, String verificationToken) {
+        logger.info("Sending verification email to: {}", email);
+        
         String verificationUrl = String.format("%s/verify?token=%s", 
             System.getenv("APP_BASE_URL"), verificationToken);
+        
+        logger.debug("Verification URL: {}", verificationUrl);
         
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.VERIFICATION_EMAIL)
@@ -219,13 +231,18 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     private CompletableFuture<Void> publishMessage(EmailMessage message) {
+        logger.info("Starting to publish email message - emailType: {}, recipient: {}", 
+            message.getEmailType(), message.getRecipient().getEmail());
+            
         return CompletableFuture.runAsync(() -> {
             try {
                 // Validate message
                 message.validate();
+                logger.debug("Message validation passed");
                 
                 // Convert to JSON
                 String json = objectMapper.writeValueAsString(message);
+                logger.debug("Message JSON: {}", json);
                 
                 // Create Pub/Sub message
                 ByteString data = ByteString.copyFromUtf8(json);
@@ -237,17 +254,19 @@ public class CloudPubSubEmailService implements EmailService {
                     .putAttributes("correlationId", message.getMetadata().getCorrelationId())
                     .build();
                 
+                logger.info("Publishing to Pub/Sub topic...");
+                
                 // Publish
                 ApiFuture<String> future = publisher.publish(pubsubMessage);
                 String messageId = future.get();
                 
-                logger.info("Published email message: messageId={}, emailType={}, recipient={}, correlationId={}",
+                logger.info("Successfully published email message: messageId={}, emailType={}, recipient={}, correlationId={}",
                     messageId, message.getEmailType(), message.getRecipient().getEmail(),
                     message.getMetadata().getCorrelationId());
                     
             } catch (Exception e) {
-                logger.error("Failed to publish email message: emailType={}, recipient={}",
-                    message.getEmailType(), message.getRecipient().getEmail(), e);
+                logger.error("Failed to publish email message: emailType={}, recipient={}, error={}",
+                    message.getEmailType(), message.getRecipient().getEmail(), e.getMessage(), e);
                 throw new CompletionException(e);
             }
         });
