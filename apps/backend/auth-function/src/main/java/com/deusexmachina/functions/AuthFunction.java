@@ -4,6 +4,7 @@ import com.deusexmachina.auth.config.AuthModule;
 import com.deusexmachina.auth.dto.*;
 import com.deusexmachina.auth.exception.AuthException;
 import com.deusexmachina.auth.service.AuthenticationService;
+import com.deusexmachina.auth.service.EmailService;
 import com.deusexmachina.shared.utils.JsonUtils;
 import com.deusexmachina.shared.utils.ResponseUtils;
 import com.deusexmachina.shared.validation.ValidationUtils;
@@ -48,6 +49,15 @@ public class AuthFunction implements HttpFunction {
             
             this.authService = injector.getInstance(AuthenticationService.class);
             System.out.println("AuthFunction: AuthenticationService retrieved successfully");
+            
+            // Force email service initialization to test
+            try {
+                EmailService emailService = injector.getInstance(EmailService.class);
+                System.out.println("AuthFunction: EmailService retrieved successfully - " + emailService.getClass().getName());
+            } catch (Exception e) {
+                System.err.println("AuthFunction: Failed to get EmailService - " + e.getMessage());
+                e.printStackTrace();
+            }
             
             logger.info("AuthFunction: Initialization complete");
         } catch (Exception e) {
