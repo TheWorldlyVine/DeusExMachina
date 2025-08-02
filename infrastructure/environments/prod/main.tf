@@ -217,11 +217,6 @@ module "processor_function_permissions" {
   additional_roles      = ["roles/pubsub.subscriber"]
 }
 
-# Data source to get project information
-data "google_project" "project" {
-  project_id = local.project_id
-}
-
 # Email Service Infrastructure
 module "email_service" {
   source = "../../modules/email-service"
