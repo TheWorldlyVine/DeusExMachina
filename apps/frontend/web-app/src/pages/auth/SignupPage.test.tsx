@@ -47,9 +47,11 @@ describe('SignupPage', () => {
   it('renders signup form with all required fields', () => {
     renderSignupPage()
     
+    expect(screen.getByLabelText(/display name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/i accept the terms and conditions/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument()
   })
 
@@ -65,11 +67,15 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
     
     // Type and clear to trigger validation
+    await user.type(displayNameInput, 'a')
+    await user.clear(displayNameInput)
+    
     await user.type(emailInput, 'a')
     await user.clear(emailInput)
     
@@ -79,6 +85,7 @@ describe('SignupPage', () => {
     await user.type(confirmPasswordInput, 'a')
     await user.clear(confirmPasswordInput)
     
+    expect(screen.getByText(/display name must be at least 2 characters/i)).toBeInTheDocument()
     expect(screen.getByText(/email is required/i)).toBeInTheDocument()
     expect(screen.getByText(/password is required/i)).toBeInTheDocument()
     expect(screen.getByText(/please confirm your password/i)).toBeInTheDocument()
@@ -110,14 +117,30 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
+    const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
+    const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
+    await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'DifferentPass123!')
-    await user.tab()
+    await user.click(termsCheckbox)
     
-    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
+    // The submit button should be disabled due to password mismatch
+    expect(submitButton).toBeDisabled()
+    
+    // Fix the password to match
+    await user.clear(confirmPasswordInput)
+    await user.type(confirmPasswordInput, 'StrongPass123!')
+    
+    // Now the submit button should be enabled
+    await waitFor(() => {
+      expect(submitButton).not.toBeDisabled()
+    })
   })
 
   it('shows password strength meter', async () => {
@@ -137,13 +160,17 @@ describe('SignupPage', () => {
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     expect(submitButton).toBeDisabled()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled()
@@ -161,20 +188,26 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     await user.click(submitButton)
     
     await waitFor(() => {
       expect(mockSignup).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'StrongPass123!',
+        displayName: 'Test User',
+        acceptedTerms: true,
       })
     })
   })
@@ -190,14 +223,18 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     await user.click(submitButton)
     
     await waitFor(() => {
@@ -213,14 +250,18 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     await user.click(submitButton)
     
     await waitFor(() => {
@@ -236,19 +277,25 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     await user.click(submitButton)
     
+    expect(displayNameInput).toBeDisabled()
     expect(emailInput).toBeDisabled()
     expect(passwordInput).toBeDisabled()
     expect(confirmPasswordInput).toBeDisabled()
+    expect(termsCheckbox).toBeDisabled()
     expect(submitButton).toBeDisabled()
     expect(screen.getByText(/creating account/i)).toBeInTheDocument()
   })
@@ -261,14 +308,18 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
     
+    const displayNameInput = screen.getByLabelText(/display name/i)
     const emailInput = screen.getByLabelText(/email/i)
     const passwordInput = screen.getByLabelText(/^password$/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
+    const termsCheckbox = screen.getByLabelText(/i accept the terms and conditions/i)
     const submitButton = screen.getByRole('button', { name: /sign up/i })
     
+    await user.type(displayNameInput, 'Test User')
     await user.type(emailInput, 'test@example.com')
     await user.type(passwordInput, 'StrongPass123!')
     await user.type(confirmPasswordInput, 'StrongPass123!')
+    await user.click(termsCheckbox)
     await user.click(submitButton)
     
     await waitFor(() => {
