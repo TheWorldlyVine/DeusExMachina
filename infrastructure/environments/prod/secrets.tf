@@ -31,3 +31,24 @@ resource "google_project_iam_member" "secret_accessor" {
 
   depends_on = [google_secret_manager_secret.jwt_secret]
 }
+
+# SendGrid API Key Secret
+resource "google_secret_manager_secret" "sendgrid_api_key" {
+  project   = var.project_id
+  secret_id = "sendgrid-api-key"
+
+  replication {
+    auto {}
+  }
+}
+
+# Note: The actual secret version should be created manually
+# to avoid storing the API key in Terraform state
+resource "google_secret_manager_secret_version" "sendgrid_api_key" {
+  secret      = google_secret_manager_secret.sendgrid_api_key.id
+  secret_data = var.sendgrid_api_key_value # Should be provided via environment variable
+
+  lifecycle {
+    ignore_changes = [secret_data]
+  }
+}

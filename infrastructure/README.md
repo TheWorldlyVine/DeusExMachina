@@ -6,13 +6,16 @@ This directory contains the Terraform configuration for the DeusExMachina infras
 
 ### Infrastructure Management
 
-The `terraform-sa` service account now has full permissions to manage all infrastructure resources.
+Both `terraform-sa` and `github-actions-sa` service accounts have full permissions to manage all infrastructure resources.
 
-**Permissions Granted**:
+**Permissions Granted to both service accounts**:
 - `roles/datastore.owner` - For Firestore management
 - `roles/secretmanager.admin` - For Secret Manager
 - `roles/iam.securityAdmin` - For IAM bindings
-- `roles/editor` - General project permissions
+
+**Additional permissions**:
+- `terraform-sa`: `roles/editor` - General project permissions
+- `github-actions-sa`: Various compute, storage, and function deployment permissions
 
 ### Managed Resources
 

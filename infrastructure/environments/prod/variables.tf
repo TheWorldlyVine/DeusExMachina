@@ -9,3 +9,10 @@ variable "jwt_secret_value" {
   sensitive   = true
   default     = ""
 }
+
+variable "sendgrid_api_key_value" {
+  description = "The SendGrid API key value (should be provided via environment variable)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
