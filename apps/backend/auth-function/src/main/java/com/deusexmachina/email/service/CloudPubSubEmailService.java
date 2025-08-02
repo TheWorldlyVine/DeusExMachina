@@ -54,18 +54,19 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     @Override
-    public CompletableFuture<Void> sendVerificationEmail(String email, String name, String verificationUrl) {
-        String code = generateVerificationCode();
+    public CompletableFuture<Void> sendVerificationEmail(String email, String verificationToken) {
+        String verificationUrl = String.format("%s/verify?token=%s", 
+            System.getenv("APP_BASE_URL"), verificationToken);
         
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.VERIFICATION_EMAIL)
             .recipient(EmailMessage.Recipient.builder()
                 .email(email)
-                .displayName(name)
+                .displayName(email) // Use email as display name if not provided
                 .build())
             .templateData(Map.of(
                 "actionUrl", verificationUrl,
-                "code", code,
+                "token", verificationToken,
                 "expiryTime", Instant.now().plus(24, ChronoUnit.HOURS).toString()
             ))
             .metadata(EmailMessage.Metadata.builder()
@@ -78,15 +79,19 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     @Override
-    public CompletableFuture<Void> sendPasswordResetEmail(String email, String name, String resetUrl) {
+    public CompletableFuture<Void> sendPasswordResetEmail(String email, String resetToken) {
+        String resetUrl = String.format("%s/reset-password?token=%s", 
+            System.getenv("APP_BASE_URL"), resetToken);
+            
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.PASSWORD_RESET)
             .recipient(EmailMessage.Recipient.builder()
                 .email(email)
-                .displayName(name)
+                .displayName(email)
                 .build())
             .templateData(Map.of(
                 "actionUrl", resetUrl,
+                "token", resetToken,
                 "expiryTime", Instant.now().plus(1, ChronoUnit.HOURS).toString()
             ))
             .metadata(EmailMessage.Metadata.builder()
@@ -98,7 +103,7 @@ public class CloudPubSubEmailService implements EmailService {
         return publishMessage(message);
     }
     
-    @Override
+    // Password changed email not in interface - keeping for future use
     public CompletableFuture<Void> sendPasswordChangedEmail(String email, String name) {
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.PASSWORD_CHANGED)
@@ -119,16 +124,16 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     @Override
-    public CompletableFuture<Void> sendNewDeviceLoginEmail(String email, String name, String deviceInfo, String location) {
+    public CompletableFuture<Void> sendNewDeviceLoginNotification(String email, String deviceInfo, String ipAddress) {
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.NEW_DEVICE_LOGIN)
             .recipient(EmailMessage.Recipient.builder()
                 .email(email)
-                .displayName(name)
+                .displayName(email)
                 .build())
             .templateData(Map.of(
                 "deviceInfo", deviceInfo,
-                "location", location,
+                "ipAddress", ipAddress,
                 "timestamp", Instant.now().toString(),
                 "securityUrl", "https://app.deusexmachina.com/security"
             ))
@@ -141,12 +146,12 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     @Override
-    public CompletableFuture<Void> sendMfaCodeEmail(String email, String name, String code) {
+    public CompletableFuture<Void> sendMfaCode(String email, String code) {
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.MFA_CODE)
             .recipient(EmailMessage.Recipient.builder()
                 .email(email)
-                .displayName(name)
+                .displayName(email)
                 .build())
             .templateData(Map.of(
                 "code", code,
@@ -162,15 +167,16 @@ public class CloudPubSubEmailService implements EmailService {
     }
     
     @Override
-    public CompletableFuture<Void> sendAccountLockedEmail(String email, String name, String reason) {
+    public CompletableFuture<Void> sendAccountLockedNotification(String email, int attempts) {
         EmailMessage message = EmailMessage.builder()
             .emailType(EmailType.ACCOUNT_LOCKED)
             .recipient(EmailMessage.Recipient.builder()
                 .email(email)
-                .displayName(name)
+                .displayName(email)
                 .build())
             .templateData(Map.of(
-                "reason", reason,
+                "attempts", String.valueOf(attempts),
+                "reason", String.format("Too many failed login attempts (%d)", attempts),
                 "unlockUrl", "https://app.deusexmachina.com/unlock",
                 "supportEmail", "security@deusexmachina.com"
             ))
@@ -247,10 +253,6 @@ public class CloudPubSubEmailService implements EmailService {
         });
     }
     
-    private String generateVerificationCode() {
-        // Generate 6-digit code
-        return String.format("%06d", (int) (Math.random() * 1000000));
-    }
     
     /**
      * Cleanup method to be called on shutdown
