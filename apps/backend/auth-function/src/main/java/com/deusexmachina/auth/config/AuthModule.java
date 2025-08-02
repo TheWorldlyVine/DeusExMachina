@@ -61,7 +61,7 @@ public class AuthModule extends AbstractModule {
     @Provides
     @Singleton
     Firestore provideFirestore() {
-        String projectId = getEnvOrDefault("GOOGLE_CLOUD_PROJECT", "deusexmachina-dev");
+        String projectId = getEnvOrDefault("GOOGLE_CLOUD_PROJECT", "deus-ex-machina-prod");
         
         return FirestoreOptions.newBuilder()
                 .setProjectId(projectId)
