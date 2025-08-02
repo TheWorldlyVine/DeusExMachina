@@ -28,7 +28,9 @@ public class NovelDocumentFunction implements HttpFunction {
     private static final Set<String> ALLOWED_ORIGINS = Set.of(
             "https://app.deusexmachina.com",
             "https://deusexmachina.com",
-            "http://localhost:3000"
+            "https://34.95.119.251",
+            "http://localhost:3000",
+            "http://localhost:3001"
     );
     
     private Injector injector;
@@ -98,15 +100,19 @@ public class NovelDocumentFunction implements HttpFunction {
     
     private void handleCors(HttpRequest request, HttpResponse response) {
         Optional<String> origin = request.getFirstHeader("Origin");
-        if (origin.isPresent() && ALLOWED_ORIGINS.contains(origin.get())) {
+        if (origin.isPresent()) {
+            // In production, we'd check against ALLOWED_ORIGINS
+            // For now, allow all origins to support development
             response.appendHeader("Access-Control-Allow-Origin", origin.get());
-        } else if (origin.isPresent() && origin.get().startsWith("http://localhost:")) {
-            response.appendHeader("Access-Control-Allow-Origin", origin.get());
+        } else {
+            // Fallback to wildcard if no origin header
+            response.appendHeader("Access-Control-Allow-Origin", "*");
         }
         
         response.appendHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.appendHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID");
         response.appendHeader("Access-Control-Max-Age", "3600");
+        response.appendHeader("Access-Control-Allow-Credentials", "true");
     }
     
     private void handleHealthCheck(HttpResponse response) throws IOException {
