@@ -18,18 +18,25 @@ echo ""
 echo "Terraform apply failed. Analyzing errors..."
 
 # Count different types of errors
+# Look for the actual error lines in Terraform output
 error_409_count=$(grep -c "Error 409:" /tmp/terraform-apply.log || true)
 error_403_count=$(grep -c "Error 403:" /tmp/terraform-apply.log || true)
-total_error_count=$(grep -c "│ Error:" /tmp/terraform-apply.log || true)
+error_400_count=$(grep -c "Error 400:" /tmp/terraform-apply.log || true)
+provider_error_count=$(grep -c "Provider produced inconsistent result" /tmp/terraform-apply.log || true)
+
+# Count total error blocks (the ╷ and ╵ delimited blocks)
+total_error_count=$(grep -c "^╷$" /tmp/terraform-apply.log || true)
 
 # Calculate non-409 errors correctly
 non_409_errors=$((total_error_count - error_409_count))
-other_errors=$((total_error_count - error_409_count - error_403_count))
+other_errors=$((total_error_count - error_409_count - error_403_count - error_400_count - provider_error_count))
 
 echo "Found errors:"
-echo "  - Total errors: $total_error_count"
+echo "  - Total error blocks: $total_error_count"
 echo "  - 409 (Already Exists): $error_409_count"
 echo "  - 403 (Permission Denied): $error_403_count"
+echo "  - 400 (Bad Request): $error_400_count"
+echo "  - Provider errors: $provider_error_count"
 echo "  - Other errors: $other_errors"
 
 # If we only have 409 errors, that's acceptable
@@ -40,7 +47,7 @@ if [ "$total_error_count" -gt 0 ] && [ "$non_409_errors" -eq 0 ]; then
     exit 0
 fi
 
-# If we have permission errors or other errors, fail
+# If we have permission errors, fail
 if [ "$error_403_count" -gt 0 ]; then
     echo ""
     echo "::error::Permission denied errors found! The service account needs additional permissions."
@@ -50,6 +57,28 @@ if [ "$error_403_count" -gt 0 ]; then
     echo ""
     echo "Permission errors:"
     grep -A5 "Error 403:" /tmp/terraform-apply.log | grep -E "(Error 403:|permission|denied)" || true
+fi
+
+# If we have bad request errors, fail
+if [ "$error_400_count" -gt 0 ]; then
+    echo ""
+    echo "::error::Bad request errors found! Configuration issues need to be fixed."
+    
+    # Extract and display 400 errors
+    echo ""
+    echo "Configuration errors:"
+    grep -A5 "Error 400:" /tmp/terraform-apply.log || true
+fi
+
+# If we have provider errors, fail
+if [ "$provider_error_count" -gt 0 ]; then
+    echo ""
+    echo "::error::Provider errors found! This may be a Terraform provider bug."
+    
+    # Extract and display provider errors
+    echo ""
+    echo "Provider errors:"
+    grep -A5 "Provider produced inconsistent result" /tmp/terraform-apply.log || true
 fi
 
 if [ "$non_409_errors" -gt 0 ]; then

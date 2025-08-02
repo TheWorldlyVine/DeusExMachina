@@ -28,7 +28,7 @@ variable "retry_minimum_backoff" {
 variable "retry_maximum_backoff" {
   description = "Maximum backoff for retry policy"
   type        = string
-  default     = "900s" # 15 minutes
+  default     = "600s" # 10 minutes (max allowed by Pub/Sub)
 }
 
 variable "max_delivery_attempts" {
