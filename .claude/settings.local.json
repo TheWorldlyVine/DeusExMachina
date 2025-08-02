@@ -40,7 +40,8 @@
       "Bash(gsutil -m cp -r apps/frontend/web-app/dist/* gs://deus-ex-machina-prod-static/web-app/)",
       "Bash(gsutil cp:*)",
       "Bash(gcloud compute url-maps invalidate-cdn-cache:*)",
-      "Bash(gcloud logging read:*)"
+      "Bash(gcloud logging read:*)",
+      "Bash(gh run view:*)"
     ],
     "deny": []
   }

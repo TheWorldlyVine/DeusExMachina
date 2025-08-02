@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
-import com.google.events.cloud.pubsub.v1.Message;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -17,7 +16,7 @@ import java.util.Base64;
  * Uses Gmail API with service account impersonation for sending emails.
  */
 @Slf4j
-public class EmailProcessorFunction implements BackgroundFunction<Message> {
+public class EmailProcessorFunction implements BackgroundFunction<PubsubMessage> {
     
     private final ObjectMapper objectMapper;
     private final EmailSenderService emailSenderService;
@@ -25,17 +24,16 @@ public class EmailProcessorFunction implements BackgroundFunction<Message> {
     public EmailProcessorFunction() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.findAndRegisterModules();
         
         this.emailSenderService = new EmailSenderService();
     }
     
     @Override
-    public void accept(Message message, Context context) throws Exception {
+    public void accept(PubsubMessage message, Context context) throws Exception {
         try {
             // Decode the Pub/Sub message
             String messageData = new String(
-                Base64.getDecoder().decode(message.getData()), 
+                Base64.getDecoder().decode(message.data), 
                 StandardCharsets.UTF_8
             );
             
@@ -64,7 +62,7 @@ public class EmailProcessorFunction implements BackgroundFunction<Message> {
             log.error("Failed to process email message", e);
             
             // Check if this is a retry
-            String retryCount = message.getAttributes().getOrDefault("retry_count", "0");
+            String retryCount = message.attributes != null ? message.attributes.getOrDefault("retry_count", "0") : "0";
             int retries = Integer.parseInt(retryCount);
             
             if (retries >= 3) {
