@@ -3,8 +3,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import postcss from 'rollup-plugin-postcss';
 import dts from 'rollup-plugin-dts';
+import { readFileSync } from 'fs';
 
-const packageJson = require('./package.json');
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 export default [
   {
@@ -27,14 +28,14 @@ export default [
       typescript({ tsconfig: './tsconfig.json' }),
       postcss({
         modules: true,
-        extract: true,
-        minimize: true,
+        inject: false,
+        extract: false,
       }),
     ],
     external: ['react', 'react-dom'],
   },
   {
-    input: 'dist/index.d.ts',
+    input: 'src/index.ts',
     output: [{ file: 'dist/index.d.ts', format: 'esm' }],
     plugins: [dts()],
     external: [/\.css$/],
