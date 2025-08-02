@@ -25,18 +25,22 @@ resource "google_cloud_run_service_iam_member" "invoker" {
 }
 
 # Grant Firestore access to the function's service account
-resource "google_project_iam_member" "firestore_user" {
-  count   = var.enable_firestore ? 1 : 0
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${data.google_cloudfunctions2_function.existing.service_config[0].service_account_email}"
-}
+# NOTE: Commented out due to permission issues with GitHub Actions
+# These permissions were granted manually - see infrastructure/environments/prod/manual-resources.md
+# resource "google_project_iam_member" "firestore_user" {
+#   count   = var.enable_firestore ? 1 : 0
+#   project = var.project_id
+#   role    = "roles/datastore.user"
+#   member  = "serviceAccount:${data.google_cloudfunctions2_function.existing.service_config[0].service_account_email}"
+# }
 
 # Grant additional roles as needed
-resource "google_project_iam_member" "additional_roles" {
-  for_each = toset(var.additional_roles)
-
-  project = var.project_id
-  role    = each.value
-  member  = "serviceAccount:${data.google_cloudfunctions2_function.existing.service_config[0].service_account_email}"
-}
+# NOTE: Commented out due to permission issues with GitHub Actions
+# These permissions were granted manually - see infrastructure/environments/prod/manual-resources.md
+# resource "google_project_iam_member" "additional_roles" {
+#   for_each = toset(var.additional_roles)
+#
+#   project = var.project_id
+#   role    = each.value
+#   member  = "serviceAccount:${data.google_cloudfunctions2_function.existing.service_config[0].service_account_email}"
+# }

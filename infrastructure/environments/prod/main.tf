@@ -169,13 +169,15 @@ module "static_hosting" {
 }
 
 # Firestore Database
-module "firestore" {
-  source = "../../modules/firestore"
-
-  project_id      = local.project_id
-  region          = local.region
-  deletion_policy = "DELETE" # Use "ABANDON" for production
-}
+# NOTE: Commented out due to permission issues with GitHub Actions
+# The database was created manually - see manual-resources.md
+# module "firestore" {
+#   source = "../../modules/firestore"
+#
+#   project_id      = local.project_id
+#   region          = local.region
+#   deletion_policy = "DELETE" # Use "ABANDON" for production
+# }
 
 # Cloud Functions Permissions (functions are deployed via CI/CD)
 # Auth Function Permissions

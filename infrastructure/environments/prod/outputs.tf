@@ -42,10 +42,11 @@ output "deployment_instructions" {
 }
 
 # Firestore Outputs
-output "firestore_database_name" {
-  description = "Name of the Firestore database"
-  value       = module.firestore.database_name
-}
+# NOTE: Commented out as Firestore module is disabled
+# output "firestore_database_name" {
+#   description = "Name of the Firestore database"
+#   value       = module.firestore.database_name
+# }
 
 # Cloud Functions Outputs
 output "auth_function_url" {
