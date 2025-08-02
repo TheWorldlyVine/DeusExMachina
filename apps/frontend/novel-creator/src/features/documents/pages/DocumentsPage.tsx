@@ -9,7 +9,6 @@ export function DocumentsPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { documents, isLoading, error } = useAppSelector((state) => state.documents)
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
