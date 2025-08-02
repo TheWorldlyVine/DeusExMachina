@@ -242,7 +242,7 @@ public class CloudPubSubEmailService implements EmailService {
                 
                 // Convert to JSON
                 String json = objectMapper.writeValueAsString(message);
-                logger.debug("Message JSON: {}", json);
+                logger.info("Message JSON being sent to Pub/Sub: {}", json);
                 
                 // Create Pub/Sub message
                 ByteString data = ByteString.copyFromUtf8(json);
