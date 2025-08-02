@@ -34,7 +34,7 @@ variable "retry_maximum_backoff" {
 variable "max_delivery_attempts" {
   description = "Maximum delivery attempts before sending to DLQ"
   type        = number
-  default     = 3
+  default     = 5
 }
 
 variable "auth_function_service_account" {
