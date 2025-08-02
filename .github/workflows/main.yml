@@ -159,6 +159,7 @@ jobs:
           memory: ${{ (matrix.function == 'api-function' || matrix.function == 'novel-ai-service') && '1Gi' || '512Mi' }}
           max_instance_count: ${{ matrix.function == 'api-function' && '200' || matrix.function == 'processor-function' && '50' || '100' }}
           service_timeout: ${{ matrix.function == 'processor-function' && '540' || '300' }}
+          env_vars: GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 
   # Frontend CI/CD
   frontend:

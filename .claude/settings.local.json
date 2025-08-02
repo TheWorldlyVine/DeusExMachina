@@ -4,7 +4,9 @@
       "Bash(gh run view:*)",
       "Bash(pnpm add:*)",
       "Bash(source:*)",
-      "Bash(../gradlew build)"
+      "Bash(../gradlew build)",
+      "Bash(gcloud run services describe:*)",
+      "Bash(gcloud run services get-iam-policy:*)"
     ],
     "deny": []
   }
