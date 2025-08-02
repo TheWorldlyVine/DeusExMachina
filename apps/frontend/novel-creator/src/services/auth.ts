@@ -4,11 +4,16 @@ import type { User, LoginCredentials, SignupCredentials, AuthResponse } from '@/
 const API_URL = import.meta.env.VITE_API_URL || 'https://auth-function-xkv3zhqrha-uw.a.run.app'
 
 // Configure axios defaults for CORS
-axios.defaults.withCredentials = true
+// Note: withCredentials can cause CORS issues with simple requests
+// axios.defaults.withCredentials = true
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/login`, credentials)
+    const response = await axios.post(`${API_URL}/login`, credentials, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
     // Map backend response to frontend format
     return {
       token: response.data.access_token,
@@ -27,6 +32,10 @@ class AuthService {
       email: credentials.email,
       password: credentials.password,
       displayName: credentials.name
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
     // Map backend response to frontend format
     return {
@@ -42,7 +51,11 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    await axios.post(`${API_URL}/logout`)
+    await axios.post(`${API_URL}/logout`, {}, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
   }
 
   async validateToken(token: string): Promise<User> {
