@@ -30,14 +30,15 @@ provider "google-beta" {
 }
 
 locals {
-  environment = "prod"
-  project_id  = var.project_id
-  region      = "us-central1"
+  environment  = "prod"
+  project_id   = var.project_id
+  project_name = "deus-ex-machina"
+  region       = "us-central1"
 
   common_labels = {
     environment = local.environment
     managed-by  = "terraform"
-    project     = "deus-ex-machina"
+    project     = local.project_name
   }
 }
 
@@ -214,6 +215,11 @@ module "processor_function_permissions" {
   allow_unauthenticated = false # Internal use only
   enable_firestore      = true
   additional_roles      = ["roles/pubsub.subscriber"]
+}
+
+# Data source to get project information
+data "google_project" "project" {
+  project_id = local.project_id
 }
 
 # Email Service Infrastructure
