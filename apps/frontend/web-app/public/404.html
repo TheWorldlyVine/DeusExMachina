@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      // This script handles client-side routing for SPAs on static hosting
+      // It redirects 404s to the index.html with the path as a query parameter
+      const path = window.location.pathname;
+      const base = '/web-app';
+      
+      // Check if we're already in the web-app subdirectory
+      if (path.startsWith(base)) {
+        // We're in the right place, just load index.html
+        window.location.replace(base + '/index.html');
+      } else {
+        // Redirect to the web-app subdirectory
+        window.location.replace(base + path);
+      }
+    </script>
+  </head>
+  <body>
+    <!-- This page handles client-side routing redirects -->
+  </body>
+</html>
