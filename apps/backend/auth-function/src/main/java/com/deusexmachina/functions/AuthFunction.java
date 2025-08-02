@@ -81,43 +81,59 @@ public class AuthFunction implements HttpFunction {
         String path = request.getPath();
         String method = request.getMethod();
         
+        // Log the incoming path for debugging
+        logger.info("Received request: {} {}", method, path);
+        
         try {
-            // Route to appropriate handler
+            // Route to appropriate handler - handle both with and without /auth prefix
             switch (path) {
                 case "/auth/register":
+                case "/register":
                     handleRegister(request, response, method);
                     break;
                     
                 case "/auth/login":
+                case "/login":
                     handleLogin(request, response, method);
                     break;
                     
                 case "/auth/google":
+                case "/google":
                     handleGoogleLogin(request, response, method);
                     break;
                     
                 case "/auth/refresh":
+                case "/refresh":
                     handleRefreshToken(request, response, method);
                     break;
                     
                 case "/auth/logout":
+                case "/logout":
                     handleLogout(request, response, method);
                     break;
                     
                 case "/auth/verify-email":
+                case "/verify-email":
                     handleVerifyEmail(request, response, method);
                     break;
                     
                 case "/auth/reset-password":
+                case "/reset-password":
                     handlePasswordReset(request, response, method);
                     break;
                     
                 case "/auth/confirm-reset":
+                case "/confirm-reset":
                     handleConfirmReset(request, response, method);
                     break;
                     
+                case "/auth/validate":
+                case "/validate":
+                    handleValidateToken(request, response, method);
+                    break;
+                    
                 default:
-                    ResponseUtils.sendError(response, 404, "Endpoint not found");
+                    ResponseUtils.sendError(response, 404, "Endpoint not found: " + path);
                     break;
             }
         } catch (AuthException e) {
@@ -318,5 +334,34 @@ public class AuthFunction implements HttpFunction {
         JsonObject successResponse = new JsonObject();
         successResponse.addProperty("message", "Password reset successfully");
         ResponseUtils.sendSuccess(response, successResponse);
+    }
+    
+    private void handleValidateToken(HttpRequest request, HttpResponse response, String method) 
+            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        if (!"GET".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        // Get token from Authorization header
+        String authHeader = request.getFirstHeader("Authorization").orElse("");
+        if (!authHeader.startsWith("Bearer ")) {
+            ResponseUtils.sendError(response, 401, "Invalid authorization header");
+            return;
+        }
+        
+        String token = authHeader.substring(7);
+        
+        // Validate token and get user info
+        var userInfo = authService.validateToken(token)
+                .get(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        
+        JsonObject userResponse = new JsonObject();
+        userResponse.addProperty("user_id", userInfo.userId());
+        userResponse.addProperty("email", userInfo.email());
+        userResponse.addProperty("display_name", userInfo.displayName());
+        userResponse.addProperty("email_verified", userInfo.emailVerified());
+        
+        ResponseUtils.sendSuccess(response, userResponse);
     }
 }

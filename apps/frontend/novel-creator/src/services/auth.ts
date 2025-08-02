@@ -8,7 +8,7 @@ axios.defaults.withCredentials = true
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, credentials)
+    const response = await axios.post(`${API_URL}/login`, credentials)
     // Map backend response to frontend format
     return {
       token: response.data.access_token,
@@ -23,7 +23,7 @@ class AuthService {
   }
 
   async signup(credentials: SignupCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, {
+    const response = await axios.post(`${API_URL}/register`, {
       email: credentials.email,
       password: credentials.password,
       displayName: credentials.name
@@ -42,11 +42,11 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    await axios.post(`${API_URL}/auth/logout`)
+    await axios.post(`${API_URL}/logout`)
   }
 
   async validateToken(token: string): Promise<User> {
-    const response = await axios.get(`${API_URL}/auth/validate`, {
+    const response = await axios.get(`${API_URL}/validate`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     // Map backend response to frontend format
