@@ -57,6 +57,13 @@ resource "google_project_iam_member" "github_actions_compute_cache_admin" {
   member  = "serviceAccount:${var.github_service_account_email}"
 }
 
+# Grant Compute Security Admin for managing Cloud Armor policies
+resource "google_project_iam_member" "github_actions_compute_security_admin" {
+  project = var.project_id
+  role    = "roles/compute.securityAdmin"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
 output "service_account_email" {
   value       = var.github_service_account_email
   description = "The email of the GitHub Actions service account"
