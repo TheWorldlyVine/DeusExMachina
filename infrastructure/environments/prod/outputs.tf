@@ -75,6 +75,17 @@ output "email_subscription_name" {
   value       = module.email_service.email_subscription_name
 }
 
+# Novel Services Outputs
+output "novel_service_urls" {
+  description = "URLs for the novel creator services"
+  value       = module.novel_services.service_urls
+}
+
+output "novel_service_names" {
+  description = "Names of the novel creator services"
+  value       = module.novel_services.service_names
+}
+
 # Commented out while github_actions module is disabled
 # output "github_actions_service_account" {
 #   value       = module.github_actions.service_account_email

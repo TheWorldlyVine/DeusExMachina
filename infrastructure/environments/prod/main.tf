@@ -234,6 +234,39 @@ module "email_service" {
   labels = local.common_labels
 }
 
+# Cloud Run Services for Novel Creator
+# These services are deployed via CI/CD but we manage their IAM policies here
+module "novel_services" {
+  source = "../../modules/cloud-run-services"
+
+  project_id = local.project_id
+  region     = local.region
+
+  services = {
+    document_service = {
+      name                  = "novel-document-service"
+      allow_unauthenticated = true # Required for CORS preflight
+      environment_variables = {
+        GCP_PROJECT_ID = local.project_id
+      }
+    }
+    ai_service = {
+      name                  = "novel-ai-service"
+      allow_unauthenticated = true # Required for CORS preflight
+      environment_variables = {
+        GCP_PROJECT_ID = local.project_id
+      }
+    }
+    memory_service = {
+      name                  = "novel-memory-service"
+      allow_unauthenticated = true # Required for CORS preflight
+      environment_variables = {
+        GCP_PROJECT_ID = local.project_id
+      }
+    }
+  }
+}
+
 # GitHub Actions Service Account Permissions
 # NOTE: This module manages IAM permissions for the GitHub Actions service account.
 # It must be applied by a user with IAM admin permissions, not by the service account itself.
