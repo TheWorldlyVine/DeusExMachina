@@ -372,7 +372,7 @@ jobs:
         run: |
           cd infrastructure/environments/prod
           # Use smart apply script that only ignores "already exists" errors
-          ../../../../scripts/terraform-apply-smart.sh
+          ../../../scripts/terraform-apply-smart.sh
       
       - name: Export Outputs
         if: github.ref == 'refs/heads/main'
