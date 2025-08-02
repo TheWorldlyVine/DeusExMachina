@@ -104,7 +104,7 @@ shadowJar {
 }
 
 spotbugs {
-    excludeFilter = file("${rootProject.projectDir}/config/spotbugs/exclude.xml")
+    excludeFilter = file("${rootProject.projectDir}/spotbugs-exclude.xml")
 }
 
 tasks.named('build') {

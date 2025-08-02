@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        function: [auth-function, api-function, processor-function, email-processor-function]
+        function: [auth-function, api-function, processor-function, email-processor-function, novel-ai-service, novel-memory-service, novel-document-service]
     steps:
       - uses: actions/checkout@v4
       
@@ -117,6 +117,12 @@ jobs:
             echo "entry_point=com.deusexmachina.functions.ProcessorFunction" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.function }}" = "email-processor-function" ]; then
             echo "entry_point=com.deusexmachina.email.processor.EmailProcessorFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "novel-ai-service" ]; then
+            echo "entry_point=com.deusexmachina.novel.ai.NovelAIFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "novel-memory-service" ]; then
+            echo "entry_point=com.deusexmachina.novel.memory.NovelMemoryFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "novel-document-service" ]; then
+            echo "entry_point=com.deusexmachina.novel.document.NovelDocumentFunction" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy to GCP
@@ -150,7 +156,7 @@ jobs:
           source_dir: apps/backend/${{ matrix.function }}
           entry_point: ${{ steps.entry_point.outputs.entry_point }}
           region: us-central1
-          memory: ${{ matrix.function == 'api-function' && '1Gi' || '512Mi' }}
+          memory: ${{ (matrix.function == 'api-function' || matrix.function == 'novel-ai-service') && '1Gi' || '512Mi' }}
           max_instance_count: ${{ matrix.function == 'api-function' && '200' || matrix.function == 'processor-function' && '50' || '100' }}
           service_timeout: ${{ matrix.function == 'processor-function' && '540' || '300' }}
 

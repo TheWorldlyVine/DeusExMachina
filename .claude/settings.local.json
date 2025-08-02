@@ -41,7 +41,12 @@
       "Bash(gsutil cp:*)",
       "Bash(gcloud compute url-maps invalidate-cdn-cache:*)",
       "Bash(gcloud logging read:*)",
+<<<<<<< Updated upstream
       "Bash(gh run view:*)"
+=======
+      "Bash(git checkout:*)",
+      "Bash(gcloud alpha integrations list:*)"
+>>>>>>> Stashed changes
     ],
     "deny": []
   }
