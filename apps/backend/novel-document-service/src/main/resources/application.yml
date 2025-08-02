@@ -1,0 +1,72 @@
+application:
+  name: novel-document-service
+  version: 1.0.0
+
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID}
+
+firestore:
+  database:
+    id: ${FIRESTORE_DATABASE_ID:(default)}
+  collections:
+    documents: novel-documents
+    chapters: novel-chapters
+    scenes: novel-scenes
+    versions: novel-versions
+    metadata: novel-metadata
+
+storage:
+  bucket:
+    name: ${STORAGE_BUCKET_NAME:${GCP_PROJECT_ID}-novel-documents}
+  chunk:
+    sizeKb: 256
+    compressionEnabled: true
+  
+document:
+  limits:
+    maxSizeMb: 50
+    maxChapters: 100
+    maxScenesPerChapter: 50
+    maxWordsPerScene: 10000
+  versioning:
+    enabled: true
+    maxVersions: 10
+  cache:
+    ttl: 1800 # 30 minutes
+    maxSize: 100
+    
+chunking:
+  strategy: SMART # SMART, FIXED, PARAGRAPH
+  overlap: 100 # characters overlap between chunks
+  
+monitoring:
+  metrics:
+    enabled: true
+    prefix: novel.document.service
+  tracing:
+    enabled: true
+    samplingRate: 0.1
+    
+logging:
+  level:
+    root: INFO
+    com.deusexmachina: DEBUG
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+    
+cors:
+  allowedOrigins:
+    - https://*.deusexmachina.com
+    - http://localhost:3000
+  allowedMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowedHeaders:
+    - Authorization
+    - Content-Type
+    - X-Request-ID
+  maxAge: 3600
