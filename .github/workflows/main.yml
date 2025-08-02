@@ -371,11 +371,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           cd infrastructure/environments/prod
-          terraform apply -auto-approve tfplan || {
-            echo "::warning::Some resources may have failed to create (possibly already exist)"
-            # Continue anyway - existing resources don't block the deployment
-            true
-          }
+          # Use smart apply script that only ignores "already exists" errors
+          ../../../../scripts/terraform-apply-smart.sh
       
       - name: Export Outputs
         if: github.ref == 'refs/heads/main'
