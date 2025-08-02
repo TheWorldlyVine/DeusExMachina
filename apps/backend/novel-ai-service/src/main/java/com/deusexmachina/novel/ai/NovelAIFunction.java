@@ -1,5 +1,6 @@
 package com.deusexmachina.novel.ai;
 
+import com.deusexmachina.novel.ai.controller.GenerationController;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -66,12 +67,31 @@ public class NovelAIFunction implements HttpFunction {
     }
     
     private void handleGenerationRequest(HttpRequest request, HttpResponse response) throws IOException {
-        // TODO: Implement AI generation request handling
-        // This will use Vertex AI / Gemini for text generation
-        response.setStatusCode(200);
-        response.setContentType("application/json");
-        try (BufferedWriter writer = response.getWriter()) {
-            writer.write("{\"status\":\"AI generation service is running\",\"message\":\"Gemini implementation pending\"}");
+        try {
+            // Get the controller
+            GenerationController controller = injector.getInstance(GenerationController.class);
+            
+            // Delegate based on specific path
+            String path = request.getPath();
+            
+            if (path.equals("/generate")) {
+                controller.handleGenerationRequest(request, response);
+            } else if (path.equals("/generate/stream")) {
+                controller.handleStreamingRequest(request, response);
+            } else if (path.equals("/generate/count-tokens")) {
+                controller.handleTokenCountRequest(request, response);
+            } else {
+                response.setStatusCode(404);
+                try (BufferedWriter writer = response.getWriter()) {
+                    writer.write("{\"error\":\"Unknown generation endpoint\"}");
+                }
+            }
+        } catch (Exception e) {
+            logger.severe("Failed to handle generation request: " + e.getMessage());
+            response.setStatusCode(500);
+            try (BufferedWriter writer = response.getWriter()) {
+                writer.write("{\"error\":\"Internal server error\"}");
+            }
         }
     }
     

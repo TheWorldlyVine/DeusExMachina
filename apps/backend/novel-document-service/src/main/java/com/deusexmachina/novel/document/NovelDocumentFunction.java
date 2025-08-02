@@ -31,13 +31,33 @@ public class NovelDocumentFunction implements HttpFunction {
             "http://localhost:3000"
     );
     
-    private final Injector injector;
-    private final DocumentController documentController;
+    private Injector injector;
+    private DocumentController documentController;
     
     public NovelDocumentFunction() {
-        this.injector = Guice.createInjector(new DocumentServiceModule());
-        this.documentController = injector.getInstance(DocumentController.class);
-        logger.info("NovelDocumentFunction initialized successfully");
+        try {
+            logger.info("Initializing NovelDocumentFunction...");
+            this.injector = Guice.createInjector(new DocumentServiceModule());
+            logger.info("Guice injector created successfully");
+            
+            // Delay controller initialization to first request to avoid startup timeout
+            logger.info("NovelDocumentFunction initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize NovelDocumentFunction", e);
+            // Don't throw - let the function start and return errors on requests
+        }
+    }
+    
+    private synchronized DocumentController getDocumentController() {
+        if (documentController == null && injector != null) {
+            try {
+                documentController = injector.getInstance(DocumentController.class);
+                logger.info("DocumentController initialized successfully");
+            } catch (Exception e) {
+                logger.error("Failed to initialize DocumentController", e);
+            }
+        }
+        return documentController;
     }
     
     @Override
@@ -59,6 +79,8 @@ public class NovelDocumentFunction implements HttpFunction {
         try {
             if ("/health".equals(path) && "GET".equals(method)) {
                 handleHealthCheck(response);
+            } else if (injector == null) {
+                handleError(response, "Service not properly initialized", 503);
             } else if (path.startsWith("/document")) {
                 handleDocumentRequest(request, response);
             } else if (path.startsWith("/chapter")) {

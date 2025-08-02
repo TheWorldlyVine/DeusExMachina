@@ -1,5 +1,8 @@
 package com.deusexmachina.novel.ai;
 
+import com.deusexmachina.novel.ai.controller.GenerationController;
+import com.deusexmachina.novel.ai.service.GenerationService;
+import com.deusexmachina.novel.ai.service.impl.GeminiGenerationService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -16,7 +19,9 @@ public class NovelAIModule extends AbstractModule {
     @Override
     protected void configure() {
         // Bind interfaces to implementations
-        // TODO: Add bindings for AI generation services
+        bind(GenerationService.class).to(GeminiGenerationService.class).in(Singleton.class);
+        bind(GenerationController.class).in(Singleton.class);
+        
         logger.info("Configuring Novel AI Module");
     }
     
@@ -26,6 +31,4 @@ public class NovelAIModule extends AbstractModule {
         logger.info("Initializing Firestore client");
         return FirestoreOptions.getDefaultInstance().getService();
     }
-    
-    // TODO: Add Vertex AI client provider
 }

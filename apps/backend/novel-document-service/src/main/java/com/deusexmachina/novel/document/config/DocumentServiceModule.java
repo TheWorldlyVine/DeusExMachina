@@ -27,12 +27,43 @@ public class DocumentServiceModule extends AbstractModule {
     @Provides
     @Singleton
     Config provideConfig() {
-        String configFile = System.getProperty("config.file");
-        if (configFile != null) {
-            return ConfigFactory.parseFile(new java.io.File(configFile))
-                    .withFallback(ConfigFactory.load());
+        try {
+            String configFile = System.getProperty("config.file");
+            if (configFile != null) {
+                return ConfigFactory.parseFile(new java.io.File(configFile))
+                        .withFallback(ConfigFactory.load());
+            }
+            return ConfigFactory.load();
+        } catch (Exception e) {
+            // If config loading fails, return default config
+            return ConfigFactory.empty()
+                    .withFallback(ConfigFactory.parseString(getDefaultConfig()));
         }
-        return ConfigFactory.load();
+    }
+    
+    private String getDefaultConfig() {
+        return """
+            gcp.project.id = "default-project"
+            firestore.database.id = "(default)"
+            firestore.collections.documents = "novel_documents"
+            firestore.collections.chapters = "novel_chapters"
+            firestore.collections.scenes = "novel_scenes"
+            firestore.collections.versions = "novel_versions"
+            firestore.collections.metadata = "novel_metadata"
+            storage.bucket.name = "novel-documents-storage"
+            storage.chunk.sizeKb = 512
+            storage.chunk.compressionEnabled = true
+            document.limits.maxSizeMb = 50
+            document.limits.maxChapters = 100
+            document.limits.maxScenesPerChapter = 50
+            document.limits.maxWordsPerScene = 10000
+            document.versioning.enabled = true
+            document.versioning.maxVersions = 10
+            document.cache.ttl = 3600
+            document.cache.maxSize = 100
+            chunking.strategy = "SEMANTIC"
+            chunking.overlap = 50
+            """;
     }
     
     @Provides
