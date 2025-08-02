@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'com.google.cloud.functions.functions-framework' version '0.10.1'
 }
 
 // Early initialization for Cloud Functions compatibility
@@ -103,8 +102,3 @@ jar {
 // This runs during script configuration phase, before Cloud Functions appends code
 jar.ext.archivePath = jar.archiveFile.get().asFile
 jar.ext.archiveName = jar.archiveFileName.get()
-
-// Configure the Functions Framework plugin
-functionsFramework {
-    target = 'com.deusexmachina.functions.AuthFunction'
-}
