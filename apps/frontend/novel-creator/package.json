@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && cp dist/index.html dist/404.html",
+    "build": "tsc && vite build && cp dist/index.html dist/404.html && echo '/* /index.html 200' > dist/_redirects",
     "preview": "vite preview",
     "test": "vitest run --reporter=dot --no-coverage",
     "test:ui": "vitest --ui",

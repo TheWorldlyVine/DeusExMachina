@@ -282,12 +282,28 @@ jobs:
             # Deploy app to its own subdirectory
             gsutil -m rsync -r -d "${app_dir}dist/" "gs://${BUCKET_NAME}/${app_name}/"
             
+            # For SPAs, create index.html copies for common routes to handle client-side routing
+            if [ -f "${app_dir}dist/index.html" ]; then
+              echo "Setting up SPA routing fallbacks for $app_name"
+              
+              # Copy index.html to 404.html for general fallback
+              gsutil cp "gs://${BUCKET_NAME}/${app_name}/index.html" "gs://${BUCKET_NAME}/${app_name}/404.html"
+              
+              # Create common route directories with index.html for SPAs
+              # This ensures refresh works on these routes
+              for route in "login" "documents" "editor" "settings" "signup" "dashboard"; do
+                echo "Creating fallback for /${app_name}/${route}"
+                gsutil cp "gs://${BUCKET_NAME}/${app_name}/index.html" "gs://${BUCKET_NAME}/${app_name}/${route}/index.html"
+              done
+            fi
+            
             # Set cache headers for different file types
             gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://${BUCKET_NAME}/${app_name}/**/*.js" || true
             gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://${BUCKET_NAME}/${app_name}/**/*.css" || true
             gsutil -m setmeta -h "Cache-Control:public, max-age=2592000" "gs://${BUCKET_NAME}/${app_name}/**/*.{png,jpg,jpeg,gif,svg,webp}" || true
             gsutil -m setmeta -h "Cache-Control:public, max-age=300" "gs://${BUCKET_NAME}/${app_name}/**/*.html" || true
             gsutil -m setmeta -h "Cache-Control:no-cache" "gs://${BUCKET_NAME}/${app_name}/index.html" || true
+            gsutil -m setmeta -h "Cache-Control:no-cache" "gs://${BUCKET_NAME}/${app_name}/404.html" || true
           done
           
           # Deploy the landing page to root
