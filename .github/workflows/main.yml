@@ -262,7 +262,9 @@ jobs:
             echo "Deploying landing-page to root path"
             echo "Contents of dist folder:"
             ls -la apps/frontend/landing-page/dist/
-            gsutil -m rsync -r -d apps/frontend/landing-page/dist/ gs://${BUCKET_NAME}/
+            # Use rsync without -d flag to avoid deleting other apps
+            # Only sync the landing page files, don't delete web-app/ and other subdirectories
+            gsutil -m cp -r apps/frontend/landing-page/dist/* gs://${BUCKET_NAME}/
             gsutil -m setmeta -h "Cache-Control:no-cache" gs://${BUCKET_NAME}/index.html || true
             echo "Deployment complete. Verifying bucket contents:"
             gsutil ls -la gs://${BUCKET_NAME}/ | head -20
