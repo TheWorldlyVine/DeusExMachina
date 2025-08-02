@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Document, CreateDocumentInput } from '@/types/document'
 
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+const API_URL = import.meta.env.VITE_DOCUMENT_API_URL || 'http://localhost:8080'
 
 class DocumentService {
   private getAuthHeader() {
@@ -11,7 +11,10 @@ class DocumentService {
 
   async getDocuments(): Promise<Document[]> {
     const response = await axios.get(`${API_URL}/documents`, {
-      headers: this.getAuthHeader()
+      headers: {
+        ...this.getAuthHeader(),
+        'Content-Type': 'application/json'
+      }
     })
     return response.data
   }
@@ -25,7 +28,10 @@ class DocumentService {
 
   async createDocument(input: CreateDocumentInput): Promise<Document> {
     const response = await axios.post(`${API_URL}/documents`, input, {
-      headers: this.getAuthHeader()
+      headers: {
+        ...this.getAuthHeader(),
+        'Content-Type': 'application/json'
+      }
     })
     return response.data
   }
