@@ -50,17 +50,17 @@ output "firestore_database_name" {
 # Cloud Functions Outputs
 output "auth_function_url" {
   description = "URL of the auth function"
-  value       = module.auth_function.function_url
+  value       = module.auth_function_permissions.function_url
 }
 
 output "api_function_url" {
   description = "URL of the API function"
-  value       = module.api_function.function_url
+  value       = module.api_function_permissions.function_url
 }
 
 output "processor_function_url" {
   description = "URL of the processor function"
-  value       = module.processor_function.function_url
+  value       = module.processor_function_permissions.function_url
 }
 
 # Commented out while github_actions module is disabled
