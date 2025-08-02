@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(pnpm add:*)",
+      "Bash(source:*)"
     ],
     "deny": []
   }

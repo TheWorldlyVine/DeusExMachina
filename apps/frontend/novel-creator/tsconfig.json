@@ -19,6 +19,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    
+    /* Test */
+    "types": ["vitest/globals"],
 
     /* Path mapping */
     "baseUrl": ".",
