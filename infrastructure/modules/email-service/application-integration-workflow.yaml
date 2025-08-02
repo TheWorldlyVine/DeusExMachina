@@ -1,0 +1,370 @@
+# Application Integration Workflow for Email Processing
+# This workflow processes email messages from Pub/Sub and sends them using the native Send Email task
+#
+# Deploy this using:
+# gcloud alpha integrations create email-processor \
+#   --project=PROJECT_ID \
+#   --location=us-central1 \
+#   --service-account=deusexmachina-email-processor@PROJECT_ID.iam.gserviceaccount.com \
+#   --integration-file=application-integration-workflow.yaml
+
+name: email-processor
+description: Process email messages from Pub/Sub queue
+trigger:
+  type: CloudPubSubTrigger
+  config:
+    subscription: projects/${project_id}/subscriptions/deusexmachina-email-events-sub
+
+# Workflow configuration
+config:
+  # Email templates by type
+  emailTemplates:
+    VERIFICATION_EMAIL:
+      subject: "Verify your email address"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; }
+            .code { font-size: 24px; font-weight: bold; color: #4CAF50; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Welcome to DeusExMachina!</h2>
+            <p>Hi {{displayName}},</p>
+            <p>Please verify your email address by clicking the button below:</p>
+            <p style="text-align: center;">
+              <a href="{{actionUrl}}" class="button">Verify Email</a>
+            </p>
+            <p>Or use this verification code:</p>
+            <p style="text-align: center;" class="code">{{code}}</p>
+            <p>This link expires at {{expiryTime}}.</p>
+            <p>If you didn't create an account, please ignore this email.</p>
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+    PASSWORD_RESET:
+      subject: "Reset your password"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { background-color: #FF9800; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Password Reset Request</h2>
+            <p>Hi {{displayName}},</p>
+            <p>We received a request to reset your password. Click the button below to set a new password:</p>
+            <p style="text-align: center;">
+              <a href="{{actionUrl}}" class="button">Reset Password</a>
+            </p>
+            <p>This link expires at {{expiryTime}}.</p>
+            <p>If you didn't request this, please ignore this email. Your password won't be changed.</p>
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+    PASSWORD_CHANGED:
+      subject: "Your password has been changed"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .alert { background-color: #f44336; color: white; padding: 12px; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Password Changed</h2>
+            <p>Hi {{displayName}},</p>
+            <p>Your password was successfully changed at {{timestamp}}.</p>
+            <p>If you didn't make this change, please take action immediately:</p>
+            <div class="alert">
+              <p><strong>Security Alert:</strong> If you didn't change your password, your account may be compromised.</p>
+              <p>Contact our support team immediately at <a href="{{supportUrl}}" style="color: white;">{{supportUrl}}</a></p>
+            </div>
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+    NEW_DEVICE_LOGIN:
+      subject: "New device login detected"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .device-info { background-color: #f5f5f5; padding: 15px; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>New Device Login</h2>
+            <p>Hi {{displayName}},</p>
+            <p>We detected a login to your account from a new device:</p>
+            <div class="device-info">
+              <p><strong>Device:</strong> {{deviceInfo}}</p>
+              <p><strong>Location:</strong> {{location}}</p>
+              <p><strong>Time:</strong> {{timestamp}}</p>
+            </div>
+            <p>If this was you, no action is needed.</p>
+            <p>If you don't recognize this activity, please secure your account at <a href="{{securityUrl}}">{{securityUrl}}</a></p>
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+    MFA_CODE:
+      subject: "Your verification code"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .code { font-size: 32px; font-weight: bold; color: #2196F3; text-align: center; padding: 20px; background-color: #f5f5f5; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Verification Code</h2>
+            <p>Hi {{displayName}},</p>
+            <p>Your verification code is:</p>
+            <div class="code">{{code}}</div>
+            <p>This code expires at {{expiryTime}}.</p>
+            <p>If you didn't request this code, please ignore this email.</p>
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+    ACCOUNT_LOCKED:
+      subject: "Security alert: Account locked"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .alert { background-color: #f44336; color: white; padding: 15px; border-radius: 4px; }
+            .button { background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="alert">
+              <h2>Account Locked</h2>
+            </div>
+            <p>Hi {{displayName}},</p>
+            <p>Your account has been locked due to: <strong>{{reason}}</strong></p>
+            <p>To unlock your account, please visit:</p>
+            <p style="text-align: center;">
+              <a href="{{unlockUrl}}" class="button">Unlock Account</a>
+            </p>
+            <p>If you need assistance, contact our security team at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>Best regards,<br>The DeusExMachina Security Team</p>
+          </div>
+        </body>
+        </html>
+
+    # Default template for future email types
+    DEFAULT:
+      subject: "{{emailType}}"
+      htmlBody: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>{{subject}}</h2>
+            <p>This is an automated message from DeusExMachina.</p>
+            {{#each templateData}}
+              <p><strong>{{@key}}:</strong> {{this}}</p>
+            {{/each}}
+            <p>Best regards,<br>The DeusExMachina Team</p>
+          </div>
+        </body>
+        </html>
+
+# Workflow tasks
+tasks:
+  - name: ParseMessage
+    type: DataMapping
+    description: Parse the Pub/Sub message
+    config:
+      input: $trigger.message
+      output:
+        messageData: json.parse(base64.decode($trigger.message.data))
+        attributes: $trigger.message.attributes
+        
+  - name: ValidateMessage
+    type: JavaScriptTask
+    description: Validate the email message structure
+    config:
+      script: |
+        const message = $.messageData;
+        
+        // Required fields
+        if (!message.recipient || !message.recipient.email) {
+          throw new Error('Missing recipient email');
+        }
+        
+        if (!message.emailType) {
+          throw new Error('Missing email type');
+        }
+        
+        if (!message.templateData) {
+          throw new Error('Missing template data');
+        }
+        
+        // Email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(message.recipient.email)) {
+          throw new Error('Invalid email address: ' + message.recipient.email);
+        }
+        
+        return {
+          isValid: true,
+          message: message
+        };
+    onError: HandleValidationError
+    
+  - name: SelectTemplate
+    type: JavaScriptTask
+    description: Select the appropriate email template
+    config:
+      script: |
+        const message = $.messageData;
+        const templates = $.config.emailTemplates;
+        
+        const template = templates[message.emailType] || templates.DEFAULT;
+        
+        // Replace template variables
+        let subject = template.subject;
+        let htmlBody = template.htmlBody;
+        
+        // Replace common variables
+        const vars = {
+          displayName: message.recipient.displayName || 'User',
+          emailType: message.emailType,
+          ...message.templateData
+        };
+        
+        for (const [key, value] of Object.entries(vars)) {
+          const regex = new RegExp(`{{${key}}}`, 'g');
+          subject = subject.replace(regex, value);
+          htmlBody = htmlBody.replace(regex, value);
+        }
+        
+        return {
+          to: message.recipient.email,
+          subject: subject,
+          htmlBody: htmlBody,
+          sender: message.sender || {
+            email: 'noreply@deusexmachina.app',
+            name: 'DeusExMachina'
+          }
+        };
+        
+  - name: SendEmail
+    type: SendEmailTask
+    description: Send the email using Application Integration's native email service
+    config:
+      to: $.SelectTemplate.to
+      subject: $.SelectTemplate.subject
+      body: $.SelectTemplate.htmlBody
+      isHtml: true
+      from: $.SelectTemplate.sender.email
+      fromName: $.SelectTemplate.sender.name
+    onSuccess: LogSuccess
+    onError: HandleSendError
+    
+  - name: LogSuccess
+    type: JavaScriptTask
+    description: Log successful email send
+    config:
+      script: |
+        console.log('Email sent successfully:', {
+          messageId: $.messageData.messageId,
+          emailType: $.messageData.emailType,
+          recipient: $.messageData.recipient.email,
+          correlationId: $.messageData.metadata.correlationId,
+          timestamp: new Date().toISOString()
+        });
+        
+        return { status: 'success' };
+        
+  - name: HandleValidationError
+    type: JavaScriptTask
+    description: Handle validation errors
+    config:
+      script: |
+        console.error('Email validation failed:', {
+          error: $.error,
+          messageData: $.messageData,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Don't retry validation errors
+        return { status: 'validation_failed', shouldRetry: false };
+        
+  - name: HandleSendError
+    type: JavaScriptTask
+    description: Handle send errors with retry logic
+    config:
+      script: |
+        const message = $.messageData;
+        const error = $.error;
+        const retryCount = message.metadata.retryCount || 0;
+        
+        console.error('Email send failed:', {
+          error: error,
+          messageId: message.messageId,
+          emailType: message.emailType,
+          recipient: message.recipient.email,
+          retryCount: retryCount,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Determine if we should retry
+        const shouldRetry = retryCount < 3 && 
+          !error.message.includes('Invalid email') &&
+          !error.message.includes('Blacklisted');
+          
+        return { 
+          status: 'send_failed', 
+          shouldRetry: shouldRetry,
+          retryCount: retryCount
+        };
+
+# Error handling configuration
+errorHandling:
+  defaultRetryPolicy:
+    maxRetries: 3
+    backoffMultiplier: 2
+    initialBackoffSeconds: 60

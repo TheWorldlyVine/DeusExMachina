@@ -64,6 +64,17 @@ output "processor_function_url" {
   value       = module.processor_function_permissions.function_url
 }
 
+# Email Service Outputs
+output "email_topic_name" {
+  description = "The name of the email events topic"
+  value       = module.email_service.email_topic_name
+}
+
+output "email_subscription_name" {
+  description = "The name of the email events subscription"
+  value       = module.email_service.email_subscription_name
+}
+
 # Commented out while github_actions module is disabled
 # output "github_actions_service_account" {
 #   value       = module.github_actions.service_account_email

@@ -15,11 +15,12 @@ if gcloud functions describe $FUNCTION_NAME --region=$REGION --project=$PROJECT_
     echo "Function exists, updating configuration..."
     
     # Update the function with environment variables and secrets
+    # Note: Now using Cloud Pub/Sub for email delivery instead of SendGrid
     gcloud functions deploy $FUNCTION_NAME \
         --project=$PROJECT_ID \
         --region=$REGION \
-        --update-env-vars="EMAIL_FROM_ADDRESS=noreply@deusexmachina.app,EMAIL_FROM_NAME=DeusExMachina,APP_BASE_URL=https://34.95.119.251" \
-        --set-secrets="SENDGRID_API_KEY=sendgrid-api-key:latest" \
+        --update-env-vars="EMAIL_FROM_ADDRESS=noreply@deusexmachina.app,EMAIL_FROM_NAME=DeusExMachina,APP_BASE_URL=https://34.95.119.251,GCP_PROJECT_ID=$PROJECT_ID,EMAIL_TOPIC_NAME=deusexmachina-email-events" \
+        --remove-env-vars="SENDGRID_API_KEY" \
         --quiet
         
     echo "Function configuration updated successfully!"

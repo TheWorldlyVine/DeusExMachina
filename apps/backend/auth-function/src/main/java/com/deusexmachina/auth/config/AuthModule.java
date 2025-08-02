@@ -34,7 +34,8 @@ public class AuthModule extends AbstractModule {
         bind(AuthenticationService.class).to(AuthenticationServiceImpl.class);
         bind(PasswordService.class).to(PasswordServiceImpl.class);
         bind(TokenService.class).to(TokenServiceImpl.class);
-        bind(EmailService.class).to(SendGridEmailService.class);
+        // Use CloudPubSubEmailService for scalable email delivery
+        bind(EmailService.class).to(com.deusexmachina.email.service.CloudPubSubEmailService.class);
         bind(com.deusexmachina.auth.service.AuthorizationService.class)
                 .to(com.deusexmachina.auth.service.impl.AuthorizationServiceImpl.class);
         
@@ -56,6 +57,14 @@ public class AuthModule extends AbstractModule {
         // Google OAuth configuration
         bind(String.class).annotatedWith(Names.named("google.client.id"))
                 .toInstance(getEnvOrDefault("GOOGLE_CLIENT_ID", ""));
+        
+        // Pub/Sub configuration
+        bind(String.class).annotatedWith(Names.named("gcp.project.id"))
+                .toInstance(getEnvOrDefault("GCP_PROJECT_ID", System.getenv("GOOGLE_CLOUD_PROJECT")));
+        bind(String.class).annotatedWith(Names.named("pubsub.topic.email-events"))
+                .toInstance(getEnvOrDefault("EMAIL_TOPIC_NAME", "deusexmachina-email-events"));
+        bind(String.class).annotatedWith(Names.named("service.name"))
+                .toInstance("auth-function");
     }
     
     @Provides
