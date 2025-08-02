@@ -9,8 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.deusexmachina.novel.document.config.DocumentServiceModule;
 import com.deusexmachina.novel.document.controller.DocumentController;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.deusexmachina.novel.document.auth.AuthenticationMiddleware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +78,13 @@ public class NovelDocumentFunction implements HttpFunction {
         String method = request.getMethod();
         
         logger.info("Handling request: {} {}", method, path);
+        
+        // Check authentication for protected endpoints
+        if (AuthenticationMiddleware.requiresAuthentication(request)) {
+            if (!AuthenticationMiddleware.validateAuthentication(request, response)) {
+                return; // Response already sent by middleware
+            }
+        }
         
         try {
             if ("/health".equals(path) && "GET".equals(method)) {
@@ -155,7 +161,7 @@ public class NovelDocumentFunction implements HttpFunction {
                 String documentId = extractIdFromPath(path, "/document/");
                 controller.deleteDocument(documentId, response);
             } else if ("/documents".equals(path) && "GET".equals(method)) {
-                String userId = extractUserId(request);
+                String userId = AuthenticationMiddleware.extractUserId(request);
                 controller.listDocuments(userId, response);
             } else {
                 handleNotFound(response);
@@ -265,20 +271,4 @@ public class NovelDocumentFunction implements HttpFunction {
         return path.substring(prefix.length());
     }
     
-    private String extractUserId(HttpRequest request) {
-        // Extract from JWT token in Authorization header
-        Optional<String> authHeader = request.getFirstHeader("Authorization");
-        if (authHeader.isPresent() && authHeader.get().startsWith("Bearer ")) {
-            try {
-                String token = authHeader.get().substring(7); // Remove "Bearer " prefix
-                DecodedJWT jwt = JWT.decode(token);
-                return jwt.getSubject(); // The user ID is in the 'sub' claim
-            } catch (Exception e) {
-                logger.warn("Failed to extract user ID from JWT token", e);
-            }
-        }
-        
-        // Fallback to X-User-Id header or anonymous
-        return request.getFirstHeader("X-User-Id").orElse("anonymous");
-    }
 }
