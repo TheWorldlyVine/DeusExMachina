@@ -220,16 +220,16 @@ module "processor_function_permissions" {
 module "email_service" {
   source = "../../modules/email-service"
 
-  project_id      = local.project_id
-  project_name    = local.project_name
-  region          = local.region
-  
+  project_id   = local.project_id
+  project_name = local.project_name
+  region       = local.region
+
   # Auth function service account for publishing
   auth_function_service_account = "${data.google_project.project.number}-compute@developer.gserviceaccount.com"
-  
+
   # Enable DLQ handler when ready
   enable_dlq_handler = false
-  
+
   labels = local.common_labels
 }
 
