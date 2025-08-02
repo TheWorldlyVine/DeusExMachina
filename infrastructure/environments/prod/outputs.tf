@@ -40,3 +40,8 @@ output "deployment_instructions" {
   description = "Instructions for deploying the frontend"
   value       = module.static_hosting.deployment_instructions
 }
+
+output "github_actions_service_account" {
+  value       = module.github_actions.service_account_email
+  description = "Email of the GitHub Actions service account with permissions"
+}

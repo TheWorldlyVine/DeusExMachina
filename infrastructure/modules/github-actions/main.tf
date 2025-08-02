@@ -1,0 +1,63 @@
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# This module manages IAM permissions for the GitHub Actions service account
+# The service account itself is created manually and its key is stored in GitHub secrets
+
+variable "project_id" {
+  description = "The GCP project ID"
+  type        = string
+}
+
+variable "github_service_account_email" {
+  description = "The email of the GitHub Actions service account"
+  type        = string
+  default     = "github-actions-sa@deusexmachina-demo.iam.gserviceaccount.com"
+}
+
+# Grant Storage Admin role for deploying static assets
+resource "google_project_iam_member" "github_actions_storage_admin" {
+  project = var.project_id
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
+# Grant Cloud Functions Developer for deploying functions
+resource "google_project_iam_member" "github_actions_functions_developer" {
+  project = var.project_id
+  role    = "roles/cloudfunctions.developer"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
+# Grant Service Account User for using service accounts
+resource "google_project_iam_member" "github_actions_service_account_user" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
+# Grant Compute Network Viewer for CDN cache invalidation
+resource "google_project_iam_member" "github_actions_compute_viewer" {
+  project = var.project_id
+  role    = "roles/compute.networkViewer"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
+# Grant permissions to invalidate CDN cache
+resource "google_project_iam_member" "github_actions_compute_cache_admin" {
+  project = var.project_id
+  role    = "roles/compute.urlMapAdmin"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
+output "service_account_email" {
+  value       = var.github_service_account_email
+  description = "The email of the GitHub Actions service account"
+}
