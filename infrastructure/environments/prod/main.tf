@@ -173,7 +173,7 @@ module "github_actions" {
   source = "../../modules/github-actions"
 
   project_id = local.project_id
-  
+
   # The service account email should match what's in your GitHub Actions workflow
   github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
 }
