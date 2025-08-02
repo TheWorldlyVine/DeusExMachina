@@ -17,30 +17,25 @@ fi
 echo ""
 echo "Terraform apply failed. Analyzing errors..."
 
-# Count different types of errors
-# Look for the actual error lines in Terraform output
+# Count different types of errors by looking for the actual error lines
 error_409_count=$(grep -c "Error 409:" /tmp/terraform-apply.log || true)
 error_403_count=$(grep -c "Error 403:" /tmp/terraform-apply.log || true)
 error_400_count=$(grep -c "Error 400:" /tmp/terraform-apply.log || true)
 provider_error_count=$(grep -c "Provider produced inconsistent result" /tmp/terraform-apply.log || true)
 
-# Count total error blocks (the ╷ and ╵ delimited blocks)
-total_error_count=$(grep -c "^╷$" /tmp/terraform-apply.log || true)
-
-# Calculate non-409 errors correctly
-non_409_errors=$((total_error_count - error_409_count))
-other_errors=$((total_error_count - error_409_count - error_403_count - error_400_count - provider_error_count))
+# Calculate total errors and non-409 errors
+total_error_count=$((error_409_count + error_403_count + error_400_count + provider_error_count))
+non_409_errors=$((error_403_count + error_400_count + provider_error_count))
 
 echo "Found errors:"
-echo "  - Total error blocks: $total_error_count"
+echo "  - Total errors: $total_error_count"
 echo "  - 409 (Already Exists): $error_409_count"
 echo "  - 403 (Permission Denied): $error_403_count"
 echo "  - 400 (Bad Request): $error_400_count"
 echo "  - Provider errors: $provider_error_count"
-echo "  - Other errors: $other_errors"
 
 # If we only have 409 errors, that's acceptable
-if [ "$total_error_count" -gt 0 ] && [ "$non_409_errors" -eq 0 ]; then
+if [ "$error_409_count" -gt 0 ] && [ "$non_409_errors" -eq 0 ]; then
     echo ""
     echo "::warning::Only 'already exists' errors found. These are expected for existing resources."
     echo "Continuing with deployment..."
@@ -88,6 +83,7 @@ if [ "$non_409_errors" -gt 0 ]; then
     exit 1
 fi
 
-# This shouldn't happen, but just in case
-echo "::error::Unexpected error state. Please review the Terraform output."
+# If we get here, we have non-409 errors that weren't handled above
+echo ""
+echo "::error::Deployment failed due to errors. Please review the Terraform output above."
 exit 1
