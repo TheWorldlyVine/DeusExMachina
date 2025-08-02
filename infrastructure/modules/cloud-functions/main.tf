@@ -75,8 +75,8 @@ resource "google_cloudfunctions2_function" "function" {
     available_memory      = var.memory
     timeout_seconds       = var.timeout
     environment_variables = var.environment_variables
-    
-    service_account_email = google_service_account.function_sa.email
+
+    service_account_email = local.service_account_email
   }
 
   # Allow unauthenticated access (will be controlled by application-level auth)
