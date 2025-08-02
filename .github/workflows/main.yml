@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        function: [auth-function, api-function, processor-function]
+        function: [auth-function, api-function, processor-function, email-processor-function]
     steps:
       - uses: actions/checkout@v4
       
@@ -115,10 +115,34 @@ jobs:
             echo "entry_point=com.deusexmachina.functions.ApiFunction" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.function }}" = "processor-function" ]; then
             echo "entry_point=com.deusexmachina.functions.ProcessorFunction" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.function }}" = "email-processor-function" ]; then
+            echo "entry_point=com.deusexmachina.email.processor.EmailProcessorFunction" >> $GITHUB_OUTPUT
           fi
       
       - name: Deploy to GCP
         if: github.ref == 'refs/heads/main'
+        run: |
+          if [ "${{ matrix.function }}" = "email-processor-function" ]; then
+            # Deploy email processor with Pub/Sub trigger
+            gcloud functions deploy ${{ matrix.function }} \
+              --gen2 \
+              --runtime=java21 \
+              --region=us-central1 \
+              --source=apps/backend/${{ matrix.function }} \
+              --entry-point=${{ steps.entry_point.outputs.entry_point }} \
+              --trigger-topic=deus-ex-machina-email-events \
+              --memory=512Mi \
+              --max-instances=50 \
+              --timeout=300s \
+              --service-account=email-processor@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+              --set-env-vars="SMTP_FROM_EMAIL=${{ secrets.SMTP_FROM_EMAIL }},SMTP_FROM_NAME=DeusExMachina,SMTP_USERNAME=${{ secrets.SMTP_USERNAME }},SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}"
+          else
+            # Use the GitHub Action for HTTP-triggered functions
+            echo "Using GitHub Action deployment for ${{ matrix.function }}"
+          fi
+      
+      - name: Deploy HTTP Functions
+        if: github.ref == 'refs/heads/main' && matrix.function != 'email-processor-function'
         uses: google-github-actions/deploy-cloud-functions@v3
         with:
           name: ${{ matrix.function }}
