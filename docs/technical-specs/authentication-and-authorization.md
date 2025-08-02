@@ -1842,6 +1842,32 @@ If issues occur after deployment:
 2. **Manual**: Use gsutil to sync previous build from backup
 3. **CDN**: Invalidate cache after rollback
 
+### Known Limitations
+
+#### SPA Routing with Cloud Load Balancer
+Google Cloud Load Balancer doesn't support automatic fallback routing for SPAs. Direct URLs like `/web-app/signup` will return 404 errors.
+
+**Current Workarounds**:
+1. Access the base URL (`/web-app/`) and use client-side navigation
+2. Use hash-based routing (`/#/signup`)
+3. Implement a Cloud Function for routing
+4. Consider Firebase Hosting for better SPA support
+
+**Manual Deployment** (if CI/CD fails):
+```bash
+# Build locally
+cd apps/frontend/web-app
+pnpm build
+
+# Deploy to bucket
+gsutil -m cp -r dist/* gs://<bucket-name>/web-app/
+
+# Set cache headers
+gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://<bucket>/web-app/assets/*.js"
+gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" "gs://<bucket>/web-app/assets/*.css"
+gsutil -m setmeta -h "Cache-Control:no-cache" "gs://<bucket>/web-app/*.html"
+```
+
 ### Environment Variables
 
 Production environment variables are set during build:
