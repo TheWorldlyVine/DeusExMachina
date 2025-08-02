@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { AUTH_API_URL } from '@/config/api'
 
 export interface User {
   id: string
@@ -21,36 +22,36 @@ export interface LoginData {
 }
 
 class AuthService {
-  private baseURL = '/api/auth'
+  private baseURL = AUTH_API_URL
 
   async signup(data: SignupData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${this.baseURL}/signup`, data)
+    const response = await axios.post<AuthResponse>(`${this.baseURL}/auth/register`, data)
     return response.data
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${this.baseURL}/login`, data)
+    const response = await axios.post<AuthResponse>(`${this.baseURL}/auth/login`, data)
     return response.data
   }
 
   async logout(): Promise<void> {
-    await axios.post(`${this.baseURL}/logout`)
+    await axios.post(`${this.baseURL}/auth/logout`)
   }
 
   async verifyEmail(token: string): Promise<void> {
-    await axios.post(`${this.baseURL}/verify-email`, { token })
+    await axios.post(`${this.baseURL}/auth/verify-email`, { token })
   }
 
   async resendVerificationEmail(): Promise<void> {
-    await axios.post(`${this.baseURL}/resend-verification`)
+    await axios.post(`${this.baseURL}/auth/resend-verification`)
   }
 
   async requestPasswordReset(email: string): Promise<void> {
-    await axios.post(`${this.baseURL}/forgot-password`, { email })
+    await axios.post(`${this.baseURL}/auth/reset-password`, { email })
   }
 
   async resetPassword(token: string, password: string): Promise<void> {
-    await axios.post(`${this.baseURL}/reset-password`, { token, password })
+    await axios.post(`${this.baseURL}/auth/confirm-reset`, { token, newPassword: password })
   }
 }
 

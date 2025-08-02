@@ -25,7 +25,15 @@
       "Bash(cp:*)",
       "Bash(cat:*)",
       "Bash(npx vitest run:*)",
-      "Bash(npx rollup:*)"
+      "Bash(npx rollup:*)",
+      "Bash(touch:*)",
+      "Bash(gcloud functions add-iam-policy-binding:*)",
+      "Bash(--region=us-central1 )",
+      "Bash(--member=\"allUsers\" )",
+      "Bash(--role=\"roles/cloudfunctions.invoker\" )",
+      "Bash(gcloud functions add-invoker-policy-binding:*)",
+      "Bash(--region=us-central1 )",
+      "Bash(--member=\"allUsers\" )"
     ],
     "deny": []
   }

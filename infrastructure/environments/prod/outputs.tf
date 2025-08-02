@@ -41,6 +41,28 @@ output "deployment_instructions" {
   value       = module.static_hosting.deployment_instructions
 }
 
+# Firestore Outputs
+output "firestore_database_name" {
+  description = "Name of the Firestore database"
+  value       = module.firestore.database_name
+}
+
+# Cloud Functions Outputs
+output "auth_function_url" {
+  description = "URL of the auth function"
+  value       = module.auth_function.function_url
+}
+
+output "api_function_url" {
+  description = "URL of the API function"
+  value       = module.api_function.function_url
+}
+
+output "processor_function_url" {
+  description = "URL of the processor function"
+  value       = module.processor_function.function_url
+}
+
 # Commented out while github_actions module is disabled
 # output "github_actions_service_account" {
 #   value       = module.github_actions.service_account_email

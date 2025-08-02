@@ -172,13 +172,28 @@ public class TokenServiceImpl implements TokenService {
     }
     
     private String loadJwtSecret(SecretManagerServiceClient secretManager) {
-        // In production, load from Secret Manager
-        // For local development, use environment variable
-        String secret = System.getenv("JWT_SECRET");
-        if (secret == null || secret.isEmpty()) {
-            logger.warn("JWT_SECRET not found in environment, using default (NOT FOR PRODUCTION)");
-            secret = "default-secret-for-development-only";
+        // Try to load from Secret Manager first (for production)
+        try {
+            String projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
+            if (projectId == null || projectId.isEmpty()) {
+                projectId = "deus-ex-machina-prod";
+            }
+            
+            String secretName = String.format("projects/%s/secrets/jwt-secret/versions/latest", projectId);
+            logger.info("Loading JWT secret from Secret Manager: {}", secretName);
+            
+            var response = secretManager.accessSecretVersion(secretName);
+            return response.getPayload().getData().toStringUtf8();
+        } catch (Exception e) {
+            logger.warn("Failed to load JWT secret from Secret Manager, falling back to environment variable", e);
+            
+            // Fallback to environment variable for local development
+            String secret = System.getenv("JWT_SECRET");
+            if (secret == null || secret.isEmpty()) {
+                logger.error("JWT_SECRET not found in environment and Secret Manager failed");
+                throw new RuntimeException("JWT secret configuration error");
+            }
+            return secret;
         }
-        return secret;
     }
 }

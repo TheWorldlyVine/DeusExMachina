@@ -1,15 +1,21 @@
 variable "project_id" {
-  description = "GCP project ID"
+  description = "The GCP project ID"
   type        = string
 }
 
+variable "project_name" {
+  description = "The project name for resource naming"
+  type        = string
+  default     = "deusexmachina"
+}
+
 variable "function_name" {
-  description = "Name of the Cloud Function"
+  description = "The name of the Cloud Function"
   type        = string
 }
 
 variable "region" {
-  description = "GCP region for the function"
+  description = "The region to deploy the function"
   type        = string
 }
 
@@ -20,26 +26,20 @@ variable "description" {
 }
 
 variable "runtime" {
-  description = "Runtime for the function"
+  description = "The runtime for the function"
   type        = string
   default     = "java21"
 }
 
 variable "entry_point" {
-  description = "Entry point for the function"
+  description = "The entry point for the function"
   type        = string
-}
-
-variable "source_archive_path" {
-  description = "Path to the source archive"
-  type        = string
-  default     = null
 }
 
 variable "memory" {
   description = "Memory allocation for the function"
   type        = string
-  default     = "512M"
+  default     = "256Mi"
 }
 
 variable "timeout" {
@@ -48,59 +48,43 @@ variable "timeout" {
   default     = 60
 }
 
-variable "min_instances" {
-  description = "Minimum number of instances"
-  type        = number
-  default     = 0
-}
-
 variable "max_instances" {
   description = "Maximum number of instances"
   type        = number
   default     = 100
 }
 
-variable "max_concurrent_requests" {
-  description = "Maximum concurrent requests per instance"
+variable "min_instances" {
+  description = "Minimum number of instances"
   type        = number
-  default     = 100
+  default     = 0
 }
 
-variable "env_vars" {
-  description = "Environment variables"
+variable "environment_variables" {
+  description = "Environment variables for the function"
   type        = map(string)
   default     = {}
 }
 
-variable "secret_env_vars" {
-  description = "Secret environment variables"
-  type = map(object({
-    secret_name = string
-    version     = string
-  }))
-  default = {}
-}
-
-variable "ingress_settings" {
-  description = "Ingress settings for the function"
+variable "source_archive_path" {
+  description = "Path to the source code archive"
   type        = string
-  default     = "ALLOW_ALL"
 }
 
-variable "allow_unauthenticated" {
-  description = "Whether to allow unauthenticated invocations"
+variable "source_archive_object" {
+  description = "Name of the source archive object in the bucket"
+  type        = string
+  default     = "source.zip"
+}
+
+variable "enable_firestore" {
+  description = "Whether to grant Firestore access"
   type        = bool
   default     = false
 }
 
-variable "service_account_roles" {
-  description = "IAM roles to grant to the function's service account"
-  type        = list(string)
-  default     = []
-}
-
-variable "labels" {
-  description = "Labels to apply to the function"
-  type        = map(string)
-  default     = {}
+variable "force_destroy" {
+  description = "Force destroy the bucket on deletion"
+  type        = bool
+  default     = false
 }

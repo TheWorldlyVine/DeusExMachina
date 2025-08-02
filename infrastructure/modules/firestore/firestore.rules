@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own data
+      allow read: if isOwner(userId);
+      
+      // Users can update their own profile (except role and security settings)
+      allow update: if isOwner(userId) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin']);
+      
+      // Only the auth service can create users (no direct writes)
+      allow create: if false;
+      
+      // Users cannot delete their own account directly
+      allow delete: if false;
+    }
+    
+    // Sessions collection (managed by auth service)
+    match /sessions/{sessionId} {
+      // Sessions are private - no direct access
+      allow read, write: if false;
+    }
+    
+    // Permissions collection
+    match /permissions/{permissionId} {
+      // Users can read permissions where they are the subject
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.grantedBy == request.auth.uid);
+      
+      // Only resource owners can grant permissions
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.grantedBy;
+      
+      // Only the granter can revoke permissions
+      allow delete: if isAuthenticated() && 
+        resource.data.grantedBy == request.auth.uid;
+      
+      // Permissions cannot be updated once created
+      allow update: if false;
+    }
+    
+    // Email verification tokens (managed by auth service)
+    match /emailVerificationTokens/{tokenId} {
+      allow read, write: if false;
+    }
+    
+    // Password reset tokens (managed by auth service)
+    match /passwordResetTokens/{tokenId} {
+      allow read, write: if false;
+    }
+  }
+}

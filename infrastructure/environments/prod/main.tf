@@ -168,6 +168,52 @@ module "static_hosting" {
   labels = local.common_labels
 }
 
+# Firestore Database
+module "firestore" {
+  source = "../../modules/firestore"
+
+  project_id      = local.project_id
+  region          = local.region
+  deletion_policy = "DELETE" # Use "ABANDON" for production
+}
+
+# Cloud Functions Permissions (functions are deployed via CI/CD)
+# Auth Function Permissions
+module "auth_function_permissions" {
+  source = "../../modules/cloud-functions-permissions"
+
+  project_id            = local.project_id
+  region                = local.region
+  function_name         = "auth-function"
+  allow_unauthenticated = true  # Auth endpoints need public access
+  enable_firestore      = true
+  additional_roles      = []
+}
+
+# API Function Permissions
+module "api_function_permissions" {
+  source = "../../modules/cloud-functions-permissions"
+
+  project_id            = local.project_id
+  region                = local.region
+  function_name         = "api-function"
+  allow_unauthenticated = true  # API endpoints need public access (auth handled in-app)
+  enable_firestore      = true
+  additional_roles      = []
+}
+
+# Processor Function Permissions
+module "processor_function_permissions" {
+  source = "../../modules/cloud-functions-permissions"
+
+  project_id            = local.project_id
+  region                = local.region
+  function_name         = "processor-function"
+  allow_unauthenticated = false  # Internal use only
+  enable_firestore      = true
+  additional_roles      = ["roles/pubsub.subscriber"]
+}
+
 # GitHub Actions Service Account Permissions
 # NOTE: This module manages IAM permissions for the GitHub Actions service account.
 # It must be applied by a user with IAM admin permissions, not by the service account itself.
