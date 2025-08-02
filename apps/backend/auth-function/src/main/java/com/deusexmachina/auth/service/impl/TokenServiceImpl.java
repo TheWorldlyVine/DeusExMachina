@@ -180,7 +180,7 @@ public class TokenServiceImpl implements TokenService {
             }
             
             String secretName = String.format("projects/%s/secrets/jwt-secret/versions/latest", projectId);
-            logger.info("Loading JWT secret from Secret Manager: {}", secretName);
+            logger.info("Loading JWT secret from Secret Manager for project: {}", projectId);
             
             var response = secretManager.accessSecretVersion(secretName);
             return response.getPayload().getData().toStringUtf8();

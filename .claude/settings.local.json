@@ -33,7 +33,8 @@
       "Bash(--role=\"roles/cloudfunctions.invoker\" )",
       "Bash(gcloud functions add-invoker-policy-binding:*)",
       "Bash(--region=us-central1 )",
-      "Bash(--member=\"allUsers\" )"
+      "Bash(--member=\"allUsers\" )",
+      "Bash(gcloud functions describe:*)"
     ],
     "deny": []
   }
