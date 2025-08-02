@@ -20,18 +20,20 @@ echo "Terraform apply failed. Analyzing errors..."
 # Count different types of errors
 error_409_count=$(grep -c "Error 409:" /tmp/terraform-apply.log || true)
 error_403_count=$(grep -c "Error 403:" /tmp/terraform-apply.log || true)
-error_other_count=$(grep -c "│ Error:" /tmp/terraform-apply.log || true)
+total_error_count=$(grep -c "│ Error:" /tmp/terraform-apply.log || true)
 
-# Calculate non-409 errors
-non_409_errors=$((error_403_count + error_other_count - error_409_count))
+# Calculate non-409 errors correctly
+non_409_errors=$((total_error_count - error_409_count))
+other_errors=$((total_error_count - error_409_count - error_403_count))
 
 echo "Found errors:"
+echo "  - Total errors: $total_error_count"
 echo "  - 409 (Already Exists): $error_409_count"
 echo "  - 403 (Permission Denied): $error_403_count"
-echo "  - Other errors: $((error_other_count - error_409_count - error_403_count))"
+echo "  - Other errors: $other_errors"
 
 # If we only have 409 errors, that's acceptable
-if [ "$error_409_count" -gt 0 ] && [ "$non_409_errors" -eq 0 ]; then
+if [ "$total_error_count" -gt 0 ] && [ "$non_409_errors" -eq 0 ]; then
     echo ""
     echo "::warning::Only 'already exists' errors found. These are expected for existing resources."
     echo "Continuing with deployment..."

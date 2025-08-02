@@ -56,6 +56,24 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:${SERVICE_ACCOUNT}" \
     --role="roles/compute.loadBalancerAdmin"
 
+# Grant Pub/Sub Admin for managing topics and subscriptions
+echo "Granting Pub/Sub Admin role..."
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${SERVICE_ACCOUNT}" \
+    --role="roles/pubsub.admin"
+
+# Grant Service Account Admin for creating service accounts
+echo "Granting Service Account Admin role..."
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${SERVICE_ACCOUNT}" \
+    --role="roles/iam.serviceAccountAdmin"
+
+# Grant Project IAM Admin for managing IAM bindings
+echo "Granting Project IAM Admin role..."
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${SERVICE_ACCOUNT}" \
+    --role="roles/resourcemanager.projectIamAdmin"
+
 echo ""
 echo "✅ All permissions granted successfully!"
 echo ""
@@ -64,6 +82,9 @@ echo "  - Storage Admin (for bucket operations)"
 echo "  - Cloud Functions Developer (for function deployments)"
 echo "  - Service Account User (for using service accounts)"
 echo "  - Compute Network Viewer (for network operations)"
-echo "  - Compute URL Map Admin (for CDN invalidation)"
+echo "  - Compute Admin (for URL maps and CDN operations)"
 echo "  - Compute Security Admin (for Cloud Armor)"
 echo "  - Load Balancer Admin (for load balancer operations)"
+echo "  - Pub/Sub Admin (for topics, subscriptions, and schemas)"
+echo "  - Service Account Admin (for creating service accounts)"
+echo "  - Project IAM Admin (for managing IAM bindings)"
