@@ -35,7 +35,7 @@ resource "google_project_iam_member" "firestore_user" {
 # Grant additional roles as needed
 resource "google_project_iam_member" "additional_roles" {
   for_each = toset(var.additional_roles)
-  
+
   project = var.project_id
   role    = each.value
   member  = "serviceAccount:${data.google_cloudfunctions2_function.existing.service_config[0].service_account_email}"

@@ -45,9 +45,9 @@ resource "google_storage_bucket" "function_bucket" {
   name     = "${var.project_id}-${var.function_name}-source"
   location = var.region
   project  = var.project_id
-  
+
   uniform_bucket_level_access = true
-  force_destroy              = var.force_destroy
+  force_destroy               = var.force_destroy
 }
 
 # Cloud Function
@@ -75,7 +75,7 @@ resource "google_cloudfunctions2_function" "function" {
     available_memory      = var.memory
     timeout_seconds       = var.timeout
     environment_variables = var.environment_variables
-    
+
     service_account_email = google_service_account.function_sa.email
   }
 

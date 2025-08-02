@@ -43,89 +43,89 @@ locals {
 
 # VPC module commented out until needed for Cloud Functions
 # module "vpc" {
-#source = "../../modules/vpc"
+#   source = "../../modules/vpc"
 #
-#project_name        = "deus-ex-machina"
-#region             = local.region
-#private_subnet_cidr = "10.0.0.0/20"
-#pods_cidr          = "10.1.0.0/16"
-#services_cidr      = "10.2.0.0/16"
+#   project_name        = "deus-ex-machina"
+#   region              = local.region
+#   private_subnet_cidr = "10.0.0.0/20"
+#   pods_cidr           = "10.1.0.0/16"
+#   services_cidr       = "10.2.0.0/16"
 # }
 
 # Cloud Functions commented out until backend is ready
 # module "auth_function" {
-#source = "../../modules/cloud-functions"
+#   source = "../../modules/cloud-functions"
 #
-#project_id            = local.project_id
-#function_name        = "auth-function"
-#region               = local.region
-#description          = "Authentication service for DeusExMachina"
-#entry_point          = "com.deusexmachina.functions.AuthFunction"
-#source_archive_path  = "../../../apps/backend/auth-function/build/distributions/auth-function.zip"
-#memory               = "512M"
-#min_instances        = 1
-#max_instances        = 100
-#allow_unauthenticated = true
+#   project_id            = local.project_id
+#   function_name         = "auth-function"
+#   region                = local.region
+#   description           = "Authentication service for DeusExMachina"
+#   entry_point           = "com.deusexmachina.functions.AuthFunction"
+#   source_archive_path   = "../../../apps/backend/auth-function/build/distributions/auth-function.zip"
+#   memory                = "512M"
+#   min_instances         = 1
+#   max_instances         = 100
+#   allow_unauthenticated = true
 #
-#env_vars = {
-#  ENVIRONMENT = local.environment
-#  LOG_LEVEL   = "INFO"
-#}
+#   env_vars = {
+#     ENVIRONMENT = local.environment
+#     LOG_LEVEL   = "INFO"
+#   }
 #
-#secret_env_vars = {
-#  JWT_SECRET = {
-#    secret_name = "jwt-secret"
-#    version     = "latest"
-#  }
-#  DATABASE_URL = {
-#    secret_name = "database-url"
-#    version     = "latest"
-#  }
-#}
+#   secret_env_vars = {
+#     JWT_SECRET = {
+#       secret_name = "jwt-secret"
+#       version     = "latest"
+#     }
+#     DATABASE_URL = {
+#       secret_name = "database-url"
+#       version     = "latest"
+#     }
+#   }
 #
-#service_account_roles = [
-#  "roles/logging.logWriter",
-#  "roles/monitoring.metricWriter",
-#  "roles/secretmanager.secretAccessor",
-#]
+#   service_account_roles = [
+#     "roles/logging.logWriter",
+#     "roles/monitoring.metricWriter",
+#     "roles/secretmanager.secretAccessor",
+#   ]
 #
-#labels = local.common_labels
+#   labels = local.common_labels
 # }
 
 # module "api_function" {
-#source = "../../modules/cloud-functions"
+#   source = "../../modules/cloud-functions"
 #
-#project_id            = local.project_id
-#function_name        = "api-function"
-#region               = local.region
-#description          = "Main API service for DeusExMachina"
-#entry_point          = "com.deusexmachina.functions.ApiFunction"
-#source_archive_path  = "../../../apps/backend/api-function/build/distributions/api-function.zip"
-#memory               = "1024M"
-#min_instances        = 2
-#max_instances        = 200
-#allow_unauthenticated = true
+#   project_id            = local.project_id
+#   function_name         = "api-function"
+#   region                = local.region
+#   description           = "Main API service for DeusExMachina"
+#   entry_point           = "com.deusexmachina.functions.ApiFunction"
+#   source_archive_path   = "../../../apps/backend/api-function/build/distributions/api-function.zip"
+#   memory                = "1024M"
+#   min_instances         = 2
+#   max_instances         = 200
+#   allow_unauthenticated = true
 #
-#env_vars = {
-#  ENVIRONMENT = local.environment
-#  LOG_LEVEL   = "INFO"
-#}
+#   env_vars = {
+#     ENVIRONMENT = local.environment
+#     LOG_LEVEL   = "INFO"
+#   }
 #
-#secret_env_vars = {
-#  DATABASE_URL = {
-#    secret_name = "database-url"
-#    version     = "latest"
-#  }
-#}
+#   secret_env_vars = {
+#     DATABASE_URL = {
+#       secret_name = "database-url"
+#       version     = "latest"
+#     }
+#   }
 #
-#service_account_roles = [
-#  "roles/logging.logWriter",
-#  "roles/monitoring.metricWriter",
-#  "roles/secretmanager.secretAccessor",
-#  "roles/cloudsql.client",
-#]
+#   service_account_roles = [
+#     "roles/logging.logWriter",
+#     "roles/monitoring.metricWriter",
+#     "roles/secretmanager.secretAccessor",
+#     "roles/cloudsql.client",
+#   ]
 #
-#labels = local.common_labels
+#   labels = local.common_labels
 # }
 
 # Static Hosting for Frontend
@@ -185,7 +185,7 @@ module "auth_function_permissions" {
   project_id            = local.project_id
   region                = local.region
   function_name         = "auth-function"
-  allow_unauthenticated = true  # Auth endpoints need public access
+  allow_unauthenticated = true # Auth endpoints need public access
   enable_firestore      = true
   additional_roles      = []
 }
@@ -197,7 +197,7 @@ module "api_function_permissions" {
   project_id            = local.project_id
   region                = local.region
   function_name         = "api-function"
-  allow_unauthenticated = true  # API endpoints need public access (auth handled in-app)
+  allow_unauthenticated = true # API endpoints need public access (auth handled in-app)
   enable_firestore      = true
   additional_roles      = []
 }
@@ -209,7 +209,7 @@ module "processor_function_permissions" {
   project_id            = local.project_id
   region                = local.region
   function_name         = "processor-function"
-  allow_unauthenticated = false  # Internal use only
+  allow_unauthenticated = false # Internal use only
   enable_firestore      = true
   additional_roles      = ["roles/pubsub.subscriber"]
 }
