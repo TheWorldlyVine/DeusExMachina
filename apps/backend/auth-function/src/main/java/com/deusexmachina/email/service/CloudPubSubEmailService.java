@@ -4,6 +4,8 @@ import com.deusexmachina.auth.service.EmailService;
 import com.deusexmachina.email.model.EmailMessage;
 import com.deusexmachina.email.model.EmailType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.inject.Inject;
@@ -43,7 +45,9 @@ public class CloudPubSubEmailService implements EmailService {
         this.projectId = projectId;
         this.sourceName = sourceName;
         this.objectMapper = new ObjectMapper();
-        this.objectMapper.findAndRegisterModules(); // For Java 8 time support
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.objectMapper.findAndRegisterModules(); // For additional modules
         
         logger.info("Initializing CloudPubSubEmailService - projectId: {}, topicName: {}, sourceName: {}", 
             projectId, topicName, sourceName);
@@ -249,7 +253,7 @@ public class CloudPubSubEmailService implements EmailService {
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
                     .setData(data)
                     .putAttributes("emailType", message.getEmailType().name())
-                    .putAttributes("priority", message.getMetadata().getPriority().name())
+                    .putAttributes("priority", message.getMetadata().getPriority().toValue())
                     .putAttributes("source", message.getMetadata().getSource())
                     .putAttributes("correlationId", message.getMetadata().getCorrelationId())
                     .build();

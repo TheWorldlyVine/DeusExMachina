@@ -1,0 +1,143 @@
+{
+  "fields": [
+    {
+      "doc": "Unique identifier for the message",
+      "name": "messageId",
+      "type": "string"
+    },
+    {
+      "doc": "ISO 8601 timestamp",
+      "name": "timestamp",
+      "type": "string"
+    },
+    {
+      "doc": "Type of email (e.g., VERIFICATION_EMAIL, ORDER_CONFIRMATION)",
+      "name": "emailType",
+      "type": "string"
+    },
+    {
+      "name": "recipient",
+      "type": {
+        "fields": [
+          {
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "default": null,
+            "name": "displayName",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        ],
+        "name": "Recipient",
+        "type": "record"
+      }
+    },
+    {
+      "default": null,
+      "doc": "Optional custom sender, defaults to system sender",
+      "name": "sender",
+      "type": [
+        "null",
+        {
+          "fields": [
+            {
+              "name": "email",
+              "type": "string"
+            },
+            {
+              "default": null,
+              "name": "name",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          ],
+          "name": "Sender",
+          "type": "record"
+        }
+      ]
+    },
+    {
+      "doc": "Template variables for email rendering",
+      "name": "templateData",
+      "type": {
+        "type": "map",
+        "values": "string"
+      }
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "fields": [
+          {
+            "default": null,
+            "name": "userId",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "correlationId",
+            "type": "string"
+          },
+          {
+            "default": 0,
+            "name": "retryCount",
+            "type": "int"
+          },
+          {
+            "doc": "Source service/function",
+            "name": "source",
+            "type": "string"
+          },
+          {
+            "default": "normal",
+            "doc": "Email priority: high, normal, low",
+            "name": "priority",
+            "type": "string"
+          }
+        ],
+        "name": "Metadata",
+        "type": "record"
+      }
+    },
+    {
+      "default": null,
+      "doc": "Optional file attachments",
+      "name": "attachments",
+      "type": [
+        "null",
+        {
+          "items": {
+            "fields": [
+              {
+                "name": "filename",
+                "type": "string"
+              },
+              {
+                "name": "contentType",
+                "type": "string"
+              },
+              {
+                "doc": "Base64 encoded data",
+                "name": "data",
+                "type": "string"
+              }
+            ],
+            "name": "Attachment",
+            "type": "record"
+          },
+          "type": "array"
+        }
+      ]
+    }
+  ],
+  "name": "EmailMessage",
+  "type": "record"
+}

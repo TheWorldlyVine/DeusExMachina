@@ -1,5 +1,7 @@
 package com.deusexmachina.email.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Preconditions;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +24,7 @@ public class EmailMessage {
     
     @NonNull
     @Builder.Default
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant timestamp = Instant.now();
     
     @NonNull
@@ -112,7 +115,12 @@ public class EmailMessage {
     public enum Priority {
         HIGH,
         NORMAL,
-        LOW
+        LOW;
+        
+        @JsonValue
+        public String toValue() {
+            return name().toLowerCase();
+        }
     }
     
     /**
