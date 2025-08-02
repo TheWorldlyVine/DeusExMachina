@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.google.cloud.functions.functions-framework' version '0.10.1'
 }
 
 // Early initialization for Cloud Functions compatibility
@@ -23,7 +24,7 @@ configurations {
 
 dependencies {
     // Core dependencies
-    compileOnly 'com.google.cloud.functions:functions-framework-api:1.1.0'
+    implementation 'com.google.cloud.functions:functions-framework-api:1.1.0'
     
     // Note: Shared utilities are copied directly into this project for Cloud Functions deployment
     
@@ -102,3 +103,8 @@ jar {
 // This runs during script configuration phase, before Cloud Functions appends code
 jar.ext.archivePath = jar.archiveFile.get().asFile
 jar.ext.archiveName = jar.archiveFileName.get()
+
+// Configure the Functions Framework plugin
+functionsFramework {
+    target = 'com.deusexmachina.functions.AuthFunction'
+}
