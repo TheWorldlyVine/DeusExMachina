@@ -1,0 +1,82 @@
+application:
+  name: novel-ai-service
+  version: 1.0.0
+
+gcp:
+  project:
+    id: ${GCP_PROJECT_ID}
+  
+vertexai:
+  location: us-central1
+  endpoint: ${VERTEX_AI_ENDPOINT:us-central1-aiplatform.googleapis.com}
+  
+gemini:
+  model:
+    pro: gemini-2.5-pro-latest
+    flash: gemini-2.5-flash-latest
+  temperature:
+    creative: 0.9
+    balanced: 0.7
+    focused: 0.3
+  maxOutputTokens: 8192
+  topK: 40
+  topP: 0.95
+  
+generation:
+  context:
+    maxTokens: 30000
+    reservedTokens: 2000
+  prompts:
+    systemPromptPath: /prompts/system/
+    templatePath: /prompts/templates/
+  retry:
+    maxAttempts: 3
+    initialDelay: 1000
+    maxDelay: 10000
+    multiplier: 2
+  timeout:
+    seconds: 120
+    
+memory:
+  service:
+    url: ${MEMORY_SERVICE_URL:https://novel-memory-service-${GCP_PROJECT_ID}.cloudfunctions.net}
+  cache:
+    ttl: 300
+    maxSize: 1000
+    
+rate-limiting:
+  requests:
+    perMinute: 60
+    perHour: 1000
+  tokens:
+    perMinute: 1000000
+    perHour: 10000000
+    
+monitoring:
+  metrics:
+    enabled: true
+    prefix: novel.ai.service
+  tracing:
+    enabled: true
+    samplingRate: 0.1
+    
+logging:
+  level:
+    root: INFO
+    com.deusexmachina: DEBUG
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+    
+cors:
+  allowedOrigins:
+    - https://*.deusexmachina.com
+    - http://localhost:3000
+  allowedMethods:
+    - GET
+    - POST
+    - OPTIONS
+  allowedHeaders:
+    - Authorization
+    - Content-Type
+    - X-Request-ID
+  maxAge: 3600
