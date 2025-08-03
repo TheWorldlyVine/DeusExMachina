@@ -28,7 +28,8 @@
       "Bash(npm run type-check:*)",
       "Bash(gh run watch:*)",
       "Bash(pnpm --filter @deusexmachina/novel-creator add lucide-react @monaco-editor/react monaco-editor)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }
