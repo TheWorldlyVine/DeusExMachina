@@ -334,7 +334,7 @@ jobs:
           export VITE_DOCUMENT_API_URL=https://novel-document-service-tbmcifixdq-uc.a.run.app
           export VITE_AI_API_URL=https://novel-ai-service-tbmcifixdq-uc.a.run.app
           export VITE_MEMORY_API_URL=https://novel-memory-service-tbmcifixdq-uc.a.run.app
-          export VITE_GRAPHQL_URL=https://novel-graphql-gateway-xkv3zhqrha-uc.a.run.app/graphql
+          export VITE_GRAPHQL_URL=https://novel-graphql-gateway-97677897945.us-central1.run.app/graphql
           
           pnpm run build
       
