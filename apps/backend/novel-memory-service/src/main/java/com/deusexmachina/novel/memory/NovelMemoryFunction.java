@@ -1,5 +1,6 @@
 package com.deusexmachina.novel.memory;
 
+import com.deusexmachina.novel.memory.auth.AuthenticationMiddleware;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -40,6 +41,14 @@ public class NovelMemoryFunction implements HttpFunction {
         logger.info(String.format("Received %s request to %s", 
             request.getMethod(), request.getPath()));
         
+        // Check authentication
+        if (AuthenticationMiddleware.requiresAuthentication(request)) {
+            if (!AuthenticationMiddleware.validateAuthentication(request, response)) {
+                logger.warning("Unauthorized request to " + request.getPath());
+                return;
+            }
+        }
+        
         try {
             // Route request based on path and method
             String path = request.getPath();
@@ -47,6 +56,8 @@ public class NovelMemoryFunction implements HttpFunction {
             
             if (path.startsWith("/memory")) {
                 handleMemoryRequest(request, response);
+            } else if (path.equals("/health")) {
+                handleHealthCheck(response);
             } else {
                 response.setStatusCode(404);
                 try (BufferedWriter writer = response.getWriter()) {
@@ -298,6 +309,14 @@ public class NovelMemoryFunction implements HttpFunction {
         response.setContentType("application/json");
         try (BufferedWriter writer = response.getWriter()) {
             writer.write("{\"error\":\"Method not allowed\"}");
+        }
+    }
+    
+    private void handleHealthCheck(HttpResponse response) throws IOException {
+        response.setStatusCode(200);
+        response.setContentType("application/json");
+        try (BufferedWriter writer = response.getWriter()) {
+            writer.write("{\"status\":\"healthy\",\"service\":\"novel-memory-service\"}");
         }
     }
     

@@ -52,6 +52,9 @@ dependencies {
     implementation 'jakarta.el:jakarta.el-api:5.0.1'
     implementation 'org.glassfish:jakarta.el:5.0.0-M1'
     
+    // JWT for authentication
+    implementation 'com.auth0:java-jwt:4.4.0'
+    
     // Logging
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'org.slf4j:slf4j-jdk14:2.0.9'

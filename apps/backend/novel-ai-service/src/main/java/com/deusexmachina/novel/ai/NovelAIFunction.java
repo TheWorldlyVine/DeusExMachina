@@ -1,5 +1,6 @@
 package com.deusexmachina.novel.ai;
 
+import com.deusexmachina.novel.ai.auth.AuthenticationMiddleware;
 import com.deusexmachina.novel.ai.controller.GenerationController;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
@@ -40,6 +41,14 @@ public class NovelAIFunction implements HttpFunction {
         // Log request info
         logger.info(String.format("Received %s request to %s", 
             request.getMethod(), request.getPath()));
+        
+        // Check authentication
+        if (AuthenticationMiddleware.requiresAuthentication(request)) {
+            if (!AuthenticationMiddleware.validateAuthentication(request, response)) {
+                logger.warning("Unauthorized request to " + request.getPath());
+                return;
+            }
+        }
         
         try {
             // Route request based on path and method

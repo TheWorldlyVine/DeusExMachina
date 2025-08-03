@@ -13,7 +13,12 @@ class GenerationService {
     const response = await axios.post(
       `${API_URL}/generate`,
       request,
-      { headers: this.getAuthHeader() }
+      { 
+        headers: {
+          ...this.getAuthHeader(),
+          'Content-Type': 'application/json'
+        }
+      }
     )
     return response.data
   }

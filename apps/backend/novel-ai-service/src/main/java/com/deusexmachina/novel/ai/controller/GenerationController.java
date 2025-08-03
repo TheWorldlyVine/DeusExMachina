@@ -1,5 +1,6 @@
 package com.deusexmachina.novel.ai.controller;
 
+import com.deusexmachina.novel.ai.auth.AuthenticationMiddleware;
 import com.deusexmachina.novel.ai.model.GenerationRequest;
 import com.deusexmachina.novel.ai.model.GenerationResponse;
 import com.deusexmachina.novel.ai.service.GenerationService;
@@ -220,8 +221,7 @@ public class GenerationController {
     }
     
     private String extractUserId(com.google.cloud.functions.HttpRequest request) {
-        // TODO: Extract from JWT token in Authorization header
-        return request.getFirstHeader("X-User-Id").orElse("anonymous");
+        return AuthenticationMiddleware.extractUserId(request);
     }
     
     private void sendSuccessResponse(com.google.cloud.functions.HttpResponse response, Object data) throws IOException {
