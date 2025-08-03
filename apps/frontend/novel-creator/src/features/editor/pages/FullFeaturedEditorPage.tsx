@@ -9,7 +9,6 @@ import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { AIAssistantPanel } from '@/components/editor/AIAssistantPanel'
 import { DocumentOutlinePanel } from '@/components/editor/DocumentOutlinePanel'
 import toast from 'react-hot-toast'
-import { debounce } from 'lodash'
 import { 
   PanelLeftClose, 
   PanelLeftOpen, 
@@ -96,6 +95,7 @@ export function FullFeaturedEditorPage() {
       setContent(newContent)
       saveContent(newContent)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastResponse])
   
   // Handle errors

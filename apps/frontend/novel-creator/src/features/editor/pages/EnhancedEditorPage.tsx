@@ -51,6 +51,7 @@ export function EnhancedEditorPage() {
       setContent(newContent)
       saveContent(newContent)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastResponse])
   
   // Handle errors
