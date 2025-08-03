@@ -22,7 +22,8 @@
       "Bash(gcloud compute forwarding-rules list:*)",
       "Bash(pnpm install:*)",
       "Bash(npm install:*)",
-      "Bash(npx pnpm install:*)"
+      "Bash(npx pnpm install:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": []
   }
