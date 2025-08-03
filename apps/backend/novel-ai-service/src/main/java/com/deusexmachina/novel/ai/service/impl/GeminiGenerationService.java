@@ -76,6 +76,7 @@ public class GeminiGenerationService implements GenerationService {
             
             // Build the prompt with context
             String enhancedPrompt = buildEnhancedPrompt(request);
+            logger.info("Enhanced prompt: {}", enhancedPrompt);
             
             // Count tokens
             int promptTokens = countTokens(enhancedPrompt);
@@ -84,8 +85,45 @@ public class GeminiGenerationService implements GenerationService {
             Content content = ContentMaker.fromString(enhancedPrompt);
             GenerateContentResponse response = configuredModel.generateContent(content);
             
+            // Log response details
+            logger.info("Response candidates count: {}", 
+                response.getCandidatesList() != null ? response.getCandidatesList().size() : "null");
+            if (response.getCandidatesList() != null && !response.getCandidatesList().isEmpty()) {
+                var candidate = response.getCandidatesList().get(0);
+                logger.info("Candidate finish reason: {}", candidate.getFinishReason());
+                logger.info("Candidate content parts count: {}", 
+                    candidate.getContent() != null && candidate.getContent().getPartsList() != null ? 
+                    candidate.getContent().getPartsList().size() : "null");
+            }
+            
             // Extract generated text
             String generatedText = ResponseHandler.getText(response);
+            
+            // If no text generated, check if content was blocked
+            if (generatedText == null || generatedText.isEmpty()) {
+                logger.warn("No text generated. Checking for blocked content or other issues...");
+                
+                // Check if prompt filters blocked the content
+                if (response.getPromptFeedback() != null) {
+                    logger.warn("Prompt feedback: {}", response.getPromptFeedback());
+                    if (response.getPromptFeedback().getBlockReason() != null) {
+                        throw new GenerationException("Content blocked by safety filters: " + 
+                            response.getPromptFeedback().getBlockReason());
+                    }
+                }
+                
+                // Provide a fallback response
+                generatedText = "I need more specific details to generate a scene. Please provide:\n" +
+                    "- Character names and their roles\n" +
+                    "- The setting or location\n" +
+                    "- What should happen in this scene\n" +
+                    "- The mood or tone you want\n\n" +
+                    "Example: 'Generate a tense scene where Detective Sarah confronts the suspect in an abandoned warehouse at night.'";
+            }
+            
+            logger.info("Generated text length: {}, isEmpty: {}", 
+                generatedText != null ? generatedText.length() : "null",
+                generatedText != null ? generatedText.isEmpty() : "null");
             int generatedTokens = countTokens(generatedText);
             
             // Build response
@@ -232,7 +270,7 @@ public class GeminiGenerationService implements GenerationService {
     }
     
     private String getSystemInstructions(GenerationRequest request) {
-        return String.format(
+        String baseInstructions = String.format(
             "You are an AI writing assistant helping to create a novel. " +
             "Your task is to %s. " +
             "Write in a style appropriate for %s fiction. " +
@@ -240,6 +278,20 @@ public class GeminiGenerationService implements GenerationService {
             request.getGenerationType().getDescription(),
             request.getStyleGuide() != null ? request.getStyleGuide().getGenre() : "general"
         );
+        
+        // Add specific instructions for scene generation
+        if (request.getGenerationType() == GenerationType.SCENE) {
+            baseInstructions += "\n\nFor scene generation:\n" +
+                "- Create vivid, engaging narrative prose\n" +
+                "- Include dialogue, action, and description\n" +
+                "- Show character emotions and motivations\n" +
+                "- Use sensory details to bring the scene to life\n" +
+                "- Aim for 500-1000 words unless specified otherwise\n" +
+                "- Begin the scene with an engaging hook\n" +
+                "- End with a compelling transition or cliffhanger";
+        }
+        
+        return baseInstructions;
     }
     
     private String buildStyleInstructions(StyleGuide style) {
