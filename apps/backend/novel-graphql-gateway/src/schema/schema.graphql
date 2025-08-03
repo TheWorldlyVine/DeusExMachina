@@ -203,9 +203,48 @@ type CharacterReflection {
   timestamp: String!
 }
 
+type PlotState {
+  status: String!
+  tensionLevel: Int!
+  lastUpdated: String!
+}
+
+type KeyMoment {
+  momentId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
+  momentType: String!
+  description: String!
+  impact: String!
+  timestamp: String!
+}
+
+type InvolvedCharacter {
+  characterId: ID!
+  characterName: String!
+  role: String!
+}
+
+type Conflict {
+  type: String!
+  description: String!
+  resolved: Boolean!
+  resolution: String
+}
+
 type PlotMemory {
   plotId: ID!
   projectId: ID!
+  title: String!
+  description: String!
+  storyArc: String!
+  currentState: PlotState!
+  keyMoments: [KeyMoment!]!
+  involvedCharacters: [InvolvedCharacter!]!
+  conflicts: [Conflict!]!
+  relatedSubplots: [String!]!
+  foreshadowing: [String!]!
+  metadata: JSON
   threadName: String!
   threadType: PlotThreadType!
   status: PlotStatus!

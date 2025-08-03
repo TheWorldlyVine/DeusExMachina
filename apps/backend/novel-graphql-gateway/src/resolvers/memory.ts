@@ -250,7 +250,34 @@ export const memoryResolvers = {
   },
   
   PlotMemory: {
-    // Additional resolvers for computed fields if needed
+    // Transform backend fields to match frontend expectations
+    title: (parent: any) => parent.threadName || parent.title || 'Untitled Plot',
+    description: (parent: any) => parent.premise || parent.description || '',
+    storyArc: (parent: any) => parent.centralConflict || parent.storyArc || '',
+    currentState: (parent: any) => parent.currentState || {
+      status: parent.status || 'SETUP',
+      tensionLevel: parent.tensionLevel || 0,
+      lastUpdated: parent.updatedAt || new Date().toISOString(),
+    },
+    keyMoments: (parent: any) => parent.keyMoments || parent.milestones?.map((m: any) => ({
+      momentId: m.milestoneId,
+      chapterNumber: m.chapterNumber,
+      sceneNumber: 0,
+      momentType: 'MILESTONE',
+      description: m.description,
+      impact: m.impact,
+      timestamp: m.achievedAt,
+    })) || [],
+    involvedCharacters: (parent: any) => parent.involvedCharacters || [],
+    conflicts: (parent: any) => parent.conflicts || [{
+      type: 'CENTRAL',
+      description: parent.centralConflict || '',
+      resolved: false,
+      resolution: null,
+    }],
+    relatedSubplots: (parent: any) => parent.relatedSubplots || [],
+    foreshadowing: (parent: any) => parent.foreshadowing || [],
+    metadata: (parent: any) => parent.metadata || {},
   },
   
   WorldMemory: {
