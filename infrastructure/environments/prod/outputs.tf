@@ -86,11 +86,15 @@ output "novel_service_names" {
   value       = module.novel_services.service_names
 }
 
-# Commented out while github_actions module is disabled
-# output "github_actions_service_account" {
-#   value       = module.github_actions.service_account_email
-#   description = "Email of the GitHub Actions service account with permissions"
-# }
+output "github_actions_service_account" {
+  value       = module.github_actions.service_account_email
+  description = "Email of the GitHub Actions service account with permissions"
+}
+
+output "enabled_apis" {
+  value       = module.apis.enabled_apis
+  description = "List of Google Cloud APIs enabled by Terraform"
+}
 
 # GraphQL Gateway Output
 output "graphql_gateway_url" {
