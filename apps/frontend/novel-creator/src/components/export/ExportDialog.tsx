@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, FileText, FileType, Download } from 'lucide-react'
+import { X, FileText, Download } from 'lucide-react'
 import { ExportService } from '@/services/export'
 import { Document, Chapter } from '@/types/document'
 
@@ -44,7 +44,7 @@ export function ExportDialog({ isOpen, onClose, document, chapters }: ExportDial
           await ExportService.exportAsDocx(document, chapters, options)
           break
         case 'epub':
-          await ExportService.exportAsEpub(document, chapters, options)
+          await ExportService.exportAsEpub(document, chapters)
           break
       }
       onClose()
@@ -63,17 +63,17 @@ export function ExportDialog({ isOpen, onClose, document, chapters }: ExportDial
       description: 'Simple text file with basic formatting',
     },
     pdf: {
-      icon: FileType,
+      icon: FileText,
       name: 'PDF',
       description: 'Portable document with preserved formatting',
     },
     docx: {
-      icon: FileType,
+      icon: FileText,
       name: 'Word Document',
       description: 'Microsoft Word format for further editing',
     },
     epub: {
-      icon: FileType,
+      icon: FileText,
       name: 'EPUB (Beta)',
       description: 'E-book format for e-readers (simplified)',
     },

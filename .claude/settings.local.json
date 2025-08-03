@@ -31,7 +31,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm run lint)",
       "Bash(npm test)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm run pre-commit:*)"
     ],
     "deny": []
   }

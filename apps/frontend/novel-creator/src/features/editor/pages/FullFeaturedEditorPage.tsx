@@ -8,6 +8,7 @@ import { MonacoEditor } from '@/components/editor/MonacoEditor'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { AIAssistantPanel } from '@/components/editor/AIAssistantPanel'
 import { DocumentOutlinePanel } from '@/components/editor/DocumentOutlinePanel'
+import { ExportDialog } from '@/components/export/ExportDialog'
 import toast from 'react-hot-toast'
 import { 
   PanelLeftClose, 
@@ -31,6 +32,7 @@ export function FullFeaturedEditorPage() {
   const [characterCount, setCharacterCount] = useState(0)
   const [showLeftPanel, setShowLeftPanel] = useState(true)
   const [showRightPanel, setShowRightPanel] = useState(true)
+  const [showExportDialog, setShowExportDialog] = useState(false)
   
   const { isGenerating, lastResponse, error } = useAppSelector(state => state.generation)
   const { currentDocument, currentChapter, currentScene } = useAppSelector(state => state.documents)
@@ -206,8 +208,8 @@ export function FullFeaturedEditorPage() {
     toast.success('Analyzing selected text...')
   }
   
-  const handleExport = (format: 'pdf' | 'docx' | 'txt') => {
-    toast.success(`Exporting as ${format.toUpperCase()}...`)
+  const handleExport = () => {
+    setShowExportDialog(true)
   }
   
   const toggleTheme = () => {
@@ -357,6 +359,27 @@ export function FullFeaturedEditorPage() {
           </div>
         )}
       </div>
+      
+      {/* Export Dialog */}
+      {currentDocument && (
+        <ExportDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          document={currentDocument}
+          chapters={mockChapters.map(ch => ({
+            ...ch,
+            chapterNumber: ch.number,
+            summary: '',
+            scenes: ch.scenes.map(s => ({
+              ...s,
+              sceneNumber: s.number,
+              content: s.summary || '',
+              type: 'DESCRIPTION' as const,
+            })),
+            status: 'DRAFT' as const,
+          }))}
+        />
+      )}
     </div>
   )
 }
