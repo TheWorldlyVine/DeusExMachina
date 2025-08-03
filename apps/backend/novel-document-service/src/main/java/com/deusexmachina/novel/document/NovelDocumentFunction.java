@@ -40,13 +40,17 @@ public class NovelDocumentFunction implements HttpFunction {
     public NovelDocumentFunction() {
         try {
             logger.info("Initializing NovelDocumentFunction...");
+            logger.info("Environment - Project ID: {}", System.getenv("GCP_PROJECT_ID"));
+            logger.info("Environment - Service Account: {}", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
+            
             this.injector = Guice.createInjector(new DocumentServiceModule());
             logger.info("Guice injector created successfully");
             
             // Delay controller initialization to first request to avoid startup timeout
             logger.info("NovelDocumentFunction initialized successfully");
         } catch (Exception e) {
-            logger.error("Failed to initialize NovelDocumentFunction", e);
+            logger.error("Failed to initialize NovelDocumentFunction: {} - {}", 
+                e.getClass().getName(), e.getMessage(), e);
             // Don't throw - let the function start and return errors on requests
         }
     }
@@ -54,10 +58,13 @@ public class NovelDocumentFunction implements HttpFunction {
     private synchronized DocumentController getDocumentController() {
         if (documentController == null && injector != null) {
             try {
+                logger.info("Attempting to get DocumentController from injector...");
                 documentController = injector.getInstance(DocumentController.class);
                 logger.info("DocumentController initialized successfully");
             } catch (Exception e) {
-                logger.error("Failed to initialize DocumentController", e);
+                logger.error("Failed to initialize DocumentController: {} - {}", 
+                    e.getClass().getName(), e.getMessage(), e);
+                throw new RuntimeException("DocumentController initialization failed", e);
             }
         }
         return documentController;
@@ -90,6 +97,7 @@ public class NovelDocumentFunction implements HttpFunction {
             if ("/health".equals(path) && "GET".equals(method)) {
                 handleHealthCheck(response);
             } else if (injector == null) {
+                logger.error("Service not initialized - injector is null");
                 handleError(response, "Service not properly initialized", 503);
             } else if (path.startsWith("/document")) {
                 handleDocumentRequest(request, response);
@@ -98,11 +106,12 @@ public class NovelDocumentFunction implements HttpFunction {
             } else if (path.startsWith("/scene")) {
                 handleSceneRequest(request, response);
             } else {
+                logger.warn("Path not found: {}", path);
                 handleNotFound(response);
             }
         } catch (Exception e) {
-            logger.error("Error handling request", e);
-            handleError(response, "Internal server error", 500);
+            logger.error("Error handling request: {} - {}", e.getClass().getName(), e.getMessage(), e);
+            handleError(response, "Internal server error: " + e.getMessage(), 500);
         }
     }
     
@@ -124,12 +133,16 @@ public class NovelDocumentFunction implements HttpFunction {
     }
     
     private void handleHealthCheck(HttpResponse response) throws IOException {
-        Map<String, Object> health = Map.of(
-                "status", "healthy",
-                "service", "novel-document-service",
-                "version", "1.0.0",
-                "timestamp", Instant.now().toString()
-        );
+        Map<String, Object> health = new java.util.HashMap<>();
+        health.put("status", injector != null ? "healthy" : "unhealthy");
+        health.put("service", "novel-document-service");
+        health.put("version", "1.0.0");
+        health.put("timestamp", Instant.now().toString());
+        health.put("environment", Map.of(
+            "projectId", System.getenv("GCP_PROJECT_ID") != null ? System.getenv("GCP_PROJECT_ID") : "not-set",
+            "hasInjector", injector != null,
+            "hasController", documentController != null
+        ));
         
         response.setStatusCode(200);
         response.setContentType("application/json");

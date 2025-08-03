@@ -115,12 +115,26 @@ public class DocumentServiceModule extends AbstractModule {
     @Provides
     @Singleton
     Firestore provideFirestore(FirestoreConfig config) {
-        FirestoreOptions options = FirestoreOptions.newBuilder()
-                .setProjectId(config.getProjectId())
-                .setDatabaseId(config.getDatabaseId())
-                .build();
-        
-        return options.getService();
+        try {
+            String projectId = config.getProjectId();
+            if (projectId == null || projectId.isEmpty() || "default-project".equals(projectId)) {
+                throw new IllegalStateException("GCP_PROJECT_ID is not properly configured. Got: " + projectId);
+            }
+            
+            FirestoreOptions options = FirestoreOptions.newBuilder()
+                    .setProjectId(projectId)
+                    .setDatabaseId(config.getDatabaseId())
+                    .build();
+            
+            Firestore firestore = options.getService();
+            
+            // Test the connection
+            firestore.listCollections();
+            
+            return firestore;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize Firestore: " + e.getMessage(), e);
+        }
     }
     
     @Provides

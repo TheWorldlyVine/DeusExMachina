@@ -22,9 +22,18 @@ public class NovelAIFunction implements HttpFunction {
     private final Injector injector;
     
     public NovelAIFunction() {
-        // Initialize Guice injector with module
-        this.injector = Guice.createInjector(new NovelAIModule());
-        logger.info("Novel AI Function initialized");
+        try {
+            logger.info("Initializing Novel AI Function...");
+            logger.info("Environment - Project ID: " + System.getenv("GCP_PROJECT_ID"));
+            logger.info("Environment - Region: " + System.getenv("GCP_REGION"));
+            
+            // Initialize Guice injector with module
+            this.injector = Guice.createInjector(new NovelAIModule());
+            logger.info("Novel AI Function initialized successfully");
+        } catch (Exception e) {
+            logger.severe("Failed to initialize Novel AI Function: " + e.getMessage());
+            throw new RuntimeException("Initialization failed", e);
+        }
     }
     
     @Override
