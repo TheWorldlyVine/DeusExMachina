@@ -149,7 +149,7 @@ public class NovelDocumentFunction implements HttpFunction {
         String method = request.getMethod();
         
         try {
-            if ("/document".equals(path) && "POST".equals(method)) {
+            if (("/document".equals(path) || "/documents".equals(path)) && "POST".equals(method)) {
                 controller.createDocument(request, response);
             } else if (path.matches("/document/[^/]+") && "GET".equals(method)) {
                 String documentId = extractIdFromPath(path, "/document/");

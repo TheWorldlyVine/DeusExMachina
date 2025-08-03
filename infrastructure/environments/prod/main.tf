@@ -234,6 +234,13 @@ module "email_service" {
   labels = local.common_labels
 }
 
+# Firestore Indexes for Novel Services
+module "firestore_indexes" {
+  source = "../../modules/firestore-indexes"
+  
+  project_id = local.project_id
+}
+
 # Cloud Run Services for Novel Creator
 # These services are deployed via CI/CD but we manage their IAM policies here
 module "novel_services" {
