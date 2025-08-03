@@ -126,7 +126,7 @@ export function EnhancedEditorPage() {
         break
       case 'settings':
         // TODO: Open settings modal
-        toast.info('Settings coming soon')
+        toast('Settings coming soon')
         break
     }
   }
@@ -138,23 +138,19 @@ export function EnhancedEditorPage() {
     
     await dispatch(generateScene({
       documentId,
-      chapterNumber: currentChapter?.chapterNumber || 1,
-      sceneNumber: currentScene?.sceneNumber || 1,
+      chapterId: currentChapter ? `chapter-${currentChapter.chapterNumber}` : 'chapter-1',
       prompt,
       context: content.slice(-1000),
       ...options,
     }))
   }
   
-  const handleContinueWriting = async (options?: Record<string, unknown>) => {
+  const handleContinueWriting = async () => {
     if (!documentId || !content) return
     
     await dispatch(continueGeneration({
       documentId,
-      chapterNumber: currentChapter?.chapterNumber || 1,
-      sceneNumber: currentScene?.sceneNumber || 1,
       previousText: content.slice(-2000),
-      ...options,
     }))
   }
   
@@ -244,7 +240,7 @@ export function EnhancedEditorPage() {
               onGenerateIdeas={handleGenerateIdeas}
               onAnalyzeText={handleAnalyzeText}
               characters={characters}
-              plots={plots}
+              plots={plots.map(p => ({ plotId: p.plotId, title: p.title, status: p.currentState?.status || 'active' }))}
               locations={locations}
             />
           </div>

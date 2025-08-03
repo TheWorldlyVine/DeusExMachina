@@ -3,7 +3,7 @@ import authReducer from '@/features/auth/authSlice'
 import documentReducer from '@/features/documents/documentSlice'
 import editorReducer from '@/features/editor/editorSlice'
 import generationReducer from '@/features/generation/generationSlice'
-import memoryReducer from '@/features/memory/memorySlice'
+import memoryReducer from '@/features/memory/enhancedMemorySlice'
 
 export const store = configureStore({
   reducer: {

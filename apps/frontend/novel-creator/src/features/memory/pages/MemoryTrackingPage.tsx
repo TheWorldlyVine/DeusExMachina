@@ -49,7 +49,7 @@ export function MemoryTrackingPage() {
     if (documentId) {
       dispatch(getCharacters(documentId))
       dispatch(getPlots(documentId))
-      dispatch(getLocations(documentId))
+      dispatch(getLocations())
     }
   }, [documentId, dispatch])
 
@@ -61,7 +61,7 @@ export function MemoryTrackingPage() {
   }, [error])
 
   // Filter characters
-  const filteredCharacters = characters.filter(char => {
+  const filteredCharacters = characters.filter((char: CharacterMemory) => {
     const matchesSearch = searchQuery === '' || 
       char.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       char.currentState?.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -72,7 +72,7 @@ export function MemoryTrackingPage() {
   })
 
   // Filter plots
-  const filteredPlots = plots.filter(plot => {
+  const filteredPlots = plots.filter((plot: PlotMemory) => {
     const matchesSearch = searchQuery === '' || 
       plot.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       plot.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -306,7 +306,7 @@ export function MemoryTrackingPage() {
                     <CharacterCard
                       key={character.characterId}
                       character={character}
-                      onEdit={(char) => {
+                      onEdit={(char: CharacterMemory) => {
                         setEditingCharacter(char)
                         setShowCharacterModal(true)
                       }}
@@ -330,7 +330,7 @@ export function MemoryTrackingPage() {
                     <PlotThreadCard
                       key={plot.plotId}
                       plot={plot}
-                      onEdit={(p) => {
+                      onEdit={(p: PlotMemory) => {
                         setEditingPlot(p)
                         setShowPlotModal(true)
                       }}
@@ -371,7 +371,7 @@ export function MemoryTrackingPage() {
         onSave={editingPlot ? handleUpdatePlot : handleCreatePlot}
         plot={editingPlot}
         projectId={documentId || ''}
-        characters={characters.map(c => ({ characterId: c.characterId, name: c.name }))}
+        characters={characters.map((c: CharacterMemory) => ({ characterId: c.characterId, name: c.name }))}
       />
     </div>
   )

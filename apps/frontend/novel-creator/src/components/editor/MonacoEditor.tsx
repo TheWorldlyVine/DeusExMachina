@@ -56,7 +56,7 @@ export function MonacoEditor({
       },
       renderWhitespace: 'none',
       renderLineHighlight: 'none',
-      occurrencesHighlight: false,
+      occurrencesHighlight: 'off',
       selectionHighlight: true,
       scrollbar: {
         verticalScrollbarSize: 10,

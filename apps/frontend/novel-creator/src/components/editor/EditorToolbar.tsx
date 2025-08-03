@@ -66,7 +66,7 @@ export function EditorToolbar({
             if (button.separator) {
               return <div key={index} className="w-px h-6 bg-border mx-1" />
             }
-            const Icon = button.icon
+            const Icon = button.icon!
             return (
               <button
                 key={button.command}

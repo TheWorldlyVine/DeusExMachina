@@ -77,7 +77,7 @@ export function FullFeaturedEditorPage() {
       dispatch(getDocument(documentId))
       dispatch(getCharacters(documentId))
       dispatch(getPlots(documentId))
-      dispatch(getLocations(documentId))
+      dispatch(getLocations())
     }
   }, [documentId, dispatch])
   
@@ -176,30 +176,25 @@ export function FullFeaturedEditorPage() {
     }
   }
   
-  const handleGenerateScene = async (options?: Record<string, unknown>) => {
+  const handleGenerateScene = async () => {
     if (!documentId) return
     
     const prompt = selectedText || 'Generate a new scene for this chapter'
     
     await dispatch(generateScene({
       documentId,
-      chapterNumber: currentChapter?.chapterNumber || 1,
-      sceneNumber: currentScene?.sceneNumber || 1,
+      chapterId: currentChapter ? `chapter-${currentChapter.chapterNumber}` : 'chapter-1',
       prompt,
       context: content.slice(-1000),
-      ...options,
     }))
   }
   
-  const handleContinueWriting = async (options?: Record<string, unknown>) => {
+  const handleContinueWriting = async () => {
     if (!documentId || !content) return
     
     await dispatch(continueGeneration({
       documentId,
-      chapterNumber: currentChapter?.chapterNumber || 1,
-      sceneNumber: currentScene?.sceneNumber || 1,
       previousText: content.slice(-2000),
-      ...options,
     }))
   }
   
@@ -241,12 +236,12 @@ export function FullFeaturedEditorPage() {
     toast.success(`Adding scene to chapter ${chapterId}...`)
   }
   
-  const handleEditChapter = (chapterId: string) => {
-    toast.info(`Editing chapter ${chapterId}...`)
+  const handleEditChapter = () => {
+    toast(`Editing chapter...`)
   }
   
-  const handleEditScene = (chapterId: string, sceneId: string) => {
-    toast.info(`Editing scene ${sceneId}...`)
+  const handleEditScene = (_chapterId: string, sceneId: string) => {
+    toast(`Editing scene ${sceneId}...`)
   }
   
   const handleDeleteChapter = (chapterId: string) => {
@@ -255,7 +250,7 @@ export function FullFeaturedEditorPage() {
     }
   }
   
-  const handleDeleteScene = (chapterId: string, sceneId: string) => {
+  const handleDeleteScene = (_chapterId: string, sceneId: string) => {
     if (confirm('Are you sure you want to delete this scene?')) {
       toast.success(`Deleted scene ${sceneId}`)
     }
@@ -356,7 +351,7 @@ export function FullFeaturedEditorPage() {
               onGenerateIdeas={handleGenerateIdeas}
               onAnalyzeText={handleAnalyzeText}
               characters={characters}
-              plots={plots}
+              plots={plots.map(p => ({ plotId: p.plotId, title: p.title, status: p.currentState?.status || 'active' }))}
               locations={locations}
             />
           </div>

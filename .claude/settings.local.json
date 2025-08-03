@@ -25,7 +25,10 @@
       "Bash(npx pnpm install:*)",
       "Bash(gh run list:*)",
       "Bash(pnpm run:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(gh run watch:*)",
+      "Bash(pnpm --filter @deusexmachina/novel-creator add lucide-react @monaco-editor/react monaco-editor)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

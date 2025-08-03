@@ -201,7 +201,7 @@ export function AIAssistantPanel({
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {characters.length > 0 ? (
                     characters.map((char) => (
-                      <div key={char.id} className="text-sm p-2 bg-muted rounded-md">
+                      <div key={char.characterId} className="text-sm p-2 bg-muted rounded-md">
                         {char.name}
                       </div>
                     ))
@@ -223,8 +223,8 @@ export function AIAssistantPanel({
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {plots.length > 0 ? (
                     plots.map((plot) => (
-                      <div key={plot.id} className="text-sm p-2 bg-muted rounded-md">
-                        {plot.name}
+                      <div key={plot.plotId} className="text-sm p-2 bg-muted rounded-md">
+                        {plot.title}
                       </div>
                     ))
                   ) : (
@@ -245,7 +245,7 @@ export function AIAssistantPanel({
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {locations.length > 0 ? (
                     locations.map((loc) => (
-                      <div key={loc.id} className="text-sm p-2 bg-muted rounded-md">
+                      <div key={loc.locationId} className="text-sm p-2 bg-muted rounded-md">
                         {loc.name}
                       </div>
                     ))
