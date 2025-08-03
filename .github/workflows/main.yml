@@ -221,17 +221,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: gcloud auth configure-docker
       
-      - name: Build and push Docker image
+      - name: Deploy to Cloud Run from source
         if: github.ref == 'refs/heads/main'
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway -f apps/backend/novel-graphql-gateway/Dockerfile .
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway
-      
-      - name: Deploy to Cloud Run
-        if: github.ref == 'refs/heads/main'
-        run: |
+          cd apps/backend/novel-graphql-gateway
           gcloud run deploy novel-graphql-gateway \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway \
+            --source . \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
