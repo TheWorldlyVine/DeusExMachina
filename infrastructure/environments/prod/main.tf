@@ -314,7 +314,7 @@ module "graphql_gateway" {
 # Artifact Registry for Cloud Run deployments
 module "artifact_registry" {
   source = "../../modules/artifact-registry"
-  
+
   project_id                   = local.project_id
   region                       = local.region
   github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"

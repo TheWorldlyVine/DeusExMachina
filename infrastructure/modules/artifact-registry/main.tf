@@ -5,12 +5,12 @@ resource "google_artifact_registry_repository" "cloud_run_source_deploy" {
   description   = "Docker repository for Cloud Run source deployments"
   format        = "DOCKER"
   project       = var.project_id
-  
+
   # Allow project-level access
   cleanup_policies {
     id     = "delete-old-images"
     action = "DELETE"
-    
+
     condition {
       older_than = "2592000s" # 30 days
     }
