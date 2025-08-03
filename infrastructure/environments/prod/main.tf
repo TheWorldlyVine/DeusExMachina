@@ -328,7 +328,7 @@ module "graphql_gateway" {
 # Enable required Google Cloud APIs
 module "apis" {
   source = "../../modules/apis"
-  
+
   project_id = local.project_id
 }
 
@@ -342,7 +342,7 @@ module "github_actions" {
 
   # The service account email should match what's in your GitHub Actions workflow
   github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
-  
+
   # Ensure APIs are enabled before granting permissions
   depends_on = [module.apis]
 }
