@@ -237,27 +237,12 @@ jobs:
           *.log
           EOF
       
-      - name: Check for existing Artifact Registry repository
-        if: github.ref == 'refs/heads/main'
-        id: check_repo
-        continue-on-error: true
-        run: |
-          if gcloud artifacts repositories describe cloud-run-source-deploy \
-            --location=us-central1 \
-            --project=${{ secrets.GCP_PROJECT_ID }} 2>/dev/null; then
-            echo "repo_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "repo_exists=false" >> $GITHUB_OUTPUT
-            echo "::warning::Artifact Registry repository 'cloud-run-source-deploy' does not exist. GraphQL Gateway deployment will be skipped."
-            echo "::warning::Please ask a project admin to run: gcloud artifacts repositories create cloud-run-source-deploy --repository-format=docker --location=us-central1"
-          fi
-      
       - name: Deploy to Cloud Run
-        if: github.ref == 'refs/heads/main' && steps.check_repo.outputs.repo_exists == 'true'
+        if: github.ref == 'refs/heads/main'
         run: |
           cd apps/backend/novel-graphql-gateway
           
-          # Deploy using source with existing repository
+          # Deploy using source - this MUST succeed or the job should fail
           gcloud run deploy novel-graphql-gateway \
             --source . \
             --platform managed \
