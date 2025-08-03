@@ -79,9 +79,9 @@ public enum GenerationType {
      */
     public String getRecommendedModel() {
         return switch (this) {
-            case CHAPTER, OUTLINE -> "gemini-1.5-pro";  // Longer context needed
-            case DIALOGUE, ACTION, TRANSITION -> "gemini-1.5-flash";  // Fast generation
-            default -> "gemini-1.5-pro";  // Balanced
+            case CHAPTER, OUTLINE -> "gemini-1.5-pro-002";  // Longer context needed
+            case DIALOGUE, ACTION, TRANSITION -> "gemini-1.5-flash-002";  // Fast generation
+            default -> "gemini-1.5-pro-002";  // Balanced
         };
     }
     

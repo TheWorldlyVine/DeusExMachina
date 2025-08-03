@@ -84,17 +84,17 @@ public class GenerationParameters {
         /**
          * Use Gemini Flash for fastest response.
          */
-        SPEED("gemini-2.5-flash"),
+        SPEED("gemini-1.5-flash-002"),
         
         /**
          * Use standard Gemini Pro for balance.
          */
-        BALANCED("gemini-2.5-pro"),
+        BALANCED("gemini-1.5-pro-002"),
         
         /**
          * Use Gemini Pro with higher parameters for best quality.
          */
-        QUALITY("gemini-2.5-pro-preview");
+        QUALITY("gemini-1.5-pro-002");
         
         private final String modelName;
         
