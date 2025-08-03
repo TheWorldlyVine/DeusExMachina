@@ -65,6 +65,6 @@ export const debugApiCall = async (url: string, options: RequestInit = {}) => {
 
 // Add to window for easy console access
 if (typeof window !== 'undefined') {
-  (window as any).debugAuth = debugAuth;
-  (window as any).debugApiCall = debugApiCall;
+  (window as unknown as { debugAuth: typeof debugAuth }).debugAuth = debugAuth;
+  (window as unknown as { debugApiCall: typeof debugApiCall }).debugApiCall = debugApiCall;
 }
