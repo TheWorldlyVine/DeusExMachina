@@ -7,8 +7,23 @@ This guide explains how to apply the necessary IAM permissions for GitHub Action
 - Google Cloud SDK (`gcloud`) installed and configured
 - Terraform installed (version 1.0 or higher)
 - Project Owner or IAM Admin permissions on the GCP project
+- **APIs must be enabled first** (see step 0 below)
 
 ## Steps
+
+0. **Enable required APIs manually** (requires admin permissions):
+   ```bash
+   export PROJECT_ID=your-project-id
+   
+   # Enable all required APIs
+   gcloud services enable cloudbuild.googleapis.com --project=$PROJECT_ID
+   gcloud services enable run.googleapis.com --project=$PROJECT_ID
+   gcloud services enable artifactregistry.googleapis.com --project=$PROJECT_ID
+   gcloud services enable containerregistry.googleapis.com --project=$PROJECT_ID
+   gcloud services enable compute.googleapis.com --project=$PROJECT_ID
+   gcloud services enable iam.googleapis.com --project=$PROJECT_ID
+   gcloud services enable serviceusage.googleapis.com --project=$PROJECT_ID
+   ```
 
 1. **Authenticate with admin credentials**:
    ```bash

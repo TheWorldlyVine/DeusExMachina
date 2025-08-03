@@ -247,11 +247,29 @@ jobs:
           EOF
           fi
           
-          # Enable required APIs
-          gcloud services enable cloudbuild.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
-          gcloud services enable run.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
-          gcloud services enable containerregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
-          gcloud services enable artifactregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
+          # Check if required APIs are enabled (don't try to enable them)
+          echo "Checking if required APIs are enabled..."
+          
+          # Check each API and fail if not enabled
+          if ! gcloud services list --enabled --filter="name:cloudbuild.googleapis.com" --format="value(name)" --project=${{ secrets.GCP_PROJECT_ID }} | grep -q cloudbuild; then
+            echo "ERROR: Cloud Build API is not enabled. Please enable it with:"
+            echo "  gcloud services enable cloudbuild.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }}"
+            exit 1
+          fi
+          
+          if ! gcloud services list --enabled --filter="name:run.googleapis.com" --format="value(name)" --project=${{ secrets.GCP_PROJECT_ID }} | grep -q run; then
+            echo "ERROR: Cloud Run API is not enabled. Please enable it with:"
+            echo "  gcloud services enable run.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }}"
+            exit 1
+          fi
+          
+          if ! gcloud services list --enabled --filter="name:artifactregistry.googleapis.com" --format="value(name)" --project=${{ secrets.GCP_PROJECT_ID }} | grep -q artifactregistry; then
+            echo "ERROR: Artifact Registry API is not enabled. Please enable it with:"
+            echo "  gcloud services enable artifactregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }}"
+            exit 1
+          fi
+          
+          echo "✅ All required APIs are enabled"
       
       - name: Deploy to Cloud Run from source
         if: github.ref == 'refs/heads/main'

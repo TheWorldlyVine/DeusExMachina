@@ -84,6 +84,14 @@ resource "google_project_iam_member" "github_actions_service_usage_consumer" {
   member  = "serviceAccount:${var.github_service_account_email}"
 }
 
+# Grant Service Usage Admin role for enabling APIs (optional)
+resource "google_project_iam_member" "github_actions_service_usage_admin" {
+  count   = var.enable_api_management ? 1 : 0
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageAdmin"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
 # Grant permission to act as the default compute service account for Cloud Run
 # Using data source to get the actual compute service account
 data "google_compute_default_service_account" "default" {

@@ -19,3 +19,9 @@ variable "enable_artifact_registry_permissions" {
   type        = bool
   default     = true
 }
+
+variable "enable_api_management" {
+  description = "Whether to grant Service Usage Admin role for enabling APIs"
+  type        = bool
+  default     = false
+}
