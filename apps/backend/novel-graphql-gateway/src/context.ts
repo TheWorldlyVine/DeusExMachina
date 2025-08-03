@@ -19,7 +19,9 @@ interface JwtPayload {
   sub: string;  // user ID
   email: string;
   displayName?: string;
-  role?: string;
+  email_verified?: boolean;
+  auth_provider?: string;
+  roles?: string[];  // Changed from role to roles array
   iss: string;
   aud: string;
   exp: number;
@@ -47,7 +49,9 @@ export async function context({ req, connectionParams }: { req?: Request; connec
         id: decoded.sub,
         email: decoded.email,
         displayName: decoded.displayName,
-        role: (decoded.role || 'FREE') as 'FREE' | 'PREMIUM' | 'ADMIN',
+        // Map roles array to single role - check for admin/premium roles
+        role: (decoded.roles?.includes('admin') ? 'ADMIN' : 
+               decoded.roles?.includes('premium') ? 'PREMIUM' : 'FREE') as 'FREE' | 'PREMIUM' | 'ADMIN',
       };
     } catch (error) {
       // Invalid token, but don't throw - some queries might be public
