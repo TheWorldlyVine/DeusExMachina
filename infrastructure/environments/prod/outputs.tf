@@ -99,7 +99,7 @@ output "graphql_gateway_url" {
 }
 
 # Artifact Registry Output
-output "artifact_registry_url" {
-  description = "URL of the Artifact Registry repository for Cloud Run"
-  value       = module.artifact_registry.repository_url
-}
+# output "artifact_registry_url" {
+#   description = "URL of the Artifact Registry repository for Cloud Run"
+#   value       = module.artifact_registry.repository_url
+# }

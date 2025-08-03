@@ -308,13 +308,22 @@ module "graphql_gateway" {
 }
 
 # Artifact Registry for Cloud Run deployments
-module "artifact_registry" {
-  source = "../../modules/artifact-registry"
-
-  project_id                   = local.project_id
-  region                       = local.region
-  github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
-}
+# NOTE: Commented out because the GitHub Actions service account lacks
+# artifactregistry.repositories.create permission. An admin needs to either:
+# 1. Grant the permission to the service account, OR
+# 2. Manually create the repository with:
+#    gcloud artifacts repositories create cloud-run-source-deploy \
+#      --repository-format=docker \
+#      --location=us-central1 \
+#      --project=${PROJECT_ID}
+#
+# module "artifact_registry" {
+#   source = "../../modules/artifact-registry"
+#
+#   project_id                   = local.project_id
+#   region                       = local.region
+#   github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
+# }
 
 # GitHub Actions Service Account Permissions
 # NOTE: This module manages IAM permissions for the GitHub Actions service account.
