@@ -33,7 +33,8 @@
       "Bash(npm test)",
       "Bash(npm run build:*)",
       "Bash(npm run pre-commit:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(docker build:*)"
     ],
     "deny": []
   }
