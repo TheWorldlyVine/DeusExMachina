@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { GenerationRequest, GenerationResponse } from '@/types/generation'
 
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+const API_URL = import.meta.env.VITE_AI_API_URL || 'https://novel-ai-service-tbmcifixdq-uc.a.run.app'
 
 class GenerationService {
   private getAuthHeader() {

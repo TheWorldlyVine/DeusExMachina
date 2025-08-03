@@ -30,6 +30,13 @@ export const fetchDocument = createAsyncThunk(
   }
 )
 
+export const getDocument = createAsyncThunk(
+  'documents/getOne',
+  async (documentId: string) => {
+    return await documentService.getDocument(documentId)
+  }
+)
+
 export const createDocument = createAsyncThunk(
   'documents/create',
   async (input: CreateDocumentInput) => {
@@ -94,6 +101,10 @@ const documentsSlice = createSlice({
         if (state.currentDocument?.id === action.payload.id) {
           state.currentDocument = action.payload
         }
+      })
+      // Get One
+      .addCase(getDocument.fulfilled, (state, action) => {
+        state.currentDocument = action.payload
       })
       // Delete
       .addCase(deleteDocument.fulfilled, (state, action) => {
