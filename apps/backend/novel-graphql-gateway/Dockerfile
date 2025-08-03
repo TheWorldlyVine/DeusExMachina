@@ -1,35 +1,50 @@
 # Build stage
 FROM node:18-alpine AS builder
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
 
-# Install dependencies
-RUN npm ci
+# Copy package files for the GraphQL gateway
+COPY apps/backend/novel-graphql-gateway/package.json ./apps/backend/novel-graphql-gateway/
+COPY apps/backend/novel-graphql-gateway/tsconfig.json ./apps/backend/novel-graphql-gateway/
+
+# Install dependencies using workspace
+RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway...
 
 # Copy source code
-COPY src ./src
+COPY apps/backend/novel-graphql-gateway/src ./apps/backend/novel-graphql-gateway/src
 
 # Build the application
-RUN npm run build
+WORKDIR /app/apps/backend/novel-graphql-gateway
+RUN pnpm run build
 
 # Production stage
 FROM node:18-alpine
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+
 # Copy package files
-COPY package*.json ./
+COPY apps/backend/novel-graphql-gateway/package.json ./apps/backend/novel-graphql-gateway/
 
 # Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
+RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway... --prod
 
 # Copy built application
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/schema ./dist/schema
+COPY --from=builder /app/apps/backend/novel-graphql-gateway/dist ./apps/backend/novel-graphql-gateway/dist
+COPY --from=builder /app/apps/backend/novel-graphql-gateway/src/schema ./apps/backend/novel-graphql-gateway/dist/schema
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -40,6 +55,9 @@ RUN chown -R nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs
+
+# Set working directory to the service
+WORKDIR /app/apps/backend/novel-graphql-gateway
 
 # Expose port
 EXPOSE 4000

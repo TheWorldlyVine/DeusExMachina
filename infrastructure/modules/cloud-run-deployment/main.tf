@@ -18,7 +18,7 @@ resource "google_cloud_run_service" "service" {
       containers {
         # Use a placeholder image initially - CI/CD will update this
         image = var.initial_image != "" ? var.initial_image : "gcr.io/cloudrun/hello"
-        
+
         # Environment variables
         dynamic "env" {
           for_each = var.environment_variables
@@ -49,7 +49,7 @@ resource "google_cloud_run_service" "service" {
         # Autoscaling
         "autoscaling.knative.dev/minScale" = tostring(var.min_instances)
         "autoscaling.knative.dev/maxScale" = tostring(var.max_instances)
-        
+
         # CPU allocation
         "run.googleapis.com/cpu-throttling" = var.cpu_throttling ? "true" : "false"
       }

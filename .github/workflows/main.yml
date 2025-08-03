@@ -223,9 +223,8 @@ jobs:
       
       - name: Build and push Docker image
         if: github.ref == 'refs/heads/main'
-        working-directory: apps/backend/novel-graphql-gateway
         run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway .
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway -f apps/backend/novel-graphql-gateway/Dockerfile .
           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway
       
       - name: Deploy to Cloud Run

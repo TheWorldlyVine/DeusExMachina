@@ -290,12 +290,12 @@ module "graphql_gateway" {
 
   # Environment variables (CI/CD will add more)
   environment_variables = {
-    NODE_ENV                = "production"
-    ALLOWED_ORIGINS         = "https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251"
-    AUTH_SERVICE_URL        = "https://auth-function-xkv3zhqrha-uw.a.run.app"
-    DOCUMENT_SERVICE_URL    = "https://novel-document-service-xkv3zhqrha-uw.a.run.app"
-    MEMORY_SERVICE_URL      = "https://novel-memory-service-xkv3zhqrha-uw.a.run.app"
-    AI_SERVICE_URL          = "https://novel-ai-service-xkv3zhqrha-uw.a.run.app"
+    NODE_ENV             = "production"
+    ALLOWED_ORIGINS      = "https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251"
+    AUTH_SERVICE_URL     = "https://auth-function-xkv3zhqrha-uw.a.run.app"
+    DOCUMENT_SERVICE_URL = "https://novel-document-service-xkv3zhqrha-uw.a.run.app"
+    MEMORY_SERVICE_URL   = "https://novel-memory-service-xkv3zhqrha-uw.a.run.app"
+    AI_SERVICE_URL       = "https://novel-ai-service-xkv3zhqrha-uw.a.run.app"
   }
 
   allow_unauthenticated = true
