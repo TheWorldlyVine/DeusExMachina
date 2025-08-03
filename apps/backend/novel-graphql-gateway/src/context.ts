@@ -34,8 +34,13 @@ export async function context({ req, connectionParams }: { req?: Request; connec
   // Get auth token from request headers or connection params (for subscriptions)
   const authHeader = req?.headers.authorization || connectionParams?.authorization;
   
+  console.log('GraphQL Context - Auth header present:', !!authHeader);
+  console.log('GraphQL Context - Headers:', req?.headers ? Object.keys(req.headers) : 'No headers');
+  
   if (authHeader) {
     const token = authHeader.replace('Bearer ', '');
+    console.log('GraphQL Context - Token length:', token.length);
+    console.log('GraphQL Context - Token preview:', token.substring(0, 20) + '...');
     
     try {
       // Verify JWT token from our auth service
@@ -44,6 +49,13 @@ export async function context({ req, connectionParams }: { req?: Request; connec
         issuer: 'deusexmachina-auth',
         audience: 'deusexmachina-client',
       }) as JwtPayload;
+      
+      console.log('GraphQL Context - Token decoded successfully:', {
+        sub: decoded.sub,
+        email: decoded.email,
+        roles: decoded.roles,
+        exp: new Date(decoded.exp * 1000).toISOString()
+      });
       
       user = {
         id: decoded.sub,
@@ -55,8 +67,10 @@ export async function context({ req, connectionParams }: { req?: Request; connec
       };
     } catch (error) {
       // Invalid token, but don't throw - some queries might be public
-      console.warn('Invalid auth token:', error);
+      console.error('GraphQL Context - JWT verification failed:', error);
     }
+  } else {
+    console.log('GraphQL Context - No auth header found');
   }
 
   // Extract project ID from headers if provided

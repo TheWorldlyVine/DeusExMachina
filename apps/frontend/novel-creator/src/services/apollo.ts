@@ -11,6 +11,10 @@ const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('auth_token')
   const projectId = localStorage.getItem('current_project_id')
   
+  // Debug logging
+  console.log('Apollo Auth Link - Token:', token ? `${token.substring(0, 20)}...` : 'No token')
+  console.log('Apollo Auth Link - Project ID:', projectId || 'No project ID')
+  
   return {
     headers: {
       ...headers,
