@@ -8,37 +8,40 @@ import {
   OperationDefinitionNode,
   SelectionNode,
 } from 'graphql';
+import { Context } from '../context';
 
 const MAX_COMPLEXITY = parseInt(process.env.GRAPHQL_COMPLEXITY_LIMIT || '1000');
 
-export const complexityLimitPlugin: ApolloServerPlugin = {
+export const complexityLimitPlugin: ApolloServerPlugin<Context> = {
   async requestDidStart() {
     return {
-      async validationDidStart() {
-        return async (requestContext) => {
-          const complexity = calculateComplexity(
-            requestContext.document.definitions[0] as OperationDefinitionNode,
-            requestContext.document.definitions.reduce((acc, def) => {
-              if (def.kind === 'FragmentDefinition') {
-                acc[def.name.value] = def;
-              }
-              return acc;
-            }, {} as Record<string, FragmentDefinitionNode>)
-          );
+      async validationDidStart(requestContext) {
+        // Access document from the request context
+        const { document } = requestContext;
+        if (!document) return;
 
-          if (complexity > MAX_COMPLEXITY) {
-            throw new GraphQLError(
-              `Query complexity of ${complexity} exceeds maximum complexity of ${MAX_COMPLEXITY}`,
-              {
-                extensions: {
-                  code: 'QUERY_TOO_COMPLEX',
-                  complexity,
-                  maxComplexity: MAX_COMPLEXITY,
-                },
-              }
-            );
-          }
-        };
+        const complexity = calculateComplexity(
+          document.definitions[0] as OperationDefinitionNode,
+          document.definitions.reduce((acc, def) => {
+            if (def.kind === 'FragmentDefinition') {
+              acc[def.name.value] = def;
+            }
+            return acc;
+          }, {} as Record<string, FragmentDefinitionNode>)
+        );
+
+        if (complexity > MAX_COMPLEXITY) {
+          throw new GraphQLError(
+            `Query complexity of ${complexity} exceeds maximum complexity of ${MAX_COMPLEXITY}`,
+            {
+              extensions: {
+                code: 'QUERY_TOO_COMPLEX',
+                complexity,
+                maxComplexity: MAX_COMPLEXITY,
+              },
+            }
+          );
+        }
       },
     };
   },

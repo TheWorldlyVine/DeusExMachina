@@ -1,4 +1,5 @@
 import { RESTDataSource } from '@apollo/datasource-rest';
+import { Context } from '../context';
 
 type RequestOptions = {
   headers: Record<string, string>;
@@ -6,7 +7,7 @@ type RequestOptions = {
   body?: any;
 };
 
-export abstract class BaseAPI extends RESTDataSource {
+export abstract class BaseAPI extends RESTDataSource<Context> {
   abstract baseURL: string;
 
   willSendRequest(path: string, request: RequestOptions) {
@@ -14,7 +15,7 @@ export abstract class BaseAPI extends RESTDataSource {
     request.headers['Content-Type'] = 'application/json';
     
     // Forward user context if available
-    const context = this.context as any;
+    const context = this.context;
     if (context?.user) {
       request.headers['X-User-ID'] = context.user.id;
       request.headers['Authorization'] = `Bearer ${context.req.headers.authorization?.replace('Bearer ', '')}`;

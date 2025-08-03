@@ -23,25 +23,15 @@ export class GenerationAPI extends BaseAPI {
     sceneNumber: number;
     guidelines?: string;
     parameters?: any;
+    context?: any; // Context should be passed from resolver
   }) {
     try {
-      // First get the generation context from memory service
-      const memoryAPI = new MemoryAPI();
-      memoryAPI.initialize({ context: this.context, cache: this.cache });
-      
-      const context = await memoryAPI.getGenerationContext(
-        input.projectId,
-        `${input.documentId}_${input.chapterNumber}_${input.sceneNumber}`,
-        input.chapterNumber,
-        input.sceneNumber
-      );
-
-      // Then generate with context
+      // Generate with provided context
       const generationRequest = {
         prompt: `Generate a scene based on the following context and guidelines:
-Context: ${JSON.stringify(context)}
+Context: ${JSON.stringify(input.context || {})}
 Guidelines: ${input.guidelines || 'Follow the established narrative'}`,
-        context: JSON.stringify(context),
+        context: JSON.stringify(input.context || {}),
         parameters: input.parameters,
         type: 'SCENE',
       };
@@ -59,34 +49,15 @@ Guidelines: ${input.guidelines || 'Follow the established narrative'}`,
     sceneNumber: number;
     continuationLength?: number;
     parameters?: any;
+    currentContent?: string; // Current content should be passed from resolver
+    context?: any; // Context should be passed from resolver
   }) {
     try {
-      // Get current scene content
-      const documentAPI = new DocumentAPI();
-      documentAPI.initialize({ context: this.context, cache: this.cache });
-      
-      const scene = await documentAPI.getScene(
-        input.documentId,
-        input.chapterNumber,
-        input.sceneNumber
-      );
-
-      // Get generation context
-      const memoryAPI = new MemoryAPI();
-      memoryAPI.initialize({ context: this.context, cache: this.cache });
-      
-      const context = await memoryAPI.getGenerationContext(
-        input.projectId,
-        `${input.documentId}_${input.chapterNumber}_${input.sceneNumber}`,
-        input.chapterNumber,
-        input.sceneNumber
-      );
-
       // Generate continuation
       const generationRequest = {
-        prompt: `Continue writing from: "${scene.content.slice(-500)}"
+        prompt: `Continue writing from: "${input.currentContent?.slice(-500) || ''}"
 Target length: ${input.continuationLength || 500} words`,
-        context: JSON.stringify({ ...context, currentScene: scene }),
+        context: JSON.stringify(input.context || {}),
         parameters: input.parameters,
         type: 'CONTINUATION',
       };
@@ -116,6 +87,3 @@ Target length: ${input.continuationLength || 500} words`,
   }
 }
 
-// Import MemoryAPI and DocumentAPI to avoid circular dependencies
-import { MemoryAPI } from './memory';
-import { DocumentAPI } from './document';

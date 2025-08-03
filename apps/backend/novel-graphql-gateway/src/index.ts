@@ -64,7 +64,7 @@ async function startServer() {
       schema,
       context: async (ctx, msg, args) => {
         // Return context for subscriptions
-        return context({ req: ctx.extra.request, connectionParams: ctx.connectionParams });
+        return context({ req: ctx.extra.request as any, connectionParams: ctx.connectionParams });
       },
     },
     wsServer

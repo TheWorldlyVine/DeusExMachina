@@ -1,6 +1,7 @@
 import { ApolloServerPlugin } from '@apollo/server';
+import { Context } from '../context';
 
-export const loggingPlugin: ApolloServerPlugin = {
+export const loggingPlugin: ApolloServerPlugin<Context> = {
   async requestDidStart() {
     const startTime = Date.now();
     

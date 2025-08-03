@@ -25,7 +25,7 @@ export class MemoryAPI extends BaseAPI {
     try {
       // Since the memory service uses path-based project context,
       // we need to ensure projectId is passed in headers
-      const context = this.context as any;
+      const context = this.context;
       const originalProjectId = context.projectId;
       context.projectId = projectId;
       
@@ -61,7 +61,7 @@ export class MemoryAPI extends BaseAPI {
   async getCharacterTimeline(projectId: string, characterId: string, limit?: number) {
     try {
       return await this.get(`/memory/characters/${characterId}/timeline`, {
-        params: { limit },
+        params: limit ? { limit: String(limit) } : undefined,
       });
     } catch (error) {
       this.handleError(error);
@@ -182,7 +182,7 @@ export class MemoryAPI extends BaseAPI {
   ) {
     try {
       return await this.get(`/memory/context/${projectId}/${sceneId}`, {
-        params: { chapter: chapterNumber, scene: sceneNumber },
+        params: { chapter: String(chapterNumber), scene: String(sceneNumber) },
       });
     } catch (error) {
       this.handleError(error);
