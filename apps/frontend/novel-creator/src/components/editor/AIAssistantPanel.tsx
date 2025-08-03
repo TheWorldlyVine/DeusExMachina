@@ -16,13 +16,13 @@ import {
 interface AIAssistantPanelProps {
   selectedText: string
   isGenerating: boolean
-  onGenerateScene: (options?: any) => void
-  onContinueWriting: (options?: any) => void
+  onGenerateScene: (options?: Record<string, unknown>) => void
+  onContinueWriting: (options?: Record<string, unknown>) => void
   onGenerateIdeas: (type: string) => void
   onAnalyzeText: () => void
-  characters: any[]
-  plots: any[]
-  locations: any[]
+  characters: Array<{ characterId: string; name: string; role: string }>
+  plots: Array<{ plotId: string; title: string; status: string }>
+  locations: Array<{ locationId: string; name: string; type: string }>
 }
 
 export function AIAssistantPanel({

@@ -17,7 +17,6 @@ import {
   Zap,
 } from 'lucide-react'
 import { CharacterMemory } from '@/types/memory'
-import { format } from 'date-fns'
 
 interface CharacterCardProps {
   character: CharacterMemory

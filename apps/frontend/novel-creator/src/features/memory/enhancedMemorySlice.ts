@@ -209,7 +209,7 @@ export const getPlots = createAsyncThunk(
 
 export const getLocations = createAsyncThunk(
   'memory/getLocations',
-  async (projectId: string) => {
+  async () => {
     // TODO: Implement with GraphQL when location queries are ready
     return [] as WorldMemory[]
   }
@@ -332,7 +332,7 @@ const enhancedMemorySlice = createSlice({
       .addCase(createCharacter.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(createCharacter.fulfilled, (state, action) => {
+      .addCase(createCharacter.fulfilled, (state) => {
         state.isLoading = false
         // Refresh characters list after creation
       })
@@ -341,7 +341,7 @@ const enhancedMemorySlice = createSlice({
         state.error = action.error.message || 'Failed to create character'
       })
       // Update Character
-      .addCase(updateCharacter.fulfilled, (state, action) => {
+      .addCase(updateCharacter.fulfilled, () => {
         // Refresh characters list after update
       })
       // Delete Character
@@ -354,7 +354,7 @@ const enhancedMemorySlice = createSlice({
       .addCase(createPlot.pending, (state) => {
         state.isLoading = true
       })
-      .addCase(createPlot.fulfilled, (state, action) => {
+      .addCase(createPlot.fulfilled, (state) => {
         state.isLoading = false
         // Refresh plots list after creation
       })
@@ -363,7 +363,7 @@ const enhancedMemorySlice = createSlice({
         state.error = action.error.message || 'Failed to create plot'
       })
       // Update Plot
-      .addCase(updatePlot.fulfilled, (state, action) => {
+      .addCase(updatePlot.fulfilled, () => {
         // Refresh plots list after update
       })
       // Delete Plot

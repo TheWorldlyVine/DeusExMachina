@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 
 interface EditorToolbarProps {
-  onCommand: (command: string, value?: any) => void
+  onCommand: (command: string, value?: string | number) => void
   onThemeToggle: () => void
   onFullscreenToggle: () => void
   onExport: (format: 'pdf' | 'docx' | 'txt') => void

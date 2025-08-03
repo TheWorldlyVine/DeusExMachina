@@ -56,7 +56,7 @@ export interface CharacterMemory {
   executedActions: CharacterAction[]
   relationships: CharacterRelationship[]
   timelineSummary?: TimelineSummary
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 }
 
 export interface CharacterState {
@@ -121,7 +121,7 @@ export interface PlotMemory {
   conflicts: PlotConflict[]
   relatedSubplots: string[]
   foreshadowing: string[]
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 }
 
 export interface PlotState {
@@ -164,7 +164,7 @@ export interface WorldMemory {
   history: WorldEvent[]
   connectedLocations: string[]
   significance: string[]
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 }
 
 export interface WorldState {
@@ -201,5 +201,5 @@ export interface GenerationContext {
   activePlots: PlotMemory[]
   currentLocation?: WorldMemory
   recentEvents: string[]
-  styleGuidelines: Record<string, any>
+  styleGuidelines: Record<string, unknown>
 }

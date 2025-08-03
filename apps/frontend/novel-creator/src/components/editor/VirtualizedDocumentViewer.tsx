@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { VariableSizeList as List } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import { debounce } from 'lodash'
 
 interface Chapter {
   id: string

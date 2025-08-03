@@ -14,7 +14,6 @@ if (import.meta.env.DEV) {
 // Pages
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { EnhancedEditorPage } from '@/features/editor/pages/EnhancedEditorPage'
 import { FullFeaturedEditorPage } from '@/features/editor/pages/FullFeaturedEditorPage'
 import { DocumentsPage } from '@/features/documents/pages/DocumentsPage'
 import { MemoryTrackingPage } from '@/features/memory/pages/MemoryTrackingPage'

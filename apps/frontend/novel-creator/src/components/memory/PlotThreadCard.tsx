@@ -13,7 +13,6 @@ import {
   Flag,
 } from 'lucide-react'
 import { PlotMemory } from '@/types/memory'
-import { format } from 'date-fns'
 
 interface PlotThreadCardProps {
   plot: PlotMemory

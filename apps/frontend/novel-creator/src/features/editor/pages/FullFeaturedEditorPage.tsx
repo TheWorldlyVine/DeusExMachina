@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { generateScene, continueGeneration } from '@/features/generation/generationSlice'
@@ -19,7 +19,6 @@ import {
 
 export function FullFeaturedEditorPage() {
   const { documentId } = useParams()
-  const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const containerRef = useRef<HTMLDivElement>(null)
   
@@ -115,19 +114,16 @@ export function FullFeaturedEditorPage() {
   }, [content])
   
   // Auto-save content
-  const saveContent = useCallback(
-    debounce((newContent: string) => {
-      if (documentId && currentChapter && currentScene) {
-        dispatch(updateScene({
-          documentId,
-          chapterNumber: currentChapter.chapterNumber,
-          sceneNumber: currentScene.sceneNumber,
-          content: newContent,
-        }))
-      }
-    }, 2000),
-    [documentId, currentChapter, currentScene, dispatch]
-  )
+  const saveContent = useCallback((newContent: string) => {
+    if (documentId && currentChapter && currentScene) {
+      dispatch(updateScene({
+        documentId,
+        chapterNumber: currentChapter.chapterNumber,
+        sceneNumber: currentScene.sceneNumber,
+        content: newContent,
+      }))
+    }
+  }, [documentId, currentChapter, currentScene, dispatch])
   
   const handleContentChange = (value: string) => {
     setContent(value)
@@ -180,7 +176,7 @@ export function FullFeaturedEditorPage() {
     }
   }
   
-  const handleGenerateScene = async (options?: any) => {
+  const handleGenerateScene = async (options?: Record<string, unknown>) => {
     if (!documentId) return
     
     const prompt = selectedText || 'Generate a new scene for this chapter'
@@ -195,7 +191,7 @@ export function FullFeaturedEditorPage() {
     }))
   }
   
-  const handleContinueWriting = async (options?: any) => {
+  const handleContinueWriting = async (options?: Record<string, unknown>) => {
     if (!documentId || !content) return
     
     await dispatch(continueGeneration({

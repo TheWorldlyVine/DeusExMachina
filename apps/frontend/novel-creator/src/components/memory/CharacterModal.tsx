@@ -11,7 +11,6 @@ import {
   Target,
   Heart,
   MapPin,
-  Users,
 } from 'lucide-react'
 import { CharacterMemory } from '@/types/memory'
 

@@ -22,7 +22,6 @@ import {
   Map, 
   Plus, 
   Search,
-  Filter,
   ChevronDown,
 } from 'lucide-react'
 import { CharacterMemory, PlotMemory } from '@/types/memory'

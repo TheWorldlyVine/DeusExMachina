@@ -13,7 +13,7 @@ export function EnhancedEditorPage() {
   const { documentId } = useParams()
   const dispatch = useAppDispatch()
   const containerRef = useRef<HTMLDivElement>(null)
-  const monacoEditorRef = useRef<any>(null)
+  // const monacoEditorRef = useRef<any>(null)
   
   const [content, setContent] = useState('')
   const [selectedText, setSelectedText] = useState('')
@@ -23,7 +23,7 @@ export function EnhancedEditorPage() {
   })
   const [wordCount, setWordCount] = useState(0)
   const [characterCount, setCharacterCount] = useState(0)
-  const [showAIPanel, setShowAIPanel] = useState(true)
+  const [showAIPanel] = useState(true)
   
   const { isGenerating, lastResponse, error } = useAppSelector(state => state.generation)
   const { currentDocument, currentChapter, currentScene } = useAppSelector(state => state.documents)
@@ -69,26 +69,23 @@ export function EnhancedEditorPage() {
   }, [content])
   
   // Auto-save content
-  const saveContent = useCallback(
-    debounce((newContent: string) => {
-      if (documentId && currentChapter && currentScene) {
-        dispatch(updateScene({
-          documentId,
-          chapterNumber: currentChapter.chapterNumber,
-          sceneNumber: currentScene.sceneNumber,
-          content: newContent,
-        }))
-      }
-    }, 2000),
-    [documentId, currentChapter, currentScene, dispatch]
-  )
+  const saveContent = useCallback((newContent: string) => {
+    if (documentId && currentChapter && currentScene) {
+      dispatch(updateScene({
+        documentId,
+        chapterNumber: currentChapter.chapterNumber,
+        sceneNumber: currentScene.sceneNumber,
+        content: newContent,
+      }))
+    }
+  }, [documentId, currentChapter, currentScene, dispatch])
   
   const handleContentChange = (value: string) => {
     setContent(value)
     saveContent(value)
   }
   
-  const handleEditorCommand = (command: string, value?: any) => {
+  const handleEditorCommand = (command: string) => {
     // TODO: Implement editor commands with Monaco editor ref
     // For now, we'll use simple text manipulation
     
@@ -133,7 +130,7 @@ export function EnhancedEditorPage() {
     }
   }
   
-  const handleGenerateScene = async (options?: any) => {
+  const handleGenerateScene = async (options?: Record<string, unknown>) => {
     if (!documentId) return
     
     const prompt = selectedText || 'Generate a new scene for this chapter'
@@ -148,7 +145,7 @@ export function EnhancedEditorPage() {
     }))
   }
   
-  const handleContinueWriting = async (options?: any) => {
+  const handleContinueWriting = async (options?: Record<string, unknown>) => {
     if (!documentId || !content) return
     
     await dispatch(continueGeneration({
@@ -256,15 +253,3 @@ export function EnhancedEditorPage() {
   )
 }
 
-// Utility function for debouncing
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
-  
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
-}
