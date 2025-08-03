@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { generateScene, continueGeneration } from '@/features/generation/generationSlice'
 import { getDocument } from '@/features/documents/documentSlice'
 import toast from 'react-hot-toast'
