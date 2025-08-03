@@ -2,7 +2,7 @@
 FROM node:18-alpine AS builder
 
 # Install pnpm with specific version
-RUN corepack enable && corepack prepare pnpm@8.15.9 --activate
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ RUN pnpm run build
 FROM node:18-alpine
 
 # Install pnpm with specific version
-RUN corepack enable && corepack prepare pnpm@8.15.9 --activate
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
 
 WORKDIR /app
 
