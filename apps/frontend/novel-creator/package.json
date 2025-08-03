@@ -2,6 +2,7 @@
   "name": "@deusexmachina/novel-creator",
   "version": "1.0.0",
   "private": true,
+  "description": "AI-powered novel creation platform",
   "type": "module",
   "scripts": {
     "dev": "vite",
