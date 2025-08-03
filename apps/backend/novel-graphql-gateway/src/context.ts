@@ -85,6 +85,8 @@ export async function context({ req, connectionParams }: { req?: Request; connec
 
 // Helper function to require authentication
 export function requireAuth(context: Context): User {
+  console.log('requireAuth - Context:', context);
+  console.log('requireAuth - User:', context.user);
   if (!context.user) {
     throw new AuthenticationError('Authentication required');
   }
