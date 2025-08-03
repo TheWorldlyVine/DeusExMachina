@@ -42,6 +42,11 @@ locals {
   }
 }
 
+# Data source for project information
+data "google_project" "project" {
+  project_id = local.project_id
+}
+
 # VPC module commented out until needed for Cloud Functions
 # module "vpc" {
 #   source = "../../modules/vpc"
@@ -304,6 +309,15 @@ module "graphql_gateway" {
   timeout_seconds       = 60
   min_instances         = 0
   max_instances         = 10
+}
+
+# Artifact Registry for Cloud Run deployments
+module "artifact_registry" {
+  source = "../../modules/artifact-registry"
+  
+  project_id                   = local.project_id
+  region                       = local.region
+  github_service_account_email = "github-actions-sa@${local.project_id}.iam.gserviceaccount.com"
 }
 
 # GitHub Actions Service Account Permissions

@@ -97,3 +97,9 @@ output "graphql_gateway_url" {
   description = "URL of the GraphQL Gateway"
   value       = module.graphql_gateway.service_url
 }
+
+# Artifact Registry Output
+output "artifact_registry_url" {
+  description = "URL of the Artifact Registry repository for Cloud Run"
+  value       = module.artifact_registry.repository_url
+}
