@@ -219,7 +219,12 @@ jobs:
       
       - name: Configure Docker auth
         if: github.ref == 'refs/heads/main'
-        run: gcloud auth configure-docker
+        run: |
+          # Configure Docker to use gcloud as a credential helper for GCR
+          gcloud auth configure-docker gcr.io --quiet
+          
+          # Verify authentication
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
       
       - name: Create .gcloudignore file
         if: github.ref == 'refs/heads/main'
