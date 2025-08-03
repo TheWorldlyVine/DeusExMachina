@@ -27,7 +27,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars="DOCUMENT_SERVICE_URL=https://novel-document-service-xkv3zhqrha-uw.a.run.app" \
   --set-env-vars="MEMORY_SERVICE_URL=https://novel-memory-service-xkv3zhqrha-uw.a.run.app" \
   --set-env-vars="AI_SERVICE_URL=https://novel-ai-service-xkv3zhqrha-uw.a.run.app" \
-  --set-env-vars="ALLOWED_ORIGINS=https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://localhost:3000,http://localhost:5173" \
+  --set-env-vars="ALLOWED_ORIGINS=https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251,http://localhost:3000,http://localhost:5173" \
   --memory=512Mi \
   --cpu=1 \
   --timeout=60 \
