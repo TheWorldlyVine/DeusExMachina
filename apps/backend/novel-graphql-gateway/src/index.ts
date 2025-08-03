@@ -23,7 +23,7 @@ import { loggingPlugin } from './plugins/logging';
 // Load environment variables
 dotenv.config();
 
-const PORT = process.env.PORT || 4000;
+const PORT = parseInt(process.env.PORT || '8080', 10); // Cloud Run uses 8080 by default
 
 async function startServer() {
   // Create Express app
@@ -142,7 +142,22 @@ async function startServer() {
 
   // Health check endpoint
   app.get('/health', (req, res) => {
-    res.json({ status: 'healthy', service: 'novel-graphql-gateway' });
+    res.json({ 
+      status: 'healthy', 
+      service: 'novel-graphql-gateway',
+      version: '1.0.1',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Root endpoint for debugging
+  app.get('/', (req, res) => {
+    res.json({ 
+      service: 'novel-graphql-gateway',
+      graphql: '/graphql',
+      health: '/health',
+      cors_configured: true
+    });
   });
 
   // Start HTTP server
