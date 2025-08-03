@@ -38,7 +38,7 @@ gcloud functions deploy $FUNCTION_NAME \
     --memory=512Mi \
     --timeout=300s \
     --max-instances=100 \
-    --set-env-vars="EMAIL_FROM_ADDRESS=noreply@deusexmachina.app,EMAIL_FROM_NAME=DeusExMachina,APP_BASE_URL=https://app.deusexmachina.com,GCP_PROJECT_ID=$PROJECT_ID,EMAIL_TOPIC_NAME=deus-ex-machina-email-events"
+    --set-env-vars="EMAIL_FROM_ADDRESS=noreply@god-in-a-box.com,EMAIL_FROM_NAME=God in a Box,APP_BASE_URL=https://god-in-a-box.com,GCP_PROJECT_ID=$PROJECT_ID,EMAIL_TOPIC_NAME=deus-ex-machina-email-events"
 
 echo ""
 echo "Deployment complete!"

@@ -27,8 +27,8 @@ public class NovelDocumentFunction implements HttpFunction {
             .create();
     
     private static final Set<String> ALLOWED_ORIGINS = Set.of(
-            "https://app.deusexmachina.com",
-            "https://deusexmachina.com",
+            "https://god-in-a-box.com",
+            "https://www.god-in-a-box.com",
             "https://34.95.119.251",
             "http://localhost:3000",
             "http://localhost:3001"

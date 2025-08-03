@@ -51,11 +51,11 @@ public class AuthModule extends AbstractModule {
     private void bindConfiguration() {
         // Email configuration (Note: SendGrid removed, using Cloud Pub/Sub instead)
         bind(String.class).annotatedWith(Names.named("email.from.address"))
-                .toInstance(getEnvOrDefault("EMAIL_FROM_ADDRESS", "noreply@deusexmachina.com"));
+                .toInstance(getEnvOrDefault("EMAIL_FROM_ADDRESS", "noreply@god-in-a-box.com"));
         bind(String.class).annotatedWith(Names.named("email.from.name"))
-                .toInstance(getEnvOrDefault("EMAIL_FROM_NAME", "DeusExMachina"));
+                .toInstance(getEnvOrDefault("EMAIL_FROM_NAME", "God in a Box"));
         bind(String.class).annotatedWith(Names.named("app.base.url"))
-                .toInstance(getEnvOrDefault("APP_BASE_URL", "https://app.deusexmachina.com"));
+                .toInstance(getEnvOrDefault("APP_BASE_URL", "https://god-in-a-box.com"));
         
         // Google OAuth configuration
         bind(String.class).annotatedWith(Names.named("google.client.id"))

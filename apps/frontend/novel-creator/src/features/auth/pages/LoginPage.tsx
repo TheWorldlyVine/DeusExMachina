@@ -79,7 +79,7 @@ export function LoginPage() {
           </div>
 
           <div className="text-center">
-            <a href="https://app.deusexmachina.com/register" className="text-sm text-primary hover:text-primary/80">
+            <a href="https://god-in-a-box.com/register" className="text-sm text-primary hover:text-primary/80">
               Don't have an account? Sign up
             </a>
           </div>

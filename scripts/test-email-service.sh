@@ -38,7 +38,7 @@ case $EMAIL_TYPE in
     "displayName": "Test User"
   },
   "templateData": {
-    "actionUrl": "https://app.deusexmachina.com/verify?token=test-token-123",
+    "actionUrl": "https://god-in-a-box.com/verify?token=test-token-123",
     "token": "$TOKEN",
     "expiryTime": "$EXPIRY_TIME"
   },
@@ -63,7 +63,7 @@ EOF
     "displayName": "Test User"
   },
   "templateData": {
-    "actionUrl": "https://app.deusexmachina.com/reset-password?token=test-reset-123",
+    "actionUrl": "https://god-in-a-box.com/reset-password?token=test-reset-123",
     "token": "test-reset-123",
     "expiryTime": "$EXPIRY_TIME"
   },

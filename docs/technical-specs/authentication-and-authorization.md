@@ -259,7 +259,7 @@ GET /api/resources/{resourceId}/permissions
     "permissions": ["read:own", "write:own"],
     "iat": 1234567890,
     "exp": 1234567890,
-    "iss": "https://api.deusexmachina.com",
+    "iss": "https://api.god-in-a-box.com",
     "aud": "deusexmachina-client"
   }
 }
@@ -440,7 +440,7 @@ export let options = {
 };
 
 export default function() {
-    let response = http.post('https://api.deusexmachina.com/api/auth/login', {
+    let response = http.post('https://api.god-in-a-box.com/api/auth/login', {
         email: 'test@example.com',
         password: 'password123',
     });
@@ -653,13 +653,13 @@ module "auth_system" {
 # JWT Configuration
 JWT_PRIVATE_KEY_PATH=/secrets/jwt-private.pem
 JWT_PUBLIC_KEY_PATH=/secrets/jwt-public.pem
-JWT_ISSUER=https://api.deusexmachina.com
+JWT_ISSUER=https://api.god-in-a-box.com
 JWT_AUDIENCE=deusexmachina-client
 JWT_ACCESS_TOKEN_EXPIRY=15m
 JWT_REFRESH_TOKEN_EXPIRY=30d
 
 # Database Configuration
-FIRESTORE_PROJECT_ID=deusexmachina-prod
+FIRESTORE_PROJECT_ID=deus-ex-machina-prod
 CLOUD_SQL_CONNECTION_NAME=project:region:instance
 REDIS_HOST=10.0.0.5
 REDIS_PORT=6379
@@ -674,7 +674,7 @@ RATE_LIMIT_WINDOW_MINUTES=15
 # OAuth Configuration
 GOOGLE_OAUTH_CLIENT_ID=xxx.apps.googleusercontent.com
 GOOGLE_OAUTH_CLIENT_SECRET=xxx
-OAUTH_REDIRECT_URL=https://app.deusexmachina.com/auth/callback
+OAUTH_REDIRECT_URL=https://god-in-a-box.com/auth/callback
 ```
 
 ## Frontend Implementation (TDD Approach)

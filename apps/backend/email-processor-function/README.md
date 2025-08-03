@@ -79,7 +79,7 @@ gcloud pubsub topics publish deus-ex-machina-email-events \
       "displayName": "Test User"
     },
     "templateData": {
-      "actionUrl": "https://app.deusexmachina.com/verify?token=abc123",
+      "actionUrl": "https://god-in-a-box.com/verify?token=abc123",
       "token": "123456",
       "expiryTime": "2024-01-01T13:00:00Z"
     },

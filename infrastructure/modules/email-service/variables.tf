@@ -63,7 +63,7 @@ variable "dlq_handler_source_object" {
 variable "alert_email" {
   description = "Email address for DLQ alerts"
   type        = string
-  default     = "ops@deusexmachina.com"
+  default     = "ops@god-in-a-box.com"
 }
 
 variable "labels" {

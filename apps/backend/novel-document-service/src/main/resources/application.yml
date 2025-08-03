@@ -57,7 +57,7 @@ logging:
     
 cors:
   allowedOrigins:
-    - https://*.deusexmachina.com
+    - https://*.god-in-a-box.com
     - http://localhost:3000
   allowedMethods:
     - GET

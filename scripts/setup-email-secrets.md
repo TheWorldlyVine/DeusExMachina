@@ -13,7 +13,7 @@
 ### SMTP_FROM_EMAIL
 - Click "New repository secret"
 - Name: `SMTP_FROM_EMAIL`
-- Value: Your Gmail address (e.g., `noreply@deusexmachina.com` or `your-email@gmail.com`)
+- Value: Your Gmail address (e.g., `noreply@god-in-a-box.com` or `your-email@gmail.com`)
 
 ### SMTP_USERNAME
 - Click "New repository secret"

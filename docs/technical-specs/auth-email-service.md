@@ -72,7 +72,7 @@ This specification covers:
     "displayName": "John Doe"
   },
   "templateData": {
-    "actionUrl": "https://app.deusexmachina.com/verify?token=...",
+    "actionUrl": "https://god-in-a-box.com/verify?token=...",
     "code": "123456",
     "expiryTime": "2024-01-01T13:00:00Z"
   },

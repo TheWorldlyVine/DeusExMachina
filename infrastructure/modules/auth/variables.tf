@@ -92,13 +92,13 @@ variable "auth_function_source_path" {
 variable "email_from_address" {
   description = "From email address for auth emails"
   type        = string
-  default     = "noreply@deusexmachina.com"
+  default     = "noreply@god-in-a-box.com"
 }
 
 variable "email_from_name" {
   description = "From name for auth emails"
   type        = string
-  default     = "DeusExMachina"
+  default     = "God in a Box"
 }
 
 variable "app_base_url" {

@@ -133,7 +133,7 @@ class NovelDocumentFunctionTest {
         // Given
         when(request.getMethod()).thenReturn("OPTIONS");
         when(request.getPath()).thenReturn("/document");
-        when(request.getFirstHeader("Origin")).thenReturn(Optional.of("https://app.deusexmachina.com"));
+        when(request.getFirstHeader("Origin")).thenReturn(Optional.of("https://god-in-a-box.com"));
         
         StringWriter responseWriter = new StringWriter();
         BufferedWriter bufferedWriter = new BufferedWriter(responseWriter);
@@ -144,7 +144,7 @@ class NovelDocumentFunctionTest {
         
         // Then
         verify(response).setStatusCode(204);
-        verify(response).appendHeader("Access-Control-Allow-Origin", "https://app.deusexmachina.com");
+        verify(response).appendHeader("Access-Control-Allow-Origin", "https://god-in-a-box.com");
         verify(response).appendHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         verify(response).appendHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID");
     }

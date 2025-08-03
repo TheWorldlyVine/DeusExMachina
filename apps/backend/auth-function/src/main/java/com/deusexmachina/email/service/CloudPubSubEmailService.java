@@ -125,7 +125,7 @@ public class CloudPubSubEmailService implements EmailService {
                 .build())
             .templateData(Map.of(
                 "timestamp", Instant.now().toString(),
-                "supportUrl", "https://support.deusexmachina.com"
+                "supportUrl", "https://support.god-in-a-box.com"
             ))
             .metadata(EmailMessage.Metadata.builder()
                 .source(sourceName)
@@ -147,7 +147,7 @@ public class CloudPubSubEmailService implements EmailService {
                 "deviceInfo", deviceInfo,
                 "ipAddress", ipAddress,
                 "timestamp", Instant.now().toString(),
-                "securityUrl", "https://app.deusexmachina.com/security"
+                "securityUrl", "https://god-in-a-box.com/security"
             ))
             .metadata(EmailMessage.Metadata.builder()
                 .source(sourceName)
@@ -189,8 +189,8 @@ public class CloudPubSubEmailService implements EmailService {
             .templateData(Map.of(
                 "attempts", String.valueOf(attempts),
                 "reason", String.format("Too many failed login attempts (%d)", attempts),
-                "unlockUrl", "https://app.deusexmachina.com/unlock",
-                "supportEmail", "security@deusexmachina.com"
+                "unlockUrl", "https://god-in-a-box.com/unlock",
+                "supportEmail", "security@god-in-a-box.com"
             ))
             .metadata(EmailMessage.Metadata.builder()
                 .source(sourceName)

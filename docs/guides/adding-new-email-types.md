@@ -101,7 +101,7 @@ public void sendWeeklyDigest(User user, ActivitySummary summary) {
         "topAchievement", summary.getTopAchievement(),
         "weekStartDate", summary.getStartDate().toString(),
         "weekEndDate", summary.getEndDate().toString(),
-        "summaryUrl", "https://app.deusexmachina.com/activity/" + user.getId()
+        "summaryUrl", "https://god-in-a-box.com/activity/" + user.getId()
     );
     
     emailService.sendEmail(
