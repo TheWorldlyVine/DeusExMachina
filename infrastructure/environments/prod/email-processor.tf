@@ -8,12 +8,15 @@ module "email_processor_function_permissions" {
   project_id    = local.project_id
   region        = local.region
 
-  # Allow the function to be triggered by Pub/Sub
-  allow_pubsub_trigger = true
-  pubsub_topic         = module.email_service.email_topic_id
-
-  # Service account (uses default compute service account)
-  service_account_email = "email-processor@${local.project_id}.iam.gserviceaccount.com"
-
-  labels = local.common_labels
+  # The email processor needs to be invoked by Pub/Sub, not HTTP
+  allow_unauthenticated = false
+  
+  # Enable Firestore access for storing email logs
+  enable_firestore = true
+  
+  # Additional roles needed for Pub/Sub subscription
+  additional_roles = [
+    "roles/pubsub.subscriber",
+    "roles/secretmanager.secretAccessor"  # For SMTP credentials
+  ]
 }
