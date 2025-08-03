@@ -237,7 +237,7 @@ module "email_service" {
 # Firestore Indexes for Novel Services
 module "firestore_indexes" {
   source = "../../modules/firestore-indexes"
-  
+
   project_id = local.project_id
 }
 

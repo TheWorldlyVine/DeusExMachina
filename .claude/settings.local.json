@@ -12,7 +12,8 @@
       "Bash(--field-config field-path=active,order=ascending )",
       "Bash(--field-config field-path=authorId,order=ascending )",
       "Bash(--field-config field-path=updatedAt,order=descending )",
-      "Bash(--project=deus-ex-machina-prod)"
+      "Bash(--project=deus-ex-machina-prod)",
+      "Bash(terraform fmt:*)"
     ],
     "deny": []
   }
