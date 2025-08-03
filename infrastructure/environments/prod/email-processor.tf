@@ -10,7 +10,7 @@ module "email_processor_function_permissions" {
 
   # Allow the function to be triggered by Pub/Sub
   allow_pubsub_trigger = true
-  pubsub_topic        = module.email_service.email_topic_id
+  pubsub_topic         = module.email_service.email_topic_id
 
   # Service account (uses default compute service account)
   service_account_email = "email-processor@${local.project_id}.iam.gserviceaccount.com"

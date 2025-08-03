@@ -159,7 +159,11 @@ jobs:
           memory: ${{ (matrix.function == 'api-function' || matrix.function == 'novel-ai-service') && '1Gi' || '512Mi' }}
           max_instance_count: ${{ matrix.function == 'api-function' && '200' || matrix.function == 'processor-function' && '50' || '100' }}
           service_timeout: ${{ matrix.function == 'processor-function' && '540' || '300' }}
-          env_vars: GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EMAIL_TOPIC=${{ secrets.EMAIL_TOPIC }}
+            APP_BASE_URL=https://god-in-a-box.com
 
   # Frontend CI/CD
   frontend:

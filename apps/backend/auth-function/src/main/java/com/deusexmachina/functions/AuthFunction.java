@@ -139,6 +139,14 @@ public class AuthFunction implements HttpFunction {
                     handleValidateToken(request, response, method);
                     break;
                     
+                case "/health":
+                    handleHealthCheck(request, response, method);
+                    break;
+                    
+                case "/debug":
+                    handleDebug(request, response, method);
+                    break;
+                    
                 default:
                     ResponseUtils.sendError(response, 404, "Endpoint not found: " + path);
                     break;
@@ -387,5 +395,56 @@ public class AuthFunction implements HttpFunction {
             logger.warn("Token validation failed: {}", e.getMessage());
             ResponseUtils.sendError(response, 401, "Invalid token");
         }
+    }
+    
+    private void handleHealthCheck(HttpRequest request, HttpResponse response, String method) 
+            throws IOException {
+        if (!"GET".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject health = new JsonObject();
+        health.addProperty("status", "healthy");
+        health.addProperty("service", "auth-function");
+        health.addProperty("version", "1.0.0");
+        health.addProperty("timestamp", System.currentTimeMillis());
+        
+        JsonObject environment = new JsonObject();
+        environment.addProperty("hasAuthService", authService != null);
+        environment.addProperty("hasTokenService", tokenService != null);
+        environment.addProperty("hasUserRepository", userRepository != null);
+        health.add("environment", environment);
+        
+        ResponseUtils.sendSuccess(response, health);
+    }
+    
+    private void handleDebug(HttpRequest request, HttpResponse response, String method) 
+            throws IOException {
+        if (!"GET".equals(method)) {
+            ResponseUtils.sendError(response, 405, "Method not allowed");
+            return;
+        }
+        
+        JsonObject debug = new JsonObject();
+        debug.addProperty("service", "auth-function");
+        debug.addProperty("timestamp", System.currentTimeMillis());
+        
+        JsonObject environment = new JsonObject();
+        environment.addProperty("GCP_PROJECT_ID", System.getenv("GCP_PROJECT_ID") != null ? System.getenv("GCP_PROJECT_ID") : "not-set");
+        environment.addProperty("GOOGLE_APPLICATION_CREDENTIALS", System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null ? "set" : "not-set");
+        environment.addProperty("K_SERVICE", System.getenv("K_SERVICE") != null ? System.getenv("K_SERVICE") : "not-set");
+        environment.addProperty("K_REVISION", System.getenv("K_REVISION") != null ? System.getenv("K_REVISION") : "not-set");
+        environment.addProperty("EMAIL_TOPIC", System.getenv("EMAIL_TOPIC") != null ? System.getenv("EMAIL_TOPIC") : "not-set");
+        environment.addProperty("JWT_SECRET", System.getenv("JWT_SECRET") != null ? "set" : "not-set");
+        debug.add("environment", environment);
+        
+        JsonObject initialization = new JsonObject();
+        initialization.addProperty("hasAuthService", authService != null);
+        initialization.addProperty("hasTokenService", tokenService != null);  
+        initialization.addProperty("hasUserRepository", userRepository != null);
+        debug.add("initialization", initialization);
+        
+        ResponseUtils.sendSuccess(response, debug);
     }
 }
