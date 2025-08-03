@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'monaco-editor' {
   export namespace editor {
     export interface IStandaloneCodeEditor {
