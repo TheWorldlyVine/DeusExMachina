@@ -1,0 +1,76 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+# Install pnpm with specific version
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+WORKDIR /app
+
+# Copy workspace files (these are now in the current directory)
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+
+# Create the directory structure
+RUN mkdir -p apps/backend/novel-graphql-gateway
+
+# Copy package files
+COPY package.json ./apps/backend/novel-graphql-gateway/
+COPY tsconfig.json ./apps/backend/novel-graphql-gateway/
+
+# Install dependencies using workspace
+RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway...
+
+# Copy source code
+COPY src ./apps/backend/novel-graphql-gateway/src
+
+# Build the application
+WORKDIR /app/apps/backend/novel-graphql-gateway
+RUN pnpm run build
+
+# Production stage
+FROM node:18-alpine
+
+# Install pnpm with specific version
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+WORKDIR /app
+
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+
+# Create the directory structure
+RUN mkdir -p apps/backend/novel-graphql-gateway
+
+# Copy package files
+COPY package.json ./apps/backend/novel-graphql-gateway/
+
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway... --prod
+
+# Copy built application
+COPY --from=builder /app/apps/backend/novel-graphql-gateway/dist ./apps/backend/novel-graphql-gateway/dist
+COPY --from=builder /app/apps/backend/novel-graphql-gateway/src/schema ./apps/backend/novel-graphql-gateway/dist/schema
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Change ownership
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Set working directory to the service
+WORKDIR /app/apps/backend/novel-graphql-gateway
+
+# Expose port (Cloud Run uses 8080 by default)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+
+# Start the application
+CMD ["node", "dist/index.js"]

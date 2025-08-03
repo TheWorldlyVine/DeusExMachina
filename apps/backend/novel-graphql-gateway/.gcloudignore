@@ -44,3 +44,6 @@ jest.config.js
 # - src/
 # - pnpm-workspace.yaml (from root)
 # - pnpm-lock.yaml (from root)
+
+# Exclude original Dockerfile
+Dockerfile.original

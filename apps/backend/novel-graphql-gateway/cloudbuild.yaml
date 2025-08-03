@@ -1,0 +1,47 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/novel-graphql-gateway'
+      - '-f'
+      - 'Dockerfile.cloudbuild'
+      - '.'
+    
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/novel-graphql-gateway']
+
+# Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'novel-graphql-gateway'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/novel-graphql-gateway'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '60'
+      - '--concurrency'
+      - '100'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,JWT_SECRET=${_JWT_SECRET},AUTH_SERVICE_URL=https://auth-function-xkv3zhqrha-uw.a.run.app,DOCUMENT_SERVICE_URL=https://novel-document-service-xkv3zhqrha-uw.a.run.app,MEMORY_SERVICE_URL=https://novel-memory-service-xkv3zhqrha-uw.a.run.app,AI_SERVICE_URL=https://novel-ai-service-xkv3zhqrha-uw.a.run.app,ALLOWED_ORIGINS=https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251,http://localhost:3000,http://localhost:5173'
+
+images:
+  - 'gcr.io/$PROJECT_ID/novel-graphql-gateway'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
