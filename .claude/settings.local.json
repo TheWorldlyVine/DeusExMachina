@@ -6,7 +6,13 @@
       "Bash(source:*)",
       "Bash(../gradlew build)",
       "Bash(gcloud run services describe:*)",
-      "Bash(gcloud run services get-iam-policy:*)"
+      "Bash(gcloud run services get-iam-policy:*)",
+      "Bash(gcloud firestore indexes composite create:*)",
+      "Bash(--collection-group=novel_documents )",
+      "Bash(--field-config field-path=active,order=ascending )",
+      "Bash(--field-config field-path=authorId,order=ascending )",
+      "Bash(--field-config field-path=updatedAt,order=descending )",
+      "Bash(--project=deus-ex-machina-prod)"
     ],
     "deny": []
   }
