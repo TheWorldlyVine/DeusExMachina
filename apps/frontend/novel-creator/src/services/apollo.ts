@@ -9,10 +9,13 @@ const httpLink = createHttpLink({
 
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('auth_token')
+  const projectId = localStorage.getItem('current_project_id')
+  
   return {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : '',
+      ...(projectId && { 'X-Project-ID': projectId }),
     },
   }
 })

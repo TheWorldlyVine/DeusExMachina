@@ -77,8 +77,12 @@ export function FullFeaturedEditorPage() {
   useEffect(() => {
     if (documentId) {
       dispatch(getDocument(documentId))
-      dispatch(getCharacters(documentId))
-      dispatch(getPlots(documentId))
+      // TODO: Get projectId from document once loaded
+      // For now, use a mock project ID or derive from documentId
+      const projectId = 'project-123' // This should come from the document
+      localStorage.setItem('current_project_id', projectId)
+      dispatch(getCharacters(projectId))
+      dispatch(getPlots(projectId))
       dispatch(getLocations())
     }
   }, [documentId, dispatch])
