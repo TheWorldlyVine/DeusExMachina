@@ -91,3 +91,9 @@ output "novel_service_names" {
 #   value       = module.github_actions.service_account_email
 #   description = "Email of the GitHub Actions service account with permissions"
 # }
+
+# GraphQL Gateway Output
+output "graphql_gateway_url" {
+  description = "URL of the GraphQL Gateway"
+  value       = module.graphql_gateway.service_url
+}

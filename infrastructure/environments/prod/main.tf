@@ -274,15 +274,36 @@ module "novel_services" {
         GCP_PROJECT_ID = local.project_id
       }
     }
-    # GraphQL Gateway will be added after it's deployed via CI/CD
-    # graphql_gateway = {
-    #   name                  = "novel-graphql-gateway"
-    #   allow_unauthenticated = true # Required for CORS preflight and public API access
-    #   environment_variables = {
-    #     GCP_PROJECT_ID = local.project_id
-    #   }
-    # }
   }
+}
+
+# Deploy GraphQL Gateway using Terraform
+module "graphql_gateway" {
+  source = "../../modules/cloud-run-deployment"
+
+  project_id   = local.project_id
+  region       = local.region
+  service_name = "novel-graphql-gateway"
+
+  # Placeholder image - CI/CD will update this
+  initial_image = "gcr.io/cloudrun/hello"
+
+  # Environment variables (CI/CD will add more)
+  environment_variables = {
+    NODE_ENV                = "production"
+    ALLOWED_ORIGINS         = "https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251"
+    AUTH_SERVICE_URL        = "https://auth-function-xkv3zhqrha-uw.a.run.app"
+    DOCUMENT_SERVICE_URL    = "https://novel-document-service-xkv3zhqrha-uw.a.run.app"
+    MEMORY_SERVICE_URL      = "https://novel-memory-service-xkv3zhqrha-uw.a.run.app"
+    AI_SERVICE_URL          = "https://novel-ai-service-xkv3zhqrha-uw.a.run.app"
+  }
+
+  allow_unauthenticated = true
+  memory                = "512Mi"
+  cpu                   = "1"
+  timeout_seconds       = 60
+  min_instances         = 0
+  max_instances         = 10
 }
 
 # GitHub Actions Service Account Permissions
