@@ -435,7 +435,7 @@ public class AuthFunction implements HttpFunction {
         environment.addProperty("GOOGLE_APPLICATION_CREDENTIALS", System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null ? "set" : "not-set");
         environment.addProperty("K_SERVICE", System.getenv("K_SERVICE") != null ? System.getenv("K_SERVICE") : "not-set");
         environment.addProperty("K_REVISION", System.getenv("K_REVISION") != null ? System.getenv("K_REVISION") : "not-set");
-        environment.addProperty("EMAIL_TOPIC", System.getenv("EMAIL_TOPIC") != null ? System.getenv("EMAIL_TOPIC") : "not-set");
+        environment.addProperty("EMAIL_TOPIC_NAME", System.getenv("EMAIL_TOPIC_NAME") != null ? System.getenv("EMAIL_TOPIC_NAME") : "not-set");
         environment.addProperty("JWT_SECRET", System.getenv("JWT_SECRET") != null ? "set" : "not-set");
         debug.add("environment", environment);
         
