@@ -16,7 +16,10 @@
       "Bash(terraform fmt:*)",
       "Bash(./gradlew:*)",
       "Bash(mkdir:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gcloud compute forwarding-rules list:*)"
     ],
     "deny": []
   }

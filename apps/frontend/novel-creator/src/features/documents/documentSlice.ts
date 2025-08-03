@@ -1,10 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { documentService } from '@/services/document'
-import type { Document, CreateDocumentInput } from '@/types/document'
+import type { Document, CreateDocumentInput, Chapter, Scene } from '@/types/document'
 
 interface DocumentsState {
   documents: Document[]
   currentDocument: Document | null
+  currentChapter: Chapter | null
+  currentScene: Scene | null
   isLoading: boolean
   error: string | null
 }
@@ -12,6 +14,8 @@ interface DocumentsState {
 const initialState: DocumentsState = {
   documents: [],
   currentDocument: null,
+  currentChapter: null,
+  currentScene: null,
   isLoading: false,
   error: null,
 }
@@ -59,12 +63,36 @@ export const deleteDocument = createAsyncThunk(
   }
 )
 
+export const updateScene = createAsyncThunk(
+  'documents/updateScene',
+  async ({ 
+    documentId, 
+    chapterNumber, 
+    sceneNumber, 
+    content 
+  }: { 
+    documentId: string
+    chapterNumber: number
+    sceneNumber: number
+    content: string 
+  }) => {
+    // TODO: Implement scene update in document service
+    return { documentId, chapterNumber, sceneNumber, content }
+  }
+)
+
 const documentsSlice = createSlice({
   name: 'documents',
   initialState,
   reducers: {
     setCurrentDocument: (state, action: PayloadAction<Document | null>) => {
       state.currentDocument = action.payload
+    },
+    setCurrentChapter: (state, action: PayloadAction<Chapter | null>) => {
+      state.currentChapter = action.payload
+    },
+    setCurrentScene: (state, action: PayloadAction<Scene | null>) => {
+      state.currentScene = action.payload
     },
     clearError: (state) => {
       state.error = null
@@ -116,5 +144,5 @@ const documentsSlice = createSlice({
   },
 })
 
-export const { setCurrentDocument, clearError } = documentsSlice.actions
+export const { setCurrentDocument, setCurrentChapter, setCurrentScene, clearError } = documentsSlice.actions
 export default documentsSlice.reducer
