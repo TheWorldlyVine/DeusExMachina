@@ -10,13 +10,13 @@ module "email_processor_function_permissions" {
 
   # The email processor needs to be invoked by Pub/Sub, not HTTP
   allow_unauthenticated = false
-  
+
   # Enable Firestore access for storing email logs
   enable_firestore = true
-  
+
   # Additional roles needed for Pub/Sub subscription
   additional_roles = [
     "roles/pubsub.subscriber",
-    "roles/secretmanager.secretAccessor"  # For SMTP credentials
+    "roles/secretmanager.secretAccessor" # For SMTP credentials
   ]
 }
