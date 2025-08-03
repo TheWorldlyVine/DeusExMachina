@@ -42,10 +42,6 @@ locals {
   }
 }
 
-# Data source for project information
-data "google_project" "project" {
-  project_id = local.project_id
-}
 
 # VPC module commented out until needed for Cloud Functions
 # module "vpc" {
