@@ -6,21 +6,22 @@ RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
 
 WORKDIR /app
 
-# Copy workspace files (these are now in the current directory)
-COPY pnpm-workspace.yaml ./
-COPY pnpm-lock.yaml ./
-
-# Create the directory structure
+# Create the directory structure first
 RUN mkdir -p apps/backend/novel-graphql-gateway
 
-# Copy package files
+# Copy only package files first (for better caching)
 COPY package.json ./apps/backend/novel-graphql-gateway/
 COPY tsconfig.json ./apps/backend/novel-graphql-gateway/
 
-# Install dependencies using workspace
-RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway...
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
 
-# Copy source code
+# Install dependencies using workspace
+# Use --ignore-scripts to speed up install
+RUN pnpm install --frozen-lockfile --filter @deusexmachina/novel-graphql-gateway... --ignore-scripts
+
+# Now copy source code (this layer will be rebuilt when source changes)
 COPY src ./apps/backend/novel-graphql-gateway/src
 
 # Build the application

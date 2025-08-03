@@ -1,0 +1,47 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Development files
+*.log
+*.env
+.env.*
+.env.local
+.env.development
+.env.test
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation
+*.md
+docs/
+
+# Git
+.git/
+.gitignore
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/
+jest.config.js
+
+# Other
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Keep Dockerfile.cloudbuild
+!Dockerfile.cloudbuild
