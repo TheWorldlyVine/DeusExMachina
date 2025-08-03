@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Development files
+*.log
+*.env
+.env.*
+.env.local
+.env.development
+.env.test
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation
+*.md
+docs/
+
+# Build artifacts (we want Cloud Build to do the build)
+dist/
+build/
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/
+jest.config.js
+
+# Keep only essential files for build
+# Cloud Build will need:
+# - Dockerfile
+# - package.json
+# - tsconfig.json  
+# - src/
+# - pnpm-workspace.yaml (from root)
+# - pnpm-lock.yaml (from root)

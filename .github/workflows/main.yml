@@ -217,45 +217,49 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
       
-      - name: Configure Docker auth
+      - name: Prepare build context for Cloud Run
         if: github.ref == 'refs/heads/main'
         run: |
-          # Configure Docker to use gcloud as a credential helper for GCR
-          gcloud auth configure-docker gcr.io --quiet
+          # Copy workspace files to the service directory for Cloud Build
+          cp pnpm-workspace.yaml apps/backend/novel-graphql-gateway/
+          cp pnpm-lock.yaml apps/backend/novel-graphql-gateway/
           
-          # Verify authentication
-          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
-      
-      - name: Create .gcloudignore file
-        if: github.ref == 'refs/heads/main'
-        run: |
+          # Create .gcloudignore if it doesn't exist
           cd apps/backend/novel-graphql-gateway
-          cat > .gcloudignore << 'EOF'
+          if [ ! -f .gcloudignore ]; then
+            cat > .gcloudignore << 'EOF'
           node_modules/
+          **/node_modules/
           .git/
           .gitignore
-          README.md
-          .env
+          *.log
+          *.env
           .env.*
           coverage/
           .nyc_output/
-          *.log
+          *.md
+          *.test.ts
+          *.spec.ts
+          __tests__/
+          jest.config.js
+          dist/
+          build/
           EOF
-      
-      - name: Build and push Docker image
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Build the Docker image
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway -f apps/backend/novel-graphql-gateway/Dockerfile .
+          fi
           
-          # Push to Container Registry (gcr.io auto-creates repositories)
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway
+          # Enable required APIs
+          gcloud services enable cloudbuild.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
+          gcloud services enable run.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
+          gcloud services enable containerregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
       
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run from source
         if: github.ref == 'refs/heads/main'
         run: |
+          cd apps/backend/novel-graphql-gateway
+          
+          # Deploy directly from source - Cloud Build will handle the Docker build
           gcloud run deploy novel-graphql-gateway \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway \
+            --source . \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
