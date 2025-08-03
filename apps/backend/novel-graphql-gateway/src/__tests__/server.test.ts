@@ -16,8 +16,11 @@ describe('GraphQL Server', () => {
         typeDefs,
         resolvers: {
           Query: {
-            health: () => ({ status: 'OK', message: 'Server is healthy' }),
+            // Use an actual query from the schema
+            me: () => null,
           },
+          Mutation: {},
+          Subscription: {},
         },
       });
 

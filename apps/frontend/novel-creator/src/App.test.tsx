@@ -6,7 +6,7 @@ import { store } from './store'
 import App from './App'
 
 describe('App', () => {
-  it('renders loading screen initially', () => {
+  it('renders login page when not authenticated', async () => {
     render(
       <Provider store={store}>
         <BrowserRouter>
@@ -15,6 +15,7 @@ describe('App', () => {
       </Provider>
     )
     
-    expect(screen.getByText(/Loading Novel Creator/i)).toBeInTheDocument()
+    // Since there's no auth token, it should show the login page
+    expect(await screen.findByText(/Sign in to Novel Creator/i)).toBeInTheDocument()
   })
 })
