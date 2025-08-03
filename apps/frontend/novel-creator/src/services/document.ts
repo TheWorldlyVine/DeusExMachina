@@ -16,11 +16,12 @@ class DocumentService {
         'Content-Type': 'application/json'
       }
     })
-    return response.data
+    // Backend returns { documents: Document[], count: number }
+    return response.data.documents || []
   }
 
   async getDocument(id: string): Promise<Document> {
-    const response = await axios.get(`${API_URL}/documents/${id}`, {
+    const response = await axios.get(`${API_URL}/document/${id}`, {
       headers: this.getAuthHeader()
     })
     return response.data
