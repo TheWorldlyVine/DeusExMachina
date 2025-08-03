@@ -69,8 +69,10 @@ public class GeminiGenerationService implements GenerationService {
             GenerativeModel model = new GenerativeModel(modelName, vertexAI);
             
             // Configure generation parameters
-            GenerativeModel configuredModel = model.withGenerationConfig(buildGenerationConfig(request.getParameters()))
-                .withSafetySettings(buildSafetySettings(request.getParameters().getSafetyLevel()));
+            GenerationParameters params = request.getParameters() != null ? 
+                request.getParameters() : GenerationParameters.builder().build();
+            GenerativeModel configuredModel = model.withGenerationConfig(buildGenerationConfig(params))
+                .withSafetySettings(buildSafetySettings(params.getSafetyLevel()));
             
             // Build the prompt with context
             String enhancedPrompt = buildEnhancedPrompt(request);
@@ -155,7 +157,7 @@ public class GeminiGenerationService implements GenerationService {
     
     private String selectModel(GenerationRequest request) {
         // First check model preference
-        if (request.getParameters().getModelPreference() != null) {
+        if (request.getParameters() != null && request.getParameters().getModelPreference() != null) {
             return request.getParameters().getModelPreference().getModelName();
         }
         

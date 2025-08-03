@@ -138,6 +138,9 @@ module "static_hosting" {
   environment  = local.environment
   region       = local.region
 
+  # Domain configuration
+  domain_name = "god-in-a-box.com"
+
   # Enable test index.html for initial deployment
   deploy_test_index = true
 
@@ -147,8 +150,8 @@ module "static_hosting" {
   # Basic security features for production
   enable_cloud_armor = true
 
-  # CORS configuration - adjust as needed
-  cors_origins = ["https://deus-ex-machina.com", "https://www.deus-ex-machina.com"]
+  # CORS configuration - updated for the new domain
+  cors_origins = ["https://god-in-a-box.com", "https://www.god-in-a-box.com"]
 
   # Cache policies
   cache_policies = {
