@@ -34,6 +34,12 @@ public class GeminiGenerationService implements GenerationService {
         this.projectId = System.getenv("GCP_PROJECT_ID");
         this.location = System.getenv("GCP_REGION") != null ? System.getenv("GCP_REGION") : "us-central1";
         
+        // Validate project ID
+        if (this.projectId == null || this.projectId.isEmpty()) {
+            logger.error("GCP_PROJECT_ID environment variable is not set!");
+            throw new IllegalStateException("GCP_PROJECT_ID environment variable is required");
+        }
+        
         // Initialize Vertex AI
         this.vertexAI = new VertexAI(projectId, location);
         logger.info("Initialized Gemini Generation Service for project: {} in location: {}", projectId, location);

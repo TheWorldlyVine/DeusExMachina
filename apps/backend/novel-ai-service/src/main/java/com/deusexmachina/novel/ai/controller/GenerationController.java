@@ -90,8 +90,9 @@ public class GenerationController {
             logger.error("Generation failed", e);
             sendErrorResponse(response, "Generation failed: " + e.getMessage(), 500);
         } catch (Exception e) {
-            logger.error("Unexpected error", e);
-            sendErrorResponse(response, "Internal server error", 500);
+            logger.error("Unexpected error in generation request - Type: {}, Message: {}", 
+                e.getClass().getName(), e.getMessage(), e);
+            sendErrorResponse(response, "Internal server error: " + e.getMessage(), 500);
         }
     }
     

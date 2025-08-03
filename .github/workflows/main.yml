@@ -455,3 +455,53 @@ jobs:
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. The frontend will be automatically deployed on the next push" >> $GITHUB_STEP_SUMMARY
           echo "2. Update DNS records if using custom domain" >> $GITHUB_STEP_SUMMARY
+  
+  # Deploy Firestore indexes after infrastructure
+  firestore-indexes:
+    needs: [infrastructure]
+    if: github.ref == 'refs/heads/main' && needs.infrastructure.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Deploy Firestore Indexes
+        run: |
+          echo "Deploying Firestore composite indexes..."
+          
+          # Deploy novel_documents indexes
+          gcloud firestore indexes create \
+            --collection-group=novel_documents \
+            --field-config field-path=authorId,order=ascending \
+            --field-config field-path=active,order=ascending \
+            --field-config field-path=updatedAt,order=descending \
+            --project=${{ secrets.GCP_PROJECT_ID }} || echo "Index may already exist"
+          
+          # Deploy novel_chapters indexes
+          gcloud firestore indexes create \
+            --collection-group=novel_chapters \
+            --field-config field-path=documentId,order=ascending \
+            --field-config field-path=active,order=ascending \
+            --field-config field-path=chapterNumber,order=ascending \
+            --project=${{ secrets.GCP_PROJECT_ID }} || echo "Index may already exist"
+          
+          # Deploy novel_scenes indexes
+          gcloud firestore indexes create \
+            --collection-group=novel_scenes \
+            --field-config field-path=chapterId,order=ascending \
+            --field-config field-path=active,order=ascending \
+            --field-config field-path=sceneNumber,order=ascending \
+            --project=${{ secrets.GCP_PROJECT_ID }} || echo "Index may already exist"
+          
+          echo "✅ Firestore indexes deployed successfully!"
