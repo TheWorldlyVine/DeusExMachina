@@ -237,14 +237,20 @@ jobs:
           *.log
           EOF
       
+      - name: Build and push Docker image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Build the Docker image
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway -f apps/backend/novel-graphql-gateway/Dockerfile .
+          
+          # Push to Container Registry (gcr.io auto-creates repositories)
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway
+      
       - name: Deploy to Cloud Run
         if: github.ref == 'refs/heads/main'
         run: |
-          cd apps/backend/novel-graphql-gateway
-          
-          # Deploy using source - this MUST succeed or the job should fail
           gcloud run deploy novel-graphql-gateway \
-            --source . \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/novel-graphql-gateway \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
