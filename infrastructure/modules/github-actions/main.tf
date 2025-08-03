@@ -93,7 +93,7 @@ data "google_compute_default_service_account" "default" {
 
 resource "google_service_account_iam_member" "github_actions_act_as_compute" {
   count              = var.enable_cloud_run_permissions ? 1 : 0
-  service_account_id = data.google_compute_default_service_account.default[0].email
+  service_account_id = "projects/${var.project_id}/serviceAccounts/${data.google_compute_default_service_account.default[0].email}"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${var.github_service_account_email}"
 }
@@ -118,7 +118,7 @@ resource "google_project_iam_member" "cloudbuild_run_admin" {
 # Grant Cloud Build SA permission to act as the compute service account
 resource "google_service_account_iam_member" "cloudbuild_act_as_compute" {
   count              = var.enable_cloud_run_permissions ? 1 : 0
-  service_account_id = data.google_compute_default_service_account.default[0].email
+  service_account_id = "projects/${var.project_id}/serviceAccounts/${data.google_compute_default_service_account.default[0].email}"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${local.cloud_build_service_account}"
 }
