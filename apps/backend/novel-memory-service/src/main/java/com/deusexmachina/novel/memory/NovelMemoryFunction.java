@@ -1,6 +1,7 @@
 package com.deusexmachina.novel.memory;
 
 import com.deusexmachina.novel.memory.auth.AuthenticationMiddleware;
+import com.deusexmachina.novel.memory.controllers.MemoryController;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -19,11 +20,13 @@ public class NovelMemoryFunction implements HttpFunction {
     private static final Logger logger = Logger.getLogger(NovelMemoryFunction.class.getName());
     
     private final Injector injector;
+    private final MemoryController memoryController;
     
     public NovelMemoryFunction() {
         // Initialize Guice injector with module
         this.injector = Guice.createInjector(new NovelMemoryModule());
-        logger.info("Novel Memory Function initialized");
+        this.memoryController = injector.getInstance(MemoryController.class);
+        logger.info("Novel Memory Function initialized with controller");
     }
     
     @Override
@@ -83,7 +86,10 @@ public class NovelMemoryFunction implements HttpFunction {
         logger.info(String.format("Processing memory request: %s %s", method, subPath));
         
         // Route based on path patterns
-        if (subPath.startsWith("/characters/")) {
+        if (subPath.equals("/characters") && "POST".equals(method)) {
+            // POST /memory/characters - Create new character
+            memoryController.createCharacter(request, response);
+        } else if (subPath.startsWith("/characters/")) {
             handleCharacterMemoryRequest(subPath, method, request, response);
         } else if (subPath.startsWith("/plot/")) {
             handlePlotMemoryRequest(subPath, method, request, response);
@@ -185,8 +191,7 @@ public class NovelMemoryFunction implements HttpFunction {
     }
     
     private void handleSearchRequest(HttpRequest request, HttpResponse response) throws IOException {
-        // TODO: Implement search functionality
-        sendNotImplemented(response, "Memory search");
+        memoryController.searchMemory(request, response);
     }
     
     private void handleContextRequest(String path, String method, 
@@ -212,71 +217,60 @@ public class NovelMemoryFunction implements HttpFunction {
     // Character Memory Methods
     private void getCharacterMemory(String characterId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement character memory retrieval
-        sendNotImplemented(response, "Get character memory");
+        memoryController.getCharacterMemory(characterId, request, response);
     }
     
     private void updateCharacterState(String characterId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement character state update
-        sendNotImplemented(response, "Update character state");
+        memoryController.updateCharacterState(characterId, request, response);
     }
     
     private void addCharacterObservation(String characterId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement character observation addition
-        sendNotImplemented(response, "Add character observation");
+        memoryController.addCharacterObservation(characterId, request, response);
     }
     
     private void getCharacterTimeline(String characterId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement character timeline retrieval
-        sendNotImplemented(response, "Get character timeline");
+        memoryController.getCharacterTimeline(characterId, request, response);
     }
     
     // Plot Memory Methods
     private void getPlotMemory(String projectId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement plot memory retrieval
-        sendNotImplemented(response, "Get plot memory");
+        memoryController.getPlotMemory(projectId, request, response);
     }
     
     private void updatePlotThread(String projectId, String threadId, 
             HttpRequest request, HttpResponse response) throws IOException {
-        // TODO: Implement plot thread update
-        sendNotImplemented(response, "Update plot thread");
+        memoryController.updatePlotThread(projectId, threadId, request, response);
     }
     
     private void addPlotMilestone(String projectId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement plot milestone addition
-        sendNotImplemented(response, "Add plot milestone");
+        memoryController.addPlotMilestone(projectId, request, response);
     }
     
     // World Memory Methods
     private void getWorldMemory(String projectId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement world memory retrieval
-        sendNotImplemented(response, "Get world memory");
+        memoryController.getWorldMemory(projectId, request, response);
     }
     
     private void addWorldFact(String projectId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement world fact addition
-        sendNotImplemented(response, "Add world fact");
+        memoryController.addWorldFact(projectId, request, response);
     }
     
     private void validateWorld(String projectId, HttpRequest request, HttpResponse response) 
             throws IOException {
-        // TODO: Implement world validation
-        sendNotImplemented(response, "Validate world");
+        memoryController.validateWorld(projectId, request, response);
     }
     
     // Context Method
     private void getGenerationContext(String projectId, String sceneId, 
             HttpRequest request, HttpResponse response) throws IOException {
-        // TODO: Implement generation context retrieval
-        sendNotImplemented(response, "Get generation context");
+        memoryController.getGenerationContext(projectId, sceneId, request, response);
     }
     
     // Helper methods for response handling

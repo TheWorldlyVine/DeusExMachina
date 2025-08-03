@@ -1,0 +1,646 @@
+type Query {
+  # User queries
+  me: User
+  user(id: ID!): User
+  
+  # Document queries
+  document(id: ID!): Document
+  documents(projectId: ID!): [Document!]!
+  chapter(documentId: ID!, chapterNumber: Int!): Chapter
+  scene(documentId: ID!, chapterNumber: Int!, sceneNumber: Int!): Scene
+  
+  # Memory queries
+  character(projectId: ID!, characterId: ID!): CharacterMemory
+  characters(projectId: ID!): [CharacterMemory!]!
+  characterTimeline(projectId: ID!, characterId: ID!, limit: Int): [CharacterObservation!]!
+  
+  plot(projectId: ID!, plotId: ID!): PlotMemory
+  plots(projectId: ID!): [PlotMemory!]!
+  mainPlot(projectId: ID!): PlotMemory
+  activePlots(projectId: ID!, chapterNumber: Int!): [PlotMemory!]!
+  
+  worldMemory(projectId: ID!): [WorldMemory!]!
+  worldFacts(projectId: ID!, category: String): [WorldFact!]!
+  location(projectId: ID!, locationId: ID!): Location
+  
+  # Context queries
+  generationContext(projectId: ID!, sceneId: ID!, chapterNumber: Int!, sceneNumber: Int!): GenerationContext
+  
+  # Search
+  searchMemory(projectId: ID!, query: String!, type: SearchType): SearchResults
+}
+
+type Mutation {
+  # Auth mutations
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  refreshToken(token: String!): AuthPayload!
+  logout: Boolean!
+  
+  # Document mutations
+  createDocument(input: CreateDocumentInput!): Document!
+  updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+  deleteDocument(id: ID!): Boolean!
+  
+  createChapter(documentId: ID!, input: CreateChapterInput!): Chapter!
+  updateChapter(documentId: ID!, chapterNumber: Int!, input: UpdateChapterInput!): Chapter!
+  deleteChapter(documentId: ID!, chapterNumber: Int!): Boolean!
+  
+  createScene(documentId: ID!, chapterNumber: Int!, input: CreateSceneInput!): Scene!
+  updateScene(documentId: ID!, chapterNumber: Int!, sceneNumber: Int!, input: UpdateSceneInput!): Scene!
+  deleteScene(documentId: ID!, chapterNumber: Int!, sceneNumber: Int!): Boolean!
+  
+  # Memory mutations
+  createCharacter(input: CreateCharacterInput!): CharacterMemory!
+  updateCharacterState(projectId: ID!, characterId: ID!, state: CharacterStateInput!): CharacterMemory!
+  addCharacterObservation(projectId: ID!, characterId: ID!, observation: CharacterObservationInput!): CharacterMemory!
+  updateCharacterRelationship(projectId: ID!, characterId: ID!, otherCharacterId: ID!, relationship: String!): CharacterMemory!
+  
+  createPlot(input: CreatePlotInput!): PlotMemory!
+  addPlotPoint(projectId: ID!, plotId: ID!, plotPoint: PlotPointInput!): PlotMemory!
+  addPlotMilestone(projectId: ID!, plotId: ID!, milestone: MilestoneInput!): PlotMemory!
+  updatePlotTension(projectId: ID!, plotId: ID!, chapterNumber: Int!, tensionLevel: Int!): PlotMemory!
+  
+  addWorldFact(projectId: ID!, category: String!, fact: WorldFactInput!): WorldMemory!
+  addLocation(projectId: ID!, location: LocationInput!): WorldMemory!
+  validateWorldConsistency(projectId: ID!): [Contradiction!]!
+  
+  # Generation mutations
+  generateText(input: GenerationInput!): GenerationResponse!
+  generateScene(input: SceneGenerationInput!): GenerationResponse!
+  continueWriting(input: ContinueWritingInput!): GenerationResponse!
+}
+
+type Subscription {
+  # Document subscriptions
+  documentUpdated(documentId: ID!): Document!
+  sceneUpdated(documentId: ID!): Scene!
+  
+  # Memory subscriptions
+  characterUpdated(projectId: ID!, characterId: ID!): CharacterMemory!
+  plotUpdated(projectId: ID!, plotId: ID!): PlotMemory!
+  
+  # Generation subscriptions
+  generationProgress(requestId: ID!): GenerationProgress!
+  
+  # Collaboration subscriptions
+  collaboratorJoined(documentId: ID!): Collaborator!
+  collaboratorLeft(documentId: ID!): Collaborator!
+  cursorMoved(documentId: ID!): CursorPosition!
+}
+
+# User types
+type User {
+  id: ID!
+  email: String!
+  displayName: String
+  photoURL: String
+  role: UserRole!
+  createdAt: String!
+  updatedAt: String!
+  projects: [Project!]!
+}
+
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  ownerId: ID!
+  collaborators: [Collaborator!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Collaborator {
+  userId: ID!
+  user: User!
+  role: CollaboratorRole!
+  joinedAt: String!
+}
+
+# Document types
+type Document {
+  id: ID!
+  projectId: ID!
+  title: String!
+  description: String
+  genre: String
+  targetWordCount: Int
+  currentWordCount: Int!
+  status: DocumentStatus!
+  chapters: [Chapter!]!
+  metadata: DocumentMetadata
+  createdAt: String!
+  updatedAt: String!
+  lastEditedBy: ID!
+}
+
+type Chapter {
+  chapterNumber: Int!
+  title: String!
+  summary: String
+  scenes: [Scene!]!
+  wordCount: Int!
+  status: ChapterStatus!
+}
+
+type Scene {
+  sceneNumber: Int!
+  title: String
+  content: String!
+  type: SceneType!
+  wordCount: Int!
+  characters: [String!]
+  location: String
+  timeOfDay: String
+  mood: String
+  metadata: SceneMetadata
+}
+
+# Memory types
+type CharacterMemory {
+  characterId: ID!
+  projectId: ID!
+  name: String!
+  role: CharacterRole!
+  currentState: CharacterState
+  attributes: JSON
+  relationships: JSON
+  backstory: String
+  goals: [String!]
+  motivations: [String!]
+  conflicts: [String!]
+  observations: [CharacterObservation!]
+  reflections: [CharacterReflection!]
+  speechPatterns: [String!]
+  voiceProfile: String
+  wordCount: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type CharacterState {
+  emotionalState: String!
+  physicalState: String!
+  mentalState: String!
+  energyLevel: Int!
+  stressLevel: Int!
+}
+
+type CharacterObservation {
+  observationId: ID!
+  sceneId: ID!
+  observation: String!
+  observationType: ObservationType!
+  timestamp: String!
+}
+
+type CharacterReflection {
+  reflectionId: ID!
+  reflection: String!
+  trigger: String!
+  impact: String!
+  timestamp: String!
+}
+
+type PlotMemory {
+  plotId: ID!
+  projectId: ID!
+  threadName: String!
+  threadType: PlotThreadType!
+  status: PlotStatus!
+  premise: String!
+  centralConflict: String!
+  plotPoints: [PlotPoint!]!
+  milestones: [Milestone!]!
+  themes: [String!]!
+  tensionLevel: Int!
+  currentPhase: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type PlotPoint {
+  pointId: ID!
+  description: String!
+  type: PlotPointType!
+  targetChapter: Int
+  actualChapter: Int
+  status: PlotPointStatus!
+  importance: Int!
+}
+
+type Milestone {
+  milestoneId: ID!
+  name: String!
+  description: String!
+  chapterNumber: Int!
+  achievedAt: String!
+  impact: String!
+}
+
+type WorldMemory {
+  worldId: ID!
+  projectId: ID!
+  category: String!
+  facts: [WorldFact!]!
+  locations: [Location!]!
+  timeline: [HistoricalEvent!]!
+  consistencyRules: [ConsistencyRule!]!
+  detectedContradictions: [Contradiction!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type WorldFact {
+  factId: ID!
+  fact: String!
+  category: String!
+  source: String!
+  importance: Int!
+  mutable: Boolean!
+}
+
+type Location {
+  locationId: ID!
+  name: String!
+  type: String!
+  description: String!
+  properties: JSON
+  connectedLocationIds: [ID!]!
+}
+
+type HistoricalEvent {
+  eventId: ID!
+  name: String!
+  description: String!
+  date: String!
+  significance: String!
+}
+
+type ConsistencyRule {
+  ruleId: ID!
+  rule: String!
+  category: String!
+  validation: String!
+}
+
+type Contradiction {
+  contradictionId: ID!
+  factId1: ID!
+  factId2: ID!
+  description: String!
+  severity: ContradictionSeverity!
+  resolved: Boolean!
+}
+
+# Generation types
+type GenerationContext {
+  projectId: ID!
+  sceneId: ID!
+  activeCharacters: [CharacterContext!]!
+  currentLocation: String!
+  relevantWorldFacts: [String!]!
+  activeThreads: [String!]!
+  upcomingPlotPoints: [String!]!
+  currentTensionLevel: Int!
+  themesToEmphasize: [String!]!
+}
+
+type CharacterContext {
+  characterId: ID!
+  name: String!
+  currentState: String!
+  currentObjective: String!
+  emotionalState: String!
+  recentActions: [String!]!
+}
+
+type GenerationResponse {
+  requestId: ID!
+  generatedText: String!
+  wordCount: Int!
+  tokensUsed: Int!
+  model: String!
+  parameters: GenerationParameters!
+  status: GenerationStatus!
+}
+
+type GenerationProgress {
+  requestId: ID!
+  progress: Float!
+  currentChunk: String
+  status: GenerationStatus!
+}
+
+type GenerationParameters {
+  temperature: Float!
+  maxTokens: Int!
+  topP: Float!
+  topK: Int!
+}
+
+# Search types
+type SearchResults {
+  characters: [CharacterMemory!]
+  plots: [PlotMemory!]
+  facts: [WorldFact!]
+  scenes: [Scene!]
+}
+
+# Auth types
+type AuthPayload {
+  token: String!
+  refreshToken: String!
+  user: User!
+}
+
+# Metadata types
+type DocumentMetadata {
+  tags: [String!]
+  themes: [String!]
+  targetAudience: String
+  languageStyle: String
+}
+
+type SceneMetadata {
+  plotThreads: [String!]
+  foreshadowing: [String!]
+  symbolism: JSON
+  notes: String
+}
+
+type CursorPosition {
+  userId: ID!
+  documentId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
+  position: Int!
+  selection: SelectionRange
+}
+
+type SelectionRange {
+  start: Int!
+  end: Int!
+}
+
+# Enums
+enum UserRole {
+  FREE
+  PREMIUM
+  ADMIN
+}
+
+enum CollaboratorRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum DocumentStatus {
+  DRAFT
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  PUBLISHED
+}
+
+enum ChapterStatus {
+  OUTLINE
+  DRAFT
+  REVISION
+  FINAL
+}
+
+enum SceneType {
+  ACTION
+  DIALOGUE
+  DESCRIPTION
+  FLASHBACK
+  TRANSITION
+  CLIMAX
+}
+
+enum CharacterRole {
+  PROTAGONIST
+  ANTAGONIST
+  SUPPORTING
+  MINOR
+}
+
+enum ObservationType {
+  ACTION
+  DIALOGUE
+  THOUGHT
+  INTERACTION
+}
+
+enum PlotThreadType {
+  MAIN
+  SUBPLOT
+  CHARACTER_ARC
+  THEMATIC
+}
+
+enum PlotStatus {
+  SETUP
+  DEVELOPMENT
+  CLIMAX
+  RESOLUTION
+  COMPLETED
+}
+
+enum PlotPointType {
+  INCITING_INCIDENT
+  TURNING_POINT
+  MIDPOINT
+  CLIMAX
+  RESOLUTION
+}
+
+enum PlotPointStatus {
+  PLANNED
+  WRITTEN
+  REVISED
+}
+
+enum ContradictionSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum GenerationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum SearchType {
+  ALL
+  CHARACTERS
+  PLOTS
+  FACTS
+  SCENES
+}
+
+# Input types
+input RegisterInput {
+  email: String!
+  password: String!
+  displayName: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input CreateDocumentInput {
+  projectId: ID!
+  title: String!
+  description: String
+  genre: String
+  targetWordCount: Int
+}
+
+input UpdateDocumentInput {
+  title: String
+  description: String
+  genre: String
+  targetWordCount: Int
+  status: DocumentStatus
+}
+
+input CreateChapterInput {
+  title: String!
+  summary: String
+}
+
+input UpdateChapterInput {
+  title: String
+  summary: String
+  status: ChapterStatus
+}
+
+input CreateSceneInput {
+  title: String
+  content: String!
+  type: SceneType!
+  characters: [String!]
+  location: String
+  timeOfDay: String
+  mood: String
+}
+
+input UpdateSceneInput {
+  title: String
+  content: String
+  type: SceneType
+  characters: [String!]
+  location: String
+  timeOfDay: String
+  mood: String
+}
+
+input CreateCharacterInput {
+  projectId: ID!
+  name: String!
+  role: CharacterRole!
+  backstory: String
+  goals: [String!]
+  motivations: [String!]
+  conflicts: [String!]
+  attributes: JSON
+  voiceProfile: String
+  speechPatterns: [String!]
+}
+
+input CharacterStateInput {
+  emotionalState: String!
+  physicalState: String!
+  mentalState: String!
+  energyLevel: Int
+  stressLevel: Int
+}
+
+input CharacterObservationInput {
+  sceneId: ID!
+  observation: String!
+  observationType: ObservationType!
+  sceneNumber: Int
+}
+
+input CreatePlotInput {
+  projectId: ID!
+  threadName: String!
+  threadType: PlotThreadType!
+  premise: String!
+  centralConflict: String!
+  themes: [String!]
+}
+
+input PlotPointInput {
+  description: String!
+  type: PlotPointType!
+  targetChapter: Int!
+  importance: Int!
+}
+
+input MilestoneInput {
+  name: String!
+  description: String!
+  chapterNumber: Int!
+  impact: String!
+}
+
+input WorldFactInput {
+  fact: String!
+  category: String!
+  source: String!
+  importance: Int!
+  mutable: Boolean
+}
+
+input LocationInput {
+  name: String!
+  type: String!
+  description: String!
+  properties: JSON
+  parentLocationId: ID
+}
+
+input GenerationInput {
+  projectId: ID!
+  prompt: String!
+  context: String
+  parameters: GenerationParametersInput
+}
+
+input SceneGenerationInput {
+  projectId: ID!
+  documentId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
+  guidelines: String
+  parameters: GenerationParametersInput
+}
+
+input ContinueWritingInput {
+  projectId: ID!
+  documentId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
+  continuationLength: Int
+  parameters: GenerationParametersInput
+}
+
+input GenerationParametersInput {
+  temperature: Float
+  maxTokens: Int
+  topP: Float
+  topK: Int
+}
+
+scalar JSON
