@@ -1,7 +1,9 @@
 package com.deusexmachina.novel.document.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.time.Instant;
@@ -10,6 +12,8 @@ import java.util.Map;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Document {
     
     @NonNull
@@ -67,6 +71,8 @@ public class Document {
     
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DocumentSettings {
         @Builder.Default
         private int targetWordCount = 80000;
