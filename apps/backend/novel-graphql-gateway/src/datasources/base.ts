@@ -24,7 +24,11 @@ export abstract class BaseAPI extends RESTDataSource {
     const context = this.context;
     if (context?.user) {
       request.headers['X-User-ID'] = context.user.id;
-      request.headers['Authorization'] = `Bearer ${context.req.headers.authorization?.replace('Bearer ', '')}`;
+      // Forward the original Firebase token to backend services
+      const authHeader = context.req.headers.authorization;
+      if (authHeader) {
+        request.headers['Authorization'] = authHeader;
+      }
     }
     
     if (context?.projectId) {

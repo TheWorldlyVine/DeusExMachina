@@ -16,10 +16,14 @@ export interface Context {
 }
 
 interface JwtPayload {
-  userId: string;
+  sub: string;  // user ID
   email: string;
   displayName?: string;
-  role: 'FREE' | 'PREMIUM' | 'ADMIN';
+  role?: string;
+  iss: string;
+  aud: string;
+  exp: number;
+  iat: number;
 }
 
 export async function context({ req, connectionParams }: { req?: Request; connectionParams?: any }): Promise<Context> {
@@ -32,12 +36,18 @@ export async function context({ req, connectionParams }: { req?: Request; connec
     const token = authHeader.replace('Bearer ', '');
     
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      // Verify JWT token from our auth service
+      // In production, the JWT_SECRET should be the same one used by the auth service
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'development-secret', {
+        issuer: 'deusexmachina-auth',
+        audience: 'deusexmachina-client',
+      }) as JwtPayload;
+      
       user = {
-        id: decoded.userId,
+        id: decoded.sub,
         email: decoded.email,
         displayName: decoded.displayName,
-        role: decoded.role,
+        role: (decoded.role || 'FREE') as 'FREE' | 'PREMIUM' | 'ADMIN',
       };
     } catch (error) {
       // Invalid token, but don't throw - some queries might be public
