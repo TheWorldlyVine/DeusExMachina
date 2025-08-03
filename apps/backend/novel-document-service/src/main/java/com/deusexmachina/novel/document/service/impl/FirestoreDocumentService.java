@@ -162,15 +162,27 @@ public class FirestoreDocumentService implements DocumentService {
     @Override
     public List<Document> listDocumentsByUser(String userId) {
         try {
+            logger.info("Querying Firestore for documents with authorId: {} in collection: {}", userId, DOCUMENTS_COLLECTION);
+            
             Query query = firestore.collection(DOCUMENTS_COLLECTION)
                     .whereEqualTo("authorId", userId)
                     .whereEqualTo("active", true)
                     .orderBy("updatedAt", Query.Direction.DESCENDING);
             
-            return query.get().get().getDocuments().stream()
-                    .map(doc -> doc.toObject(Document.class))
+            List<Document> documents = query.get().get().getDocuments().stream()
+                    .map(doc -> {
+                        Document document = doc.toObject(Document.class);
+                        if (document != null) {
+                            logger.debug("Found document: {} with title: {} for authorId: {}", 
+                                document.getId(), document.getTitle(), document.getAuthorId());
+                        }
+                        return document;
+                    })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
+                    
+            logger.info("Found {} documents for user: {}", documents.size(), userId);
+            return documents;
         } catch (Exception e) {
             logger.error("Error listing documents for user: {}", userId, e);
             throw new RuntimeException("Failed to list documents", e);

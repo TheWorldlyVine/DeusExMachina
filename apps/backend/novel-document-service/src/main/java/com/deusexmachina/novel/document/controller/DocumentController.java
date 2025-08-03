@@ -59,7 +59,14 @@ public class DocumentController {
             // Set optional fields
             if (docMap.get("subtitle") != null) builder.subtitle((String)docMap.get("subtitle"));
             if (docMap.get("description") != null) builder.description((String)docMap.get("description"));
-            if (docMap.get("authorId") != null) builder.authorId((String)docMap.get("authorId"));
+            if (docMap.get("authorId") != null) {
+                builder.authorId((String)docMap.get("authorId"));
+            } else {
+                // Extract user ID from JWT token if not provided
+                String userId = com.deusexmachina.novel.document.auth.AuthenticationMiddleware.extractUserId(request);
+                logger.info("Setting authorId from JWT: {}", userId);
+                builder.authorId(userId);
+            }
             if (docMap.get("authorName") != null) builder.authorName((String)docMap.get("authorName"));
             if (docMap.get("genre") != null) builder.genre((String)docMap.get("genre"));
             if (docMap.get("tags") != null) builder.tags((List<String>)docMap.get("tags"));
@@ -127,7 +134,9 @@ public class DocumentController {
     
     public void listDocuments(String userId, HttpResponse response) throws IOException {
         try {
+            logger.info("Listing documents for user: {}", userId);
             List<Document> documents = documentService.listDocumentsByUser(userId);
+            logger.info("Found {} documents for user: {}", documents.size(), userId);
             sendSuccessResponse(response, Map.of("documents", documents, "count", documents.size()), 200);
         } catch (Exception e) {
             logger.error("Error listing documents", e);

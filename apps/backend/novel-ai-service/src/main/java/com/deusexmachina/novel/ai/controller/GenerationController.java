@@ -65,8 +65,14 @@ public class GenerationController {
             
             // Add user ID from auth header if not present
             if (genRequest.getUserId() == null) {
-                genRequest.setUserId(extractUserId(request));
+                String userId = extractUserId(request);
+                logger.info("Extracted user ID from JWT: {}", userId);
+                genRequest.setUserId(userId);
             }
+            
+            // Log request details
+            logger.info("Generation request details - prompt: {}, metadata: {}", 
+                genRequest.getPrompt(), genRequest.getMetadata());
             
             // Generate text
             logger.info("Processing generation request for user: {} type: {}", 

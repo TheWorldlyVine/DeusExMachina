@@ -192,7 +192,14 @@ jobs:
         run: pnpm run test
       
       - name: Build applications
-        run: pnpm run build
+        run: |
+          # Set production environment variables for Vite builds
+          export VITE_API_URL=https://auth-function-tbmcifixdq-uc.a.run.app
+          export VITE_DOCUMENT_API_URL=https://novel-document-service-tbmcifixdq-uc.a.run.app
+          export VITE_AI_API_URL=https://novel-ai-service-tbmcifixdq-uc.a.run.app
+          export VITE_MEMORY_API_URL=https://novel-memory-service-tbmcifixdq-uc.a.run.app
+          
+          pnpm run build
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3

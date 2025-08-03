@@ -6,6 +6,11 @@ import { Layout } from '@/components/layout/Layout'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { LoadingScreen } from '@/components/common/LoadingScreen'
 
+// Import debug utils in development
+if (import.meta.env.DEV) {
+  import('@/utils/debug')
+}
+
 // Pages
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
