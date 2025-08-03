@@ -1,9 +1,5 @@
-import { Context, requireAuth } from '../context';
-import { DataSources } from '../datasources';
-
-interface ResolverContext extends Context {
-  dataSources: DataSources;
-}
+import { requireAuth } from '../context';
+import { ResolverContext } from '../types/resolver';
 
 export const authResolvers = {
   Query: {

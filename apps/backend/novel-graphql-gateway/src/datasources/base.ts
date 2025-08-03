@@ -7,10 +7,16 @@ type RequestOptions = {
   body?: any;
 };
 
-export abstract class BaseAPI extends RESTDataSource<Context> {
+export abstract class BaseAPI extends RESTDataSource {
   abstract baseURL: string;
+  protected context: Context;
 
-  willSendRequest(path: string, request: RequestOptions) {
+  constructor(options: { cache: any; context: Context }) {
+    super({ cache: options.cache });
+    this.context = options.context;
+  }
+
+  override willSendRequest(path: string, request: RequestOptions) {
     // Add common headers
     request.headers['Content-Type'] = 'application/json';
     

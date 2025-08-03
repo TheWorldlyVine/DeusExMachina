@@ -99,10 +99,13 @@ async function startServer() {
     '/graphql',
     authMiddleware,
     expressMiddleware(server, {
-      context: async ({ req }) => ({
-        ...await context({ req }),
-        dataSources: dataSources(),
-      }),
+      context: async ({ req }) => {
+        const contextValue = await context({ req });
+        return {
+          ...contextValue,
+          dataSources: dataSources(server.cache, contextValue),
+        };
+      },
     })
   );
 

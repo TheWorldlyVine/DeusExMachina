@@ -23,7 +23,9 @@
       "Bash(pnpm install:*)",
       "Bash(npm install:*)",
       "Bash(npx pnpm install:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(pnpm run:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": []
   }

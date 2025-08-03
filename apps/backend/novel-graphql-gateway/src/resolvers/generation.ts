@@ -1,10 +1,6 @@
-import { Context, requireAuth, checkProjectAccess } from '../context';
-import { DataSources } from '../datasources';
+import { requireAuth, checkProjectAccess } from '../context';
+import { ResolverContext } from '../types/resolver';
 import { pubsub } from '../utils/pubsub';
-
-interface ResolverContext extends Context {
-  dataSources: DataSources;
-}
 
 export const generationResolvers = {
   Mutation: {

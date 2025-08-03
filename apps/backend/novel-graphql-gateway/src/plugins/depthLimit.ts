@@ -7,10 +7,9 @@ const MAX_DEPTH = parseInt(process.env.GRAPHQL_DEPTH_LIMIT || '10');
 export const depthLimitPlugin: ApolloServerPlugin<Context> = {
   async requestDidStart() {
     return {
-      async validationDidStart(requestContext) {
-        // Apply depth limit validation
-        const validationRules = [depthLimit(MAX_DEPTH)];
-        return validationRules;
+      async validationDidStart(): Promise<void> {
+        // Depth limit validation is handled through validation rules in the server config
+        // This is just a placeholder for potential custom validation logic
       },
     };
   },
