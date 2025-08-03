@@ -89,6 +89,8 @@ This document contains important guidelines and best practices that Claude shoul
 
 ### 8. Code Review Checklist
 Before submitting any code:
+- [ ] **Run `pnpm run lint` - MUST PASS with zero errors**
+- [ ] **Run `pnpm run type-check` - MUST PASS with zero errors**
 - [ ] All tests pass locally
 - [ ] Code coverage meets minimum requirements (80%)
 - [ ] No linting errors or warnings
@@ -120,15 +122,25 @@ Before submitting any code:
 When working on this project, remember to run these commands:
 
 ### Linting and Type Checking
+
+**⚠️ CRITICAL: Always run linting BEFORE committing any code changes! The CI will fail if there are linting errors.**
+
 ```bash
-# Frontend
+# Frontend - MUST run this before committing TypeScript/React changes
 pnpm run lint
 pnpm run type-check
 
-# Backend
+# Backend - MUST run this before committing Java changes
 ./gradlew spotbugsMain
 ./gradlew build
 ```
+
+#### Common Linting Errors to Avoid:
+1. **Unused imports/variables** - ESLint will fail on any unused imports or variables
+2. **Missing TypeScript types** - Don't use `any` without proper justification
+3. **React Hook dependencies** - Include all dependencies in useEffect/useCallback/useMemo
+4. **Unused function parameters** - Prefix with underscore if intentionally unused (e.g., `_options`)
+5. **Console statements** - Remove console.log/warn/error before committing
 
 ### Testing
 ```bash

@@ -1,7 +1,7 @@
-import { Document, Chapter, Scene } from '@/types/document';
+import { Document, Chapter } from '@/types/document';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
-import { Document as DocxDocument, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { Document as DocxDocument, Packer, Paragraph, HeadingLevel } from 'docx';
 
 interface ExportOptions {
   includeMetadata?: boolean;
@@ -292,8 +292,7 @@ export class ExportService {
    */
   static async exportAsEpub(
     document: Document,
-    chapters: Chapter[],
-    options: ExportOptions = {}
+    chapters: Chapter[]
   ): Promise<void> {
     // This is a simplified EPUB export - for production, use a proper EPUB library
     const epubContent = {
