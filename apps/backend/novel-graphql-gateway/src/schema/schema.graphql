@@ -51,12 +51,16 @@ type Mutation {
   deleteScene(documentId: ID!, chapterNumber: Int!, sceneNumber: Int!): Boolean!
   
   # Memory mutations
-  createCharacter(input: CreateCharacterInput!): CharacterMemory!
+  createCharacter(character: CharacterInput!): CharacterMemory!
+  updateCharacter(projectId: ID!, characterId: ID!, updates: CharacterInput!): CharacterMemory!
+  deleteCharacter(projectId: ID!, characterId: ID!): Boolean!
   updateCharacterState(projectId: ID!, characterId: ID!, state: CharacterStateInput!): CharacterMemory!
   addCharacterObservation(projectId: ID!, characterId: ID!, observation: CharacterObservationInput!): CharacterMemory!
   updateCharacterRelationship(projectId: ID!, characterId: ID!, otherCharacterId: ID!, relationship: String!): CharacterMemory!
   
-  createPlot(input: CreatePlotInput!): PlotMemory!
+  createPlot(plot: PlotInput!): PlotMemory!
+  updatePlot(projectId: ID!, plotId: ID!, updates: PlotInput!): PlotMemory!
+  deletePlot(projectId: ID!, plotId: ID!): Boolean!
   addPlotPoint(projectId: ID!, plotId: ID!, plotPoint: PlotPointInput!): PlotMemory!
   addPlotMilestone(projectId: ID!, plotId: ID!, milestone: MilestoneInput!): PlotMemory!
   updatePlotTension(projectId: ID!, plotId: ID!, chapterNumber: Int!, tensionLevel: Int!): PlotMemory!
@@ -165,31 +169,40 @@ type CharacterMemory {
   role: CharacterRole!
   currentState: CharacterState
   attributes: JSON
-  relationships: JSON
+  relationships: [CharacterRelationship!]!
   backstory: String
   goals: [String!]
   motivations: [String!]
   conflicts: [String!]
   observations: [CharacterObservation!]
   reflections: [CharacterReflection!]
+  executedActions: [CharacterAction!]!
   speechPatterns: [String!]
   voiceProfile: String
   wordCount: Int!
+  timelineSummary: CharacterTimelineSummary!
+  metadata: JSON
   createdAt: String!
   updatedAt: String!
 }
 
 type CharacterState {
+  description: String!
   emotionalState: String!
   physicalState: String!
   mentalState: String!
   energyLevel: Int!
   stressLevel: Int!
+  goals: [String!]!
+  location: String!
+  lastUpdated: String!
 }
 
 type CharacterObservation {
   observationId: ID!
   sceneId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
   observation: String!
   observationType: ObservationType!
   timestamp: String!
@@ -200,7 +213,45 @@ type CharacterReflection {
   reflection: String!
   trigger: String!
   impact: String!
+  emotionalImpact: String!
+  decisionsInfluenced: [String!]!
   timestamp: String!
+}
+
+type CharacterRelationship {
+  targetCharacterId: ID!
+  targetCharacterName: String!
+  relationshipType: String!
+  description: String!
+  dynamics: [RelationshipDynamic!]!
+}
+
+type RelationshipDynamic {
+  chapterNumber: Int!
+  status: String!
+  change: String
+}
+
+type CharacterAction {
+  actionId: ID!
+  chapterNumber: Int!
+  sceneNumber: Int!
+  action: String!
+  motivation: String!
+  result: String!
+  timestamp: String!
+}
+
+type CharacterTimelineSummary {
+  firstAppearance: SceneLocation!
+  lastAppearance: SceneLocation!
+  totalScenes: Int!
+  significantMoments: [String!]!
+}
+
+type SceneLocation {
+  chapterNumber: Int!
+  sceneNumber: Int!
 }
 
 type PlotState {
@@ -529,6 +580,28 @@ input RegisterInput {
   email: String!
   password: String!
   displayName: String!
+}
+
+input CharacterInput {
+  projectId: ID
+  name: String!
+  role: CharacterRole!
+  backstory: String
+  goals: [String!]
+  motivations: [String!]
+  conflicts: [String!]
+  attributes: JSON
+  voiceProfile: String
+  speechPatterns: [String!]
+}
+
+input PlotInput {
+  projectId: ID
+  threadName: String!
+  threadType: PlotThreadType!
+  premise: String!
+  centralConflict: String!
+  themes: [String!]
 }
 
 input LoginInput {

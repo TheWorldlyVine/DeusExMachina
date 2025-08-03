@@ -134,10 +134,34 @@ export const memoryResolvers = {
   
   Mutation: {
     // Character mutations
-    createCharacter: async (_: any, { input }: any, context: ResolverContext) => {
+    createCharacter: async (_: any, { character }: any, context: ResolverContext) => {
       requireAuth(context);
-      await checkProjectAccess(context, input.projectId, 'EDITOR');
-      return context.dataSources.memoryAPI.createCharacter(input);
+      const projectId = character.projectId || context.projectId;
+      if (!projectId) throw new Error('Project ID is required');
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      return context.dataSources.memoryAPI.createCharacter({ ...character, projectId });
+    },
+    
+    updateCharacter: async (
+      _: any,
+      { projectId, characterId, updates }: any,
+      context: ResolverContext
+    ) => {
+      requireAuth(context);
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      // For now, use updateCharacterState as a proxy
+      return context.dataSources.memoryAPI.updateCharacterState(projectId, characterId, updates);
+    },
+    
+    deleteCharacter: async (
+      _: any,
+      { projectId, characterId }: any,
+      context: ResolverContext
+    ) => {
+      requireAuth(context);
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      // This would need to be implemented in the memory service
+      throw new Error('Not implemented yet');
     },
     
     updateCharacterState: async (
@@ -176,10 +200,34 @@ export const memoryResolvers = {
     },
     
     // Plot mutations
-    createPlot: async (_: any, { input }: any, context: ResolverContext) => {
+    createPlot: async (_: any, { plot }: any, context: ResolverContext) => {
       requireAuth(context);
-      await checkProjectAccess(context, input.projectId, 'EDITOR');
-      return context.dataSources.memoryAPI.createPlot(input);
+      const projectId = plot.projectId || context.projectId;
+      if (!projectId) throw new Error('Project ID is required');
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      return context.dataSources.memoryAPI.createPlot({ ...plot, projectId });
+    },
+    
+    updatePlot: async (
+      _: any,
+      { projectId, plotId, updates }: any,
+      context: ResolverContext
+    ) => {
+      requireAuth(context);
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      // This would need to be implemented in the memory service
+      throw new Error('Not implemented yet');
+    },
+    
+    deletePlot: async (
+      _: any,
+      { projectId, plotId }: any,
+      context: ResolverContext
+    ) => {
+      requireAuth(context);
+      await checkProjectAccess(context, projectId, 'EDITOR');
+      // This would need to be implemented in the memory service
+      throw new Error('Not implemented yet');
     },
     
     addPlotPoint: async (
@@ -246,7 +294,74 @@ export const memoryResolvers = {
   },
   
   CharacterMemory: {
-    // Additional resolvers for computed fields if needed
+    // Transform backend response to match frontend expectations
+    currentState: (parent: any) => {
+      const state = parent.currentState || {};
+      return {
+        description: state.description || `${parent.name} is in a ${state.emotionalState || 'neutral'} state`,
+        emotionalState: state.emotionalState || 'neutral',
+        physicalState: state.physicalState || 'healthy',
+        mentalState: state.mentalState || 'alert',
+        energyLevel: state.energyLevel ?? 5,
+        stressLevel: state.stressLevel ?? 3,
+        goals: state.goals || parent.goals || [],
+        location: state.location || 'unknown',
+        lastUpdated: state.lastUpdated || parent.updatedAt || new Date().toISOString(),
+      };
+    },
+    observations: (parent: any) => {
+      return (parent.observations || []).map((obs: any) => ({
+        ...obs,
+        chapterNumber: obs.chapterNumber ?? 0,
+        sceneNumber: obs.sceneNumber ?? 0,
+      }));
+    },
+    reflections: (parent: any) => {
+      return (parent.reflections || []).map((ref: any) => ({
+        ...ref,
+        emotionalImpact: ref.emotionalImpact || ref.impact || 'neutral',
+        decisionsInfluenced: ref.decisionsInfluenced || [],
+      }));
+    },
+    relationships: (parent: any) => {
+      // Transform from JSON to structured array
+      if (Array.isArray(parent.relationships)) {
+        return parent.relationships;
+      }
+      if (parent.relationships && typeof parent.relationships === 'object') {
+        return Object.entries(parent.relationships).map(([id, rel]: any) => ({
+          targetCharacterId: id,
+          targetCharacterName: rel.name || 'Unknown',
+          relationshipType: rel.type || 'neutral',
+          description: rel.description || '',
+          dynamics: rel.dynamics || [],
+        }));
+      }
+      return [];
+    },
+    executedActions: (parent: any) => parent.executedActions || [],
+    timelineSummary: (parent: any) => {
+      if (parent.timelineSummary) return parent.timelineSummary;
+      
+      // Generate summary from observations
+      const observations = parent.observations || [];
+      const firstObs = observations[0];
+      const lastObs = observations[observations.length - 1];
+      
+      return {
+        firstAppearance: firstObs ? {
+          chapterNumber: firstObs.chapterNumber || 1,
+          sceneNumber: firstObs.sceneNumber || 1,
+        } : { chapterNumber: 1, sceneNumber: 1 },
+        lastAppearance: lastObs ? {
+          chapterNumber: lastObs.chapterNumber || 1,
+          sceneNumber: lastObs.sceneNumber || 1,
+        } : { chapterNumber: 1, sceneNumber: 1 },
+        totalScenes: observations.length,
+        significantMoments: [],
+      };
+    },
+    metadata: (parent: any) => parent.metadata || {},
   },
   
   PlotMemory: {
