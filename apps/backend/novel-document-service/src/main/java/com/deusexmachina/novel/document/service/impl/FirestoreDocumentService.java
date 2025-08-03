@@ -27,21 +27,30 @@ import java.util.stream.Collectors;
 @Singleton
 public class FirestoreDocumentService implements DocumentService {
     private static final Logger logger = LoggerFactory.getLogger(FirestoreDocumentService.class);
-    private static final String DOCUMENTS_COLLECTION = "documents";
-    private static final String CHAPTERS_COLLECTION = "chapters";
-    private static final String SCENES_COLLECTION = "scenes";
     private static final int MAX_SCENE_SIZE = 50000; // 50KB per scene for chunking
     
     private final Firestore firestore;
     private final Storage storage;
     private final DocumentConfig documentConfig;
     
+    // Collection names from configuration
+    private final String DOCUMENTS_COLLECTION;
+    private final String CHAPTERS_COLLECTION;
+    private final String SCENES_COLLECTION;
+    
     @Inject
     public FirestoreDocumentService(Firestore firestore, Storage storage, DocumentConfig documentConfig) {
         this.firestore = firestore;
         this.storage = storage;
         this.documentConfig = documentConfig;
-        logger.info("FirestoreDocumentService initialized");
+        
+        // Initialize collection names from config
+        this.DOCUMENTS_COLLECTION = documentConfig.getFirestoreDocumentsCollection();
+        this.CHAPTERS_COLLECTION = documentConfig.getFirestoreChaptersCollection();
+        this.SCENES_COLLECTION = documentConfig.getFirestoreScenesCollection();
+        
+        logger.info("FirestoreDocumentService initialized with collections: documents={}, chapters={}, scenes={}", 
+                DOCUMENTS_COLLECTION, CHAPTERS_COLLECTION, SCENES_COLLECTION);
     }
     
     @Override

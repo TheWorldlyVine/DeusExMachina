@@ -106,6 +106,9 @@ public class DocumentServiceModule extends AbstractModule {
                 .chunkingStrategy(config.getString("chunking.strategy"))
                 .chunkOverlap(config.getInt("chunking.overlap"))
                 .storageBucket(config.getString("storage.bucket.name"))
+                .firestoreDocumentsCollection(config.getString("firestore.collections.documents"))
+                .firestoreChaptersCollection(config.getString("firestore.collections.chapters"))
+                .firestoreScenesCollection(config.getString("firestore.collections.scenes"))
                 .build();
     }
     

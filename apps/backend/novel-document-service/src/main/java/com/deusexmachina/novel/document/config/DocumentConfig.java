@@ -17,4 +17,9 @@ public class DocumentConfig {
     private final String chunkingStrategy;
     private final int chunkOverlap;
     private final String storageBucket;
+    
+    // Firestore collection names
+    private final String firestoreDocumentsCollection;
+    private final String firestoreChaptersCollection;
+    private final String firestoreScenesCollection;
 }
