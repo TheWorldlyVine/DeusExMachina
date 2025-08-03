@@ -274,6 +274,13 @@ module "novel_services" {
         GCP_PROJECT_ID = local.project_id
       }
     }
+    graphql_gateway = {
+      name                  = "novel-graphql-gateway"
+      allow_unauthenticated = true # Required for CORS preflight and public API access
+      environment_variables = {
+        GCP_PROJECT_ID = local.project_id
+      }
+    }
   }
 }
 
