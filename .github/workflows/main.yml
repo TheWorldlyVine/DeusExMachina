@@ -251,6 +251,7 @@ jobs:
           gcloud services enable cloudbuild.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
           gcloud services enable run.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
           gcloud services enable containerregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
+          gcloud services enable artifactregistry.googleapis.com --project=${{ secrets.GCP_PROJECT_ID }} || true
       
       - name: Deploy to Cloud Run from source
         if: github.ref == 'refs/heads/main'
@@ -263,6 +264,7 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
+            --quiet \
             --set-env-vars='^@^NODE_ENV=production@JWT_SECRET=${{ secrets.JWT_SECRET }}@AUTH_SERVICE_URL=https://auth-function-xkv3zhqrha-uw.a.run.app@DOCUMENT_SERVICE_URL=https://novel-document-service-xkv3zhqrha-uw.a.run.app@MEMORY_SERVICE_URL=https://novel-memory-service-xkv3zhqrha-uw.a.run.app@AI_SERVICE_URL=https://novel-ai-service-xkv3zhqrha-uw.a.run.app@ALLOWED_ORIGINS=https://god-in-a-box.com,https://novel-creator.deusexmachina.app,https://deusexmachina.app,http://34.95.119.251,https://34.95.119.251,http://localhost:3000,http://localhost:5173' \
             --memory=512Mi \
             --cpu=1 \
