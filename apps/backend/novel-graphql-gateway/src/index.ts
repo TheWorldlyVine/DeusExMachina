@@ -1,7 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
@@ -85,7 +84,6 @@ async function startServer() {
           };
         },
       },
-      ApolloServerPluginLandingPageLocalDefault({ embed: true }),
       depthLimitPlugin,
       complexityLimitPlugin,
       loggingPlugin,

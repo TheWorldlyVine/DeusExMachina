@@ -19,7 +19,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(gcloud compute forwarding-rules list:*)"
+      "Bash(gcloud compute forwarding-rules list:*)",
+      "Bash(pnpm install:*)",
+      "Bash(npm install:*)",
+      "Bash(npx pnpm install:*)"
     ],
     "deny": []
   }

@@ -14,7 +14,6 @@
   "dependencies": {
     "@apollo/datasource-rest": "^6.2.2",
     "@apollo/server": "^4.10.0",
-    "@apollo/server-plugin-landing-page-local-default": "^4.0.0",
     "@apollo/subgraph": "^2.6.1",
     "@google-cloud/firestore": "^7.3.0",
     "@graphql-tools/schema": "^10.0.2",
