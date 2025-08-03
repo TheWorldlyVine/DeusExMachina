@@ -36,6 +36,7 @@ public class NovelDocumentFunction implements HttpFunction {
     
     private Injector injector;
     private DocumentController documentController;
+    private Exception initializationError;
     
     public NovelDocumentFunction() {
         try {
@@ -51,6 +52,7 @@ public class NovelDocumentFunction implements HttpFunction {
         } catch (Exception e) {
             logger.error("Failed to initialize NovelDocumentFunction: {} - {}", 
                 e.getClass().getName(), e.getMessage(), e);
+            this.initializationError = e;
             // Don't throw - let the function start and return errors on requests
         }
     }
@@ -86,6 +88,12 @@ public class NovelDocumentFunction implements HttpFunction {
         
         logger.info("Handling request: {} {}", method, path);
         
+        // Special diagnostic endpoint
+        if ("/debug".equals(path) && "GET".equals(method)) {
+            handleDebug(response);
+            return;
+        }
+        
         // Check authentication for protected endpoints
         if (AuthenticationMiddleware.requiresAuthentication(request)) {
             if (!AuthenticationMiddleware.validateAuthentication(request, response)) {
@@ -112,6 +120,29 @@ public class NovelDocumentFunction implements HttpFunction {
         } catch (Exception e) {
             logger.error("Error handling request: {} - {}", e.getClass().getName(), e.getMessage(), e);
             handleError(response, "Internal server error: " + e.getMessage(), 500);
+        }
+    }
+    
+    private void handleDebug(HttpResponse response) throws IOException {
+        Map<String, Object> debug = new java.util.HashMap<>();
+        debug.put("service", "novel-document-service");
+        debug.put("timestamp", Instant.now().toString());
+        debug.put("environment", Map.of(
+            "GCP_PROJECT_ID", System.getenv("GCP_PROJECT_ID") != null ? System.getenv("GCP_PROJECT_ID") : "not-set",
+            "GOOGLE_APPLICATION_CREDENTIALS", System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null ? "set" : "not-set",
+            "K_SERVICE", System.getenv("K_SERVICE") != null ? System.getenv("K_SERVICE") : "not-set",
+            "K_REVISION", System.getenv("K_REVISION") != null ? System.getenv("K_REVISION") : "not-set"
+        ));
+        debug.put("initialization", Map.of(
+            "hasInjector", injector != null,
+            "hasController", documentController != null,
+            "initError", initializationError != null ? initializationError.getMessage() : "none"
+        ));
+        
+        response.setStatusCode(200);
+        response.setContentType("application/json");
+        try (BufferedWriter writer = response.getWriter()) {
+            gson.toJson(debug, writer);
         }
     }
     
@@ -262,8 +293,16 @@ public class NovelDocumentFunction implements HttpFunction {
         }
     }
     
+    private String extractIdFromPath(String path, String prefix) {
+        return path.substring(prefix.length());
+    }
+    
     private void handleNotFound(HttpResponse response) throws IOException {
-        handleError(response, "Not found", 404);
+        response.setStatusCode(404);
+        response.setContentType("application/json");
+        try (BufferedWriter writer = response.getWriter()) {
+            writer.write("{\"error\":\"Not found\"}");
+        }
     }
     
     private void handleError(HttpResponse response, String message, int statusCode) throws IOException {
@@ -279,9 +318,4 @@ public class NovelDocumentFunction implements HttpFunction {
             gson.toJson(error, writer);
         }
     }
-    
-    private String extractIdFromPath(String path, String prefix) {
-        return path.substring(prefix.length());
-    }
-    
 }
