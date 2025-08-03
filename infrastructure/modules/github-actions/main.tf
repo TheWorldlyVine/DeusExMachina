@@ -77,6 +77,13 @@ resource "google_project_iam_member" "github_actions_run_admin" {
   member  = "serviceAccount:${var.github_service_account_email}"
 }
 
+# Grant Service Usage Consumer role for using APIs
+resource "google_project_iam_member" "github_actions_service_usage_consumer" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${var.github_service_account_email}"
+}
+
 # Grant permission to act as the default compute service account for Cloud Run
 # Using data source to get the actual compute service account
 data "google_compute_default_service_account" "default" {
@@ -89,6 +96,55 @@ resource "google_service_account_iam_member" "github_actions_act_as_compute" {
   service_account_id = data.google_compute_default_service_account.default[0].email
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${var.github_service_account_email}"
+}
+
+# Grant Cloud Build service account permissions to deploy to Cloud Run
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+locals {
+  cloud_build_service_account = "${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+}
+
+# Grant Cloud Build SA permission to deploy to Cloud Run
+resource "google_project_iam_member" "cloudbuild_run_admin" {
+  count   = var.enable_cloud_run_permissions ? 1 : 0
+  project = var.project_id
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${local.cloud_build_service_account}"
+}
+
+# Grant Cloud Build SA permission to act as the compute service account
+resource "google_service_account_iam_member" "cloudbuild_act_as_compute" {
+  count              = var.enable_cloud_run_permissions ? 1 : 0
+  service_account_id = data.google_compute_default_service_account.default[0].email
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${local.cloud_build_service_account}"
+}
+
+# Grant Cloud Build SA permission to use services
+resource "google_project_iam_member" "cloudbuild_service_usage" {
+  count   = var.enable_cloud_run_permissions ? 1 : 0
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${local.cloud_build_service_account}"
+}
+
+# Grant Cloud Build SA permission to write logs
+resource "google_project_iam_member" "cloudbuild_logs_writer" {
+  count   = var.enable_cloud_run_permissions ? 1 : 0
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${local.cloud_build_service_account}"
+}
+
+# Grant Cloud Build SA permission to push to Artifact Registry
+resource "google_project_iam_member" "cloudbuild_artifact_registry_writer" {
+  count   = var.enable_artifact_registry_permissions ? 1 : 0
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${local.cloud_build_service_account}"
 }
 
 output "service_account_email" {

@@ -65,7 +65,15 @@ The Terraform configuration will:
    - **Cloud Run Admin** - To deploy services
    - **Storage Admin** - To manage build artifacts
    - **Service Account User** - To act as the default compute service account
+   - **Service Usage Consumer** - To use Google Cloud services
    - And other existing permissions for Cloud Functions, etc.
+
+3. **Grant IAM permissions** to Cloud Build service account (`PROJECT_NUMBER@cloudbuild.gserviceaccount.com`):
+   - **Cloud Run Admin** - To deploy services
+   - **Service Account User** - To act as compute service account
+   - **Service Usage Consumer** - To use Google Cloud services
+   - **Logs Writer** - To write build logs
+   - **Artifact Registry Writer** - To push container images
 
 ## Verify Permissions
 
