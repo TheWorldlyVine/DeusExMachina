@@ -2,8 +2,11 @@ import { useParams } from 'react-router-dom'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { generateScene, continueGeneration } from '@/features/generation/generationSlice'
-import { getDocument, updateScene } from '@/features/documents/documentSlice'
+import { getDocument } from '@/features/documents/documentSlice'
+import { loadDocument, updateContent as updateEditorContent, clearEditor } from '@/features/editor/editorSlice'
 import { getCharacters } from '@/features/memory/enhancedMemorySlice'
+import { useAutoSave } from '@/hooks/useAutoSave'
+import { SaveIndicator } from '@/components/SaveIndicator'
 import { MonacoEditor } from '@/components/editor/MonacoEditor'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { AIAssistantPanel } from '@/components/editor/AIAssistantPanel'
@@ -15,7 +18,9 @@ export function EnhancedEditorPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   // const monacoEditorRef = useRef<any>(null)
   
-  const [content, setContent] = useState('')
+  // Get editor state from Redux
+  const { content: editorContent, isLoading: editorLoading, isSaving, lastSaved, isDirty, error: editorError } = useAppSelector(state => state.editor)
+  const content = editorContent?.content || ''
   const [selectedText, setSelectedText] = useState('')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -33,23 +38,32 @@ export function EnhancedEditorPage() {
   useEffect(() => {
     if (documentId) {
       dispatch(getDocument(documentId))
+      dispatch(loadDocument(documentId))
       dispatch(getCharacters(documentId))
+    }
+    
+    // Cleanup when unmounting
+    return () => {
+      dispatch(clearEditor())
     }
   }, [documentId, dispatch])
   
-  // Load current scene content
-  useEffect(() => {
-    if (currentScene?.content) {
-      setContent(currentScene.content)
+  // Auto-save hook
+  const { saveNow } = useAutoSave({
+    documentId,
+    content,
+    delay: 2000, // Save 2 seconds after user stops typing
+    enabled: !editorLoading && !!documentId && !!currentScene,
+    onSaveError: (error) => {
+      console.error('Auto-save failed:', error)
     }
-  }, [currentScene])
+  })
   
   // Handle generated text
   useEffect(() => {
     if (lastResponse?.generatedText) {
       const newContent = content + '\n\n' + lastResponse.generatedText
-      setContent(newContent)
-      saveContent(newContent)
+      dispatch(updateEditorContent(newContent))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastResponse])
@@ -69,22 +83,19 @@ export function EnhancedEditorPage() {
     setCharacterCount(characters)
   }, [content])
   
-  // Auto-save content
-  const saveContent = useCallback((newContent: string) => {
-    if (documentId && currentChapter && currentScene) {
-      dispatch(updateScene({
-        documentId,
-        chapterNumber: currentChapter.chapterNumber,
-        sceneNumber: currentScene.sceneNumber,
-        content: newContent,
-      }))
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
     }
-  }, [documentId, currentChapter, currentScene, dispatch])
+    if (editorError) {
+      toast.error(`Save error: ${editorError}`)
+    }
+  }, [error, editorError])
   
-  const handleContentChange = (value: string) => {
-    setContent(value)
-    saveContent(value)
-  }
+  const handleContentChange = useCallback((value: string) => {
+    dispatch(updateEditorContent(value))
+  }, [dispatch])
   
   const handleEditorCommand = (command: string) => {
     // TODO: Implement editor commands with Monaco editor ref
