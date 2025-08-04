@@ -36,7 +36,9 @@ export class MemoryAPI extends BaseAPI {
       
       return response;
     } catch (error) {
-      this.handleError(error);
+      // Return empty array for now until memory service is ready
+      console.warn('Memory service not available, returning empty characters');
+      return [];
     }
   }
 
@@ -89,7 +91,9 @@ export class MemoryAPI extends BaseAPI {
     try {
       return await this.get(`/memory/plot/${projectId}`);
     } catch (error) {
-      this.handleError(error);
+      // Return empty array for now until memory service is ready
+      console.warn('Memory service not available, returning empty plots');
+      return [];
     }
   }
 
