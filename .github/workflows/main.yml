@@ -200,9 +200,31 @@ jobs:
       - name: Deploy to Cloud Run
         if: github.ref == 'refs/heads/main'
         run: |
-          cd apps/backend/novel-memory-service
+          cd apps/backend
           
-          # Deploy to Cloud Run
+          # Copy the Cloud Run specific Dockerfile to the backend directory
+          cp novel-memory-service/Dockerfile.cloudrun Dockerfile
+          
+          # Create .gcloudignore to exclude unnecessary files
+          cat > .gcloudignore << 'EOF'
+          .git/
+          .gitignore
+          *.md
+          **/test/
+          **/tests/
+          **/.gradle/
+          **/build/
+          !novel-memory-service/build/libs/*.jar
+          auth-function/
+          api-function/
+          processor-function/
+          email-processor-function/
+          novel-ai-service/
+          novel-document-service/
+          novel-graphql-gateway/
+          EOF
+          
+          # Deploy to Cloud Run using backend directory as context
           gcloud run deploy novel-memory-service \
             --source . \
             --platform managed \

@@ -3,21 +3,21 @@ FROM gradle:8.5-jdk21 AS builder
 
 WORKDIR /app
 
-# Copy parent gradle files first
-COPY ../build.gradle ../settings.gradle ../
-COPY ../gradle ../gradle
-COPY ../gradlew ../
-COPY ../gradlew.bat ../
+# Copy gradle wrapper and configuration
+COPY gradlew .
+COPY gradlew.bat .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
 
-# Copy common packages that this service depends on
-COPY ../java-common ../java-common
+# Copy common dependencies
+COPY java-common java-common
 
-# Copy this service's files
-COPY ./build.gradle ./novel-memory-service/
-COPY ./src ./novel-memory-service/src
+# Copy the memory service module
+COPY novel-memory-service novel-memory-service
 
-# Build from parent directory context
-WORKDIR /app
+# Build the application
+RUN chmod +x gradlew
 RUN ./gradlew :novel-memory-service:build --no-daemon -x test
 
 # Runtime stage
