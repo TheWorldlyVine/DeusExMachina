@@ -150,7 +150,7 @@ module "static_hosting" {
 
   # Enable SPA routing for frontend applications
   enable_spa_routing = true
-  
+
   # Configure SPA applications
   spa_apps = {
     "novel-creator" = {

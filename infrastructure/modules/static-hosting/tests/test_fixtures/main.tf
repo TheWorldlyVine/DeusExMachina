@@ -18,14 +18,14 @@ provider "google" {
 module "static_hosting" {
   source = "../../"
 
-  project_id          = var.project_id
-  project_name        = var.project_name
-  environment         = var.environment
-  region              = var.region
-  enable_spa_routing  = var.enable_spa_routing
-  spa_apps            = var.spa_apps
-  deploy_test_index   = true
-  force_destroy       = true
+  project_id         = var.project_id
+  project_name       = var.project_name
+  environment        = var.environment
+  region             = var.region
+  enable_spa_routing = var.enable_spa_routing
+  spa_apps           = var.spa_apps
+  deploy_test_index  = true
+  force_destroy      = true
 }
 
 variable "project_id" {

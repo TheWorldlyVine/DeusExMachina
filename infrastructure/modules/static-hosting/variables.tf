@@ -143,7 +143,7 @@ variable "spa_apps" {
     routes    = optional(list(string), [])
   }))
   default = {}
-  
+
   validation {
     condition = alltrue([
       for app, config in var.spa_apps : can(regex("^/[a-z0-9-]+$", config.base_path))
