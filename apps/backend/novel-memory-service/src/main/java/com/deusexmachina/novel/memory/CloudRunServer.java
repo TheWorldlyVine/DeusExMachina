@@ -126,7 +126,14 @@ public class CloudRunServer {
         }
         
         @Override
-        public String getReader() throws IOException {
+        public BufferedReader getReader() throws IOException {
+            if (body == null) {
+                readBody();
+            }
+            return new BufferedReader(new StringReader(body));
+        }
+        
+        private void readBody() throws IOException {
             if (body == null) {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(exchange.getRequestBody(), "UTF-8"))) {
@@ -138,7 +145,6 @@ public class CloudRunServer {
                     body = sb.toString();
                 }
             }
-            return body;
         }
         
         @Override
@@ -147,21 +153,16 @@ public class CloudRunServer {
         }
         
         @Override
-        public Map<String, HttpHeaders> getHeaders() {
-            Map<String, HttpHeaders> headers = new HashMap<>();
+        public Map<String, List<String>> getHeaders() {
+            Map<String, List<String>> headers = new HashMap<>();
             exchange.getRequestHeaders().forEach((key, values) -> {
-                headers.put(key, new HttpHeaders() {
-                    @Override
-                    public List<String> getValues() {
-                        return values;
-                    }
-                });
+                headers.put(key, new ArrayList<>(values));
             });
             return headers;
         }
         
-        @Override
-        public List<String> getHeaders(String name) {
+        // This method is not part of HttpRequest interface
+        public List<String> getHeaderValues(String name) {
             return exchange.getRequestHeaders().get(name);
         }
         
@@ -228,6 +229,15 @@ public class CloudRunServer {
         @Override
         public OutputStream getOutputStream() throws IOException {
             return buffer;
+        }
+        
+        @Override
+        public Map<String, List<String>> getHeaders() {
+            Map<String, List<String>> headers = new HashMap<>();
+            exchange.getResponseHeaders().forEach((key, values) -> {
+                headers.put(key, new ArrayList<>(values));
+            });
+            return headers;
         }
         
         boolean isCommitted() {
