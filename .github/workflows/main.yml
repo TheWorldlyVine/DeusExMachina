@@ -202,9 +202,6 @@ jobs:
         run: |
           cd apps/backend/novel-memory-service
           
-          # Use the simple Dockerfile
-          cp Dockerfile.simple Dockerfile
-          
           # Create .gcloudignore
           cat > .gcloudignore << 'EOF'
           .git/
@@ -212,8 +209,8 @@ jobs:
           *.md
           src/test/
           .gradle/
+          build/
           Dockerfile.*
-          !Dockerfile
           EOF
           
           # Deploy to Cloud Run
