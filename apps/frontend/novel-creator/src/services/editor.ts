@@ -1,5 +1,6 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import type { Chapter, Scene, EditorState } from '@/types/editor'
+import type { Document, Chapter as DocumentChapter, Scene as DocumentScene } from '@/types/document'
 
 const API_URL = import.meta.env.VITE_DOCUMENT_API_URL || 'http://localhost:8080'
 
@@ -31,17 +32,17 @@ class EditorService {
     }
   }
   
-  private extractFullContent(doc: any): string {
+  private extractFullContent(doc: Document & { chapters?: DocumentChapter[] }): string {
     // Extract all scene content and combine into a single string
     let fullContent = ''
     
     if (doc.chapters && doc.chapters.length > 0) {
-      doc.chapters.forEach((chapter: any, chapterIndex: number) => {
+      doc.chapters.forEach((chapter: DocumentChapter, chapterIndex: number) => {
         if (chapterIndex > 0) fullContent += '\n\n'
         fullContent += `# Chapter ${chapter.chapterNumber}: ${chapter.title}\n\n`
         
         if (chapter.scenes && chapter.scenes.length > 0) {
-          chapter.scenes.forEach((scene: any, sceneIndex: number) => {
+          chapter.scenes.forEach((scene: DocumentScene, sceneIndex: number) => {
             if (sceneIndex > 0) fullContent += '\n\n'
             if (scene.title) {
               fullContent += `## ${scene.title}\n\n`
@@ -117,9 +118,10 @@ class EditorService {
         { content },
         { headers: this.getAuthHeader() }
       )
-    } catch (error: any) {
+    } catch (error) {
       // If scene doesn't exist, create it
-      if (error.response?.status === 404) {
+      const axiosError = error as AxiosError
+      if (axiosError.response?.status === 404) {
         await axios.post(
           `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
           { 
@@ -145,7 +147,7 @@ class EditorService {
     const nextChapterNumber = (doc.chapters?.length || 0) + 1
     
     // Create the chapter with the proper endpoint format
-    const response = await axios.post(
+    await axios.post(
       `${API_URL}/chapter/${documentId}/${nextChapterNumber}`,
       { 
         title,
@@ -183,7 +185,7 @@ class EditorService {
     })
     
     const doc = docResponse.data
-    const chapter = doc.chapters?.find((ch: any) => ch.chapterNumber === chapterNumber)
+    const chapter = doc.chapters?.find((ch: DocumentChapter) => ch.chapterNumber === chapterNumber)
     const nextSceneNumber = (chapter?.scenes?.length || 0) + 1
     
     // Create the scene with the proper endpoint format
