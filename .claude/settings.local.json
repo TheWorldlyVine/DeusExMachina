@@ -34,7 +34,11 @@
       "Bash(npm run build:*)",
       "Bash(npm run pre-commit:*)",
       "Bash(chmod:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(gcloud functions list:*)",
+      "Bash(gcloud functions describe:*)",
+      "Bash(gcloud run services update:*)",
+      "Bash(gcloud logging read:*)"
     ],
     "deny": []
   }

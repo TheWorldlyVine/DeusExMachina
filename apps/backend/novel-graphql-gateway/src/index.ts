@@ -32,11 +32,8 @@ async function startServer() {
   // Apply middlewares
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
   
-  console.log('Server - Allowed origins:', allowedOrigins);
-  
   app.use(cors({
     origin: (origin, callback) => {
-      console.log('CORS - Request origin:', origin);
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
       
@@ -132,17 +129,10 @@ async function startServer() {
   // Apply Apollo middleware
   app.use(
     '/graphql',
-    (req, res, next) => {
-      console.log('GraphQL endpoint - Method:', req.method);
-      console.log('GraphQL endpoint - Headers:', req.headers);
-      next();
-    },
     authMiddleware,
     expressMiddleware(server, {
       context: async ({ req }) => {
-        console.log('Apollo context - Creating context for request');
         const contextValue = await context({ req });
-        console.log('Apollo context - Context created:', { user: contextValue.user?.email });
         return {
           ...contextValue,
           dataSources: dataSources(server.cache, contextValue),
