@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Memory, CreateMemoryInput } from '@/types/memory'
 
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+const API_URL = import.meta.env.VITE_MEMORY_API_URL || 'http://localhost:8083'
 
 class MemoryService {
   private getAuthHeader() {

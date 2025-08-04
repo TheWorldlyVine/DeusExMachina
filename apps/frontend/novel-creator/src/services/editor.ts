@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Chapter, Scene, EditorState } from '@/types/editor'
 
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+const API_URL = import.meta.env.VITE_DOCUMENT_API_URL || 'http://localhost:8080'
 
 class EditorService {
   private getAuthHeader() {
