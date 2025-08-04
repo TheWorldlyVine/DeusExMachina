@@ -5,13 +5,9 @@ WORKDIR /app
 
 # Copy gradle wrapper and configuration
 COPY gradlew .
-COPY gradlew.bat .
 COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
-
-# Copy common dependencies
-COPY java-common java-common
 
 # Copy the memory service module
 COPY novel-memory-service novel-memory-service
