@@ -103,71 +103,44 @@ The root cause is that Cloud Storage serves static files directly and returns 40
 
 ## 5. Implementation Details
 
-### 5.1 Load Balancer URL Map Configuration
+### 5.1 Simplified SPA Routing Approach
+
+Due to limitations in Google Cloud Load Balancer's URL rewriting capabilities, we implement SPA routing using a combination of:
+
+1. **Cloud Storage's 404 handling**
+2. **Client-side redirect logic**
+3. **Proper file organization**
 
 ```hcl
-# infrastructure/modules/frontend-hosting/url-map.tf
+# infrastructure/modules/static-hosting/spa_routing_simple.tf
 
-resource "google_compute_url_map" "frontend" {
-  name = "${var.project_name}-frontend-url-map"
+# Create 404.html files for each SPA app
+resource "google_storage_bucket_object" "spa_404_handlers" {
+  for_each = var.enable_spa_routing ? var.spa_apps : {}
 
-  default_service = google_compute_backend_bucket.static_site.id
+  name   = "${each.value.base_path}/404.html"
+  bucket = google_storage_bucket.static_site.name
 
-  # Host rules for custom domains
-  host_rule {
-    hosts        = [var.domain_name]
-    path_matcher = "frontend-apps"
-  }
+  # The 404.html redirects to index.html while preserving the URL
+  content = <<-EOT
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    // Preserve the current path for the SPA router
+    sessionStorage.setItem('spa-redirect-path', location.pathname);
+    // Redirect to the app's index.html
+    location.replace('${each.value.base_path}/index.html');
+  </script>
+</head>
+<body>
+  Loading...
+</body>
+</html>
+EOT
 
-  # Path matcher for frontend apps
-  path_matcher {
-    name            = "frontend-apps"
-    default_service = google_compute_backend_bucket.static_site.id
-
-    # Novel Creator App
-    path_rule {
-      paths = ["/novel-creator/*"]
-      route_action {
-        url_rewrite {
-          path_template_rewrite = "/novel-creator/index.html"
-        }
-      }
-      # Only rewrite if the requested file doesn't exist
-      route_action {
-        weighted_backend_services {
-          backend_service = google_compute_backend_bucket.static_site.id
-          weight          = 100
-          header_action {
-            request_headers_to_add {
-              header_name  = "X-Original-Path"
-              header_value = "{path}"
-              replace      = false
-            }
-          }
-        }
-      }
-    }
-
-    # Web App
-    path_rule {
-      paths = ["/web-app/*"]
-      route_action {
-        url_rewrite {
-          path_template_rewrite = "/web-app/index.html"
-        }
-      }
-    }
-
-    # Landing Page (root)
-    path_rule {
-      paths = ["/*"]
-      route_action {
-        url_rewrite {
-          path_template_rewrite = "/index.html"
-        }
-      }
-    }
-  }
+  content_type = "text/html"
+  cache_control = "no-cache, no-store, must-revalidate"
 }
 ```
 

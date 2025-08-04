@@ -40,7 +40,8 @@
       "Bash(gcloud run services update:*)",
       "Bash(gcloud logging read:*)",
       "Bash(find:*)",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
