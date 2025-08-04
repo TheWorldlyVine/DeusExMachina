@@ -21,6 +21,17 @@ class EditorService {
     
     const doc = response.data
     
+    // Ensure document has at least one chapter
+    if (!doc.chapters || doc.chapters.length === 0) {
+      console.log('[EditorService] No chapters found, creating default chapter')
+      await this.createDefaultChapter(documentId)
+      // Reload the document to get the new chapter
+      const reloadResponse = await axios.get(`${API_URL}/document/${documentId}`, {
+        headers: this.getAuthHeader()
+      })
+      doc.chapters = reloadResponse.data.chapters || []
+    }
+    
     // Extract content and convert from markdown to HTML
     const markdownContent = this.extractFullContent(doc)
     const htmlContent = markdownToHtml(markdownContent)
@@ -173,26 +184,61 @@ class EditorService {
       
       // If scene doesn't exist, create it
       if (axiosError.response?.status === 404) {
-        console.log('[EditorService] Scene not found, creating new scene')
+        console.log('[EditorService] Scene not found, need to create it')
+        // First ensure the chapter exists
+        await this.ensureChapterExists(documentId, chapterNumber, `Chapter ${chapterNumber}`)
+        
         try {
+          // The Java backend expects the scene endpoint without the scene number for creation
           const createResponse = await axios.post(
-            `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
+            `${API_URL}/scene/${documentId}/${chapterNumber}`,
             { 
               content,
               title: `Scene ${sceneNumber}`,
-              type: 'NARRATIVE'
+              type: 'NARRATIVE',
+              sceneNumber: sceneNumber
             },
             { headers: this.getAuthHeader() }
           )
           console.log('[EditorService] Scene created successfully:', createResponse.status)
         } catch (createError) {
-          console.error('[EditorService] Failed to create scene:', createError)
+          const axiosCreateError = createError as AxiosError
+          console.error('[EditorService] Failed to create scene:', axiosCreateError.response?.data || axiosCreateError.message)
           throw createError
         }
       } else {
         console.error('[EditorService] Unexpected error:', error)
         throw error
       }
+    }
+  }
+
+  private async createDefaultChapter(documentId: string): Promise<void> {
+    try {
+      await axios.post(
+        `${API_URL}/chapter/${documentId}/1`,
+        { 
+          title: 'Chapter 1',
+          summary: 'The beginning of your story'
+        },
+        { headers: this.getAuthHeader() }
+      )
+      console.log('[EditorService] Default chapter created')
+      
+      // Also create a default scene (using the proper endpoint)
+      await axios.post(
+        `${API_URL}/scene/${documentId}/1`,
+        { 
+          title: 'Opening Scene',
+          content: 'Start writing your story here...',
+          type: 'NARRATIVE',
+          sceneNumber: 1
+        },
+        { headers: this.getAuthHeader() }
+      )
+      console.log('[EditorService] Default scene created')
+    } catch (error) {
+      console.error('[EditorService] Failed to create default chapter:', error)
     }
   }
 

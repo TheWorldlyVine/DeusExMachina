@@ -164,6 +164,9 @@ export function DocumentOutlinePanel({
                         }}
                       >
                         Chapter {chapter.number}: {chapter.title}
+                        {chapter.number === 1 && (
+                          <span className="ml-2 text-xs text-muted-foreground">(Default)</span>
+                        )}
                       </span>
                     </div>
                     
@@ -175,6 +178,7 @@ export function DocumentOutlinePanel({
                         onEdit={() => onEditChapter(chapter.id)}
                         onDelete={() => onDeleteChapter(chapter.id)}
                         onAddScene={() => onAddScene(chapter.id)}
+                        isFirstChapter={chapter.number === 1}
                       />
                     </div>
                   </div>
@@ -237,10 +241,11 @@ export function DocumentOutlinePanel({
 }
 
 // Chapter menu component
-function ChapterMenu({ onEdit, onDelete, onAddScene }: {
+function ChapterMenu({ onEdit, onDelete, onAddScene, isFirstChapter = false }: {
   onEdit: () => void
   onDelete: () => void
   onAddScene: () => void
+  isFirstChapter?: boolean
 }) {
   const [showMenu, setShowMenu] = useState(false)
 
@@ -285,17 +290,19 @@ function ChapterMenu({ onEdit, onDelete, onAddScene }: {
               <Edit2 className="h-4 w-4" />
               <span>Edit Chapter</span>
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete()
-                setShowMenu(false)
-              }}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted text-destructive flex items-center space-x-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Delete Chapter</span>
-            </button>
+            {!isFirstChapter && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                  setShowMenu(false)
+                }}
+                className="w-full px-3 py-2 text-left text-sm hover:bg-muted text-destructive flex items-center space-x-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete Chapter</span>
+              </button>
+            )}
           </div>
         </>
       )}

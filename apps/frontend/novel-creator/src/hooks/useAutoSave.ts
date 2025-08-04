@@ -27,6 +27,8 @@ export function useAutoSave({
   const timeoutRef = useRef<NodeJS.Timeout>()
   const lastSavedContentRef = useRef<string>('')
   const saveToastRef = useRef<string | null>(null)
+  const retryCountRef = useRef<number>(0)
+  const maxRetries = 5
 
   // Debounced save function
   const debouncedSave = useCallback(async () => {
@@ -73,6 +75,8 @@ export function useAutoSave({
       })
       
       onSaveSuccess?.()
+      // Reset retry count on success
+      retryCountRef.current = 0
     } catch (err) {
       console.error('[AutoSave] Save failed:', err)
       
@@ -84,10 +88,20 @@ export function useAutoSave({
       
       onSaveError?.(err as Error)
       
-      // Retry after 5 seconds
-      setTimeout(() => {
-        debouncedSave()
-      }, 5000)
+      // Implement exponential backoff for retries
+      retryCountRef.current += 1
+      if (retryCountRef.current <= maxRetries) {
+        const backoffDelay = Math.min(5000 * Math.pow(2, retryCountRef.current - 1), 60000) // Max 1 minute
+        console.log(`[AutoSave] Retrying in ${backoffDelay / 1000} seconds (attempt ${retryCountRef.current}/${maxRetries})`)
+        setTimeout(() => {
+          debouncedSave()
+        }, backoffDelay)
+      } else {
+        console.error('[AutoSave] Max retries reached, giving up')
+        toast.error('Auto-save failed. Please save manually or refresh the page.', {
+          duration: 10000
+        })
+      }
     } finally {
       saveToastRef.current = null
     }
