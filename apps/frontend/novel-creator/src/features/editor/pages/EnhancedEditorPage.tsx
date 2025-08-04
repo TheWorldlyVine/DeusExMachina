@@ -105,35 +105,35 @@ export function EnhancedEditorPage() {
       case 'bold':
         if (selectedText) {
           const newContent = content.replace(selectedText, `**${selectedText}**`)
-          setContent(newContent)
+          dispatch(updateEditorContent(newContent))
         }
         break
       case 'italic':
         if (selectedText) {
           const newContent = content.replace(selectedText, `*${selectedText}*`)
-          setContent(newContent)
+          dispatch(updateEditorContent(newContent))
         }
         break
       case 'heading1':
-        setContent(content + '\n# ')
+        dispatch(updateEditorContent(content + '\n# '))
         break
       case 'heading2':
-        setContent(content + '\n## ')
+        dispatch(updateEditorContent(content + '\n## '))
         break
       case 'heading3':
-        setContent(content + '\n### ')
+        dispatch(updateEditorContent(content + '\n### '))
         break
       case 'bulletList':
-        setContent(content + '\n- ')
+        dispatch(updateEditorContent(content + '\n- '))
         break
       case 'orderedList':
-        setContent(content + '\n1. ')
+        dispatch(updateEditorContent(content + '\n1. '))
         break
       case 'blockquote':
-        setContent(content + '\n> ')
+        dispatch(updateEditorContent(content + '\n> '))
         break
       case 'horizontalRule':
-        setContent(content + '\n\n---\n\n')
+        dispatch(updateEditorContent(content + '\n\n---\n\n'))
         break
       case 'settings':
         // TODO: Open settings modal

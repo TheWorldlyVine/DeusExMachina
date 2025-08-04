@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'date-fns'
-import { Check, Cloud, AlertCircle, Loader2 } from 'lucide-react'
+import { Check, CloudOff, AlertCircle, Loader } from 'lucide-react'
 
 interface SaveIndicatorProps {
   isSaving: boolean
@@ -12,7 +12,7 @@ export function SaveIndicator({ isSaving, lastSaved, error, isDirty }: SaveIndic
   if (isSaving) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader className="h-4 w-4 animate-spin" />
         <span>Saving...</span>
       </div>
     )
@@ -30,7 +30,7 @@ export function SaveIndicator({ isSaving, lastSaved, error, isDirty }: SaveIndic
   if (isDirty) {
     return (
       <div className="flex items-center gap-2 text-sm text-warning">
-        <Cloud className="h-4 w-4" />
+        <CloudOff className="h-4 w-4" />
         <span>Unsaved changes</span>
       </div>
     )
