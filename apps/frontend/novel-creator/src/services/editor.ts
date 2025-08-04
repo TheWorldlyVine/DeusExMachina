@@ -255,19 +255,19 @@ class EditorService {
     try {
       // First check if the document exists
       console.log('[EditorService] Creating default chapter for document:', documentId)
+      const endpoint = `${API_URL}/chapter/${documentId}/1`
+      const payload = { 
+        title: 'Chapter 1',
+        summary: 'The beginning of your story'
+      }
+      console.log('[EditorService] POST to:', endpoint)
+      console.log('[EditorService] Payload:', payload)
       
       // Try to create chapter 1
-      await axios.post(
-        `${API_URL}/chapter/${documentId}/1`,
-        { 
-          title: 'Chapter 1',
-          summary: 'The beginning of your story'
-        },
-        { headers: this.getAuthHeader() }
-      )
+      await axios.post(endpoint, payload, { headers: this.getAuthHeader() })
       console.log('[EditorService] Default chapter created')
       
-      // Also create a default scene (using the proper endpoint - no scene number in URL for creation)
+      // Also create a default scene (scene number goes in body, not URL)
       try {
         await axios.post(
           `${API_URL}/scene/${documentId}/1`,
@@ -283,51 +283,17 @@ class EditorService {
       } catch (sceneError) {
         const axiosSceneError = sceneError as AxiosError
         console.error('[EditorService] Failed to create default scene:', axiosSceneError.response?.data || axiosSceneError.message)
-        
-        // Try alternative endpoints if the standard one fails
-        if (axiosSceneError.response?.status === 404) {
-          try {
-            // Try without scene number in URL (like the updateScene method does)
-            await axios.post(
-              `${API_URL}/document/${documentId}/chapters/1/scenes`,
-              { 
-                title: 'Opening Scene',
-                content: 'Start writing your story here...',
-                type: 'NARRATIVE',
-                sceneNumber: 1
-              },
-              { headers: this.getAuthHeader() }
-            )
-            console.log('[EditorService] Default scene created via alternative endpoint')
-          } catch (altSceneError) {
-            console.error('[EditorService] Alternative scene creation also failed:', altSceneError)
-            // Continue even if scene creation fails completely
-          }
-        }
+        console.error('[EditorService] Scene creation endpoint:', `${API_URL}/scene/${documentId}/1`)
+        // Continue even if scene creation fails - the document will still have a chapter
       }
     } catch (error) {
       const axiosError = error as AxiosError
       console.error('[EditorService] Failed to create default chapter:', error)
       
-      // If it's a 404, the document might not exist yet or the endpoint is wrong
+      // If it's a 404, the document might not exist yet
       if (axiosError.response?.status === 404) {
-        console.error('[EditorService] Document not found or endpoint incorrect. Document ID:', documentId)
-        // Try alternative approach - create chapter without chapter number in URL
-        try {
-          const response = await axios.post(
-            `${API_URL}/document/${documentId}/chapters`,
-            { 
-              chapterNumber: 1,
-              title: 'Chapter 1',
-              summary: 'The beginning of your story'
-            },
-            { headers: this.getAuthHeader() }
-          )
-          console.log('[EditorService] Default chapter created via alternative endpoint:', response.data)
-        } catch (altError) {
-          console.error('[EditorService] Alternative chapter creation also failed:', altError)
-          // Return empty chapters array to frontend
-        }
+        console.error('[EditorService] Chapter creation failed - document might not exist. Document ID:', documentId)
+        console.error('[EditorService] Chapter creation endpoint:', `${API_URL}/chapter/${documentId}/1`)
       }
     }
   }
@@ -357,22 +323,8 @@ class EditorService {
       } catch (createError) {
         const axiosError = createError as AxiosError
         console.error('[EditorService] Failed to create chapter:', axiosError.response?.data || axiosError.message)
-        
-        // Try alternative endpoint if the standard one fails
-        if (axiosError.response?.status === 404) {
-          console.log('[EditorService] Trying alternative chapter creation endpoint')
-          await axios.post(
-            `${API_URL}/document/${documentId}/chapters`,
-            { 
-              chapterNumber: nextChapterNumber,
-              title,
-              summary: ''
-            },
-            { headers: this.getAuthHeader() }
-          )
-        } else {
-          throw createError
-        }
+        console.error('[EditorService] Chapter creation endpoint:', `${API_URL}/chapter/${documentId}/${nextChapterNumber}`)
+        throw createError
       }
       
       // Transform to match frontend Chapter interface
