@@ -91,7 +91,9 @@ export function useAutoSave({
       // Implement exponential backoff for retries
       retryCountRef.current += 1
       if (retryCountRef.current <= maxRetries) {
-        const backoffDelay = Math.min(5000 * Math.pow(2, retryCountRef.current - 1), 60000) // Max 1 minute
+        // Start at 30 seconds, then 60, 120 (capped at 60)
+        const baseDelay = 30000 // 30 seconds initial delay
+        const backoffDelay = Math.min(baseDelay * Math.pow(2, retryCountRef.current - 1), 60000) // Max 1 minute
         console.log(`[AutoSave] Retrying in ${backoffDelay / 1000} seconds (attempt ${retryCountRef.current}/${maxRetries})`)
         setTimeout(() => {
           debouncedSave()
