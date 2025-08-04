@@ -155,10 +155,6 @@ resource "google_compute_backend_bucket" "spa_backend" {
 
     # Custom cache key policy for SPA routes
     cache_key_policy {
-      include_host         = true
-      include_protocol     = true
-      include_query_string = false
-
       # Include the original path in cache key
       query_string_whitelist = ["spa_path"]
     }
