@@ -38,7 +38,8 @@
       "Bash(gcloud functions list:*)",
       "Bash(gcloud functions describe:*)",
       "Bash(gcloud run services update:*)",
-      "Bash(gcloud logging read:*)"
+      "Bash(gcloud logging read:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
