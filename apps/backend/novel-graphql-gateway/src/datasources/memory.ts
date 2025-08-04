@@ -1,7 +1,8 @@
 import { BaseAPI } from './base';
 
 export class MemoryAPI extends BaseAPI {
-  baseURL = process.env.MEMORY_SERVICE_URL || 'http://localhost:8082';
+  // Memory service is now deployed as Cloud Run
+  baseURL = process.env.MEMORY_SERVICE_URL || 'https://novel-memory-service-97677897945.us-central1.run.app';
 
   // Character Memory
   async createCharacter(input: any) {

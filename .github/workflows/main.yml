@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        function: [auth-function, api-function, processor-function, email-processor-function, novel-ai-service, novel-memory-service, novel-document-service]
+        function: [auth-function, api-function, processor-function, email-processor-function, novel-ai-service, novel-document-service]
     steps:
       - uses: actions/checkout@v4
       
@@ -119,8 +119,6 @@ jobs:
             echo "entry_point=com.deusexmachina.email.processor.EmailProcessorFunction" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.function }}" = "novel-ai-service" ]; then
             echo "entry_point=com.deusexmachina.novel.ai.NovelAIFunction" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.function }}" = "novel-memory-service" ]; then
-            echo "entry_point=com.deusexmachina.novel.memory.NovelMemoryFunction" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.function }}" = "novel-document-service" ]; then
             echo "entry_point=com.deusexmachina.novel.document.NovelDocumentFunction" >> $GITHUB_OUTPUT
           fi
@@ -164,6 +162,61 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             EMAIL_TOPIC_NAME=${{ secrets.EMAIL_TOPIC_NAME }}
             APP_BASE_URL=https://god-in-a-box.com
+
+  # Memory Service Cloud Run CI/CD
+  memory-service:
+    needs: [changes]
+    if: always() && (needs.changes.outputs.backend == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_backend == 'true'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/backend/gradlew
+      
+      - name: Build memory service
+        working-directory: apps/backend
+        run: ./gradlew :novel-memory-service:build
+      
+      - name: Authenticate to Google Cloud
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Deploy to Cloud Run
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd apps/backend/novel-memory-service
+          
+          # Deploy to Cloud Run
+          gcloud run deploy novel-memory-service \
+            --source . \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --quiet \
+            --set-env-vars="NODE_ENV=production,GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" \
+            --update-secrets=JWT_SECRET=jwt-secret:latest \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=300 \
+            --concurrency=100 \
+            --max-instances=10 \
+            --project=${{ secrets.GCP_PROJECT_ID }}
 
   # GraphQL Gateway CI/CD
   graphql-gateway:

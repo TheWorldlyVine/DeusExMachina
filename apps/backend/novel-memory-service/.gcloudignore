@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+out/
+!build/libs/*.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Test files
+src/test/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
