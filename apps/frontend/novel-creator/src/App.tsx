@@ -14,7 +14,7 @@ if (import.meta.env.DEV) {
 // Pages
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { FullFeaturedEditorPage } from '@/features/editor/pages/FullFeaturedEditorPage'
+import { EnhancedEditorPage } from '@/features/editor/pages/EnhancedEditorPage'
 import { DocumentsPage } from '@/features/documents/pages/DocumentsPage'
 import { MemoryTrackingPage } from '@/features/memory/pages/MemoryTrackingPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
@@ -39,7 +39,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/editor/:documentId" element={<FullFeaturedEditorPage />} />
+          <Route path="/editor/:documentId" element={<EnhancedEditorPage />} />
           <Route path="/memory/:documentId" element={<MemoryTrackingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

@@ -72,4 +72,9 @@ declare module 'lucide-react' {
   export const CheckCircle: Icon
   export const Clock: Icon
   export const Flag: Icon
+  export const Palette: Icon
+  export const AlignLeft: Icon
+  export const AlignCenter: Icon
+  export const AlignRight: Icon
+  export const AlignJustify: Icon
 }

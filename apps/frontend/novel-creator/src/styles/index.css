@@ -118,6 +118,60 @@
   @apply px-8 py-6;
 }
 
+/* TipTap Editor Styles */
+.ProseMirror {
+  @apply min-h-full focus:outline-none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror h1 {
+  @apply text-4xl font-bold mb-4;
+}
+
+.ProseMirror h2 {
+  @apply text-3xl font-semibold mb-3;
+}
+
+.ProseMirror h3 {
+  @apply text-2xl font-medium mb-2;
+}
+
+.ProseMirror p {
+  @apply mb-4;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply mb-4 pl-6;
+}
+
+.ProseMirror ul {
+  @apply list-disc;
+}
+
+.ProseMirror ol {
+  @apply list-decimal;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-muted pl-4 italic my-4;
+}
+
+.ProseMirror hr {
+  @apply my-8 border-t border-border;
+}
+
+.ProseMirror mark {
+  @apply bg-yellow-200 dark:bg-yellow-900;
+}
+
 /* Loading animation */
 @keyframes pulse-subtle {
   0%, 100% {

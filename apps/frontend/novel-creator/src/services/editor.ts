@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios'
 import type { Chapter, Scene, EditorState } from '@/types/editor'
 import type { Document, Chapter as DocumentChapter, Scene as DocumentScene } from '@/types/document'
+import { htmlToMarkdown, markdownToHtml } from '@/utils/contentConverter'
 
 const API_URL = import.meta.env.VITE_DOCUMENT_API_URL || 'http://localhost:8080'
 
@@ -18,10 +19,14 @@ class EditorService {
     
     const doc = response.data
     
+    // Extract content and convert from markdown to HTML
+    const markdownContent = this.extractFullContent(doc)
+    const htmlContent = markdownToHtml(markdownContent)
+    
     // Transform the backend response to match EditorState interface
     return {
       documentId: doc.id,
-      content: this.extractFullContent(doc),
+      content: htmlContent,
       chapters: doc.chapters || [],
       metadata: {
         lastSaved: new Date(doc.updatedAt),
@@ -56,7 +61,10 @@ class EditorService {
     return fullContent
   }
 
-  async saveContent(documentId: string, content: string): Promise<void> {
+  async saveContent(documentId: string, htmlContent: string): Promise<void> {
+    // Convert HTML to markdown for backend storage
+    const content = htmlToMarkdown(htmlContent)
+    
     // Parse the content to identify chapters and scenes
     const lines = content.split('\n')
     let currentChapter = 0
