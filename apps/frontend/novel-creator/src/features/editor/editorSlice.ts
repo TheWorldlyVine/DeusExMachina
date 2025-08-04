@@ -37,7 +37,9 @@ export const loadDocument = createAsyncThunk(
 export const saveContent = createAsyncThunk(
   'editor/saveContent',
   async ({ documentId, content }: { documentId: string; content: string }) => {
+    console.log('[EditorSlice] Saving content for document:', documentId, 'Content length:', content.length)
     await editorService.saveContent(documentId, content)
+    console.log('[EditorSlice] Save completed')
     return new Date()
   }
 )
@@ -90,6 +92,14 @@ const editorSlice = createSlice({
         state.content = action.payload
         state.chapters = action.payload.chapters
         state.isDirty = false
+        
+        // Auto-select first chapter and scene if available
+        if (action.payload.chapters && action.payload.chapters.length > 0) {
+          state.currentChapter = action.payload.chapters[0]
+          if (state.currentChapter.scenes && state.currentChapter.scenes.length > 0) {
+            state.currentScene = state.currentChapter.scenes[0]
+          }
+        }
       })
       .addCase(loadDocument.rejected, (state, action) => {
         state.isLoading = false

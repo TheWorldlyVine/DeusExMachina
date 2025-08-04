@@ -30,12 +30,22 @@ export function useAutoSave({
 
   // Debounced save function
   const debouncedSave = useCallback(async () => {
-    if (!documentId || !enabled) return
+    console.log('[AutoSave] Save triggered', { documentId, enabled, contentLength: content.length })
+    
+    if (!documentId || !enabled) {
+      console.log('[AutoSave] Save skipped - missing documentId or not enabled')
+      return
+    }
     
     // Don't save if content hasn't changed
-    if (content === lastSavedContentRef.current) return
+    if (content === lastSavedContentRef.current) {
+      console.log('[AutoSave] Save skipped - content unchanged')
+      return
+    }
     
     try {
+      console.log('[AutoSave] Starting save...')
+      
       // Dismiss any existing save toast
       if (saveToastRef.current) {
         toast.dismiss(saveToastRef.current)
@@ -54,6 +64,8 @@ export function useAutoSave({
       // Update last saved content
       lastSavedContentRef.current = content
       
+      console.log('[AutoSave] Save successful')
+      
       // Show success toast
       toast.success('Saved', {
         id: saveToastRef.current,
@@ -62,6 +74,8 @@ export function useAutoSave({
       
       onSaveSuccess?.()
     } catch (err) {
+      console.error('[AutoSave] Save failed:', err)
+      
       // Show error toast
       toast.error('Failed to save. Will retry...', {
         id: saveToastRef.current || undefined,

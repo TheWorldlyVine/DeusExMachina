@@ -4,10 +4,12 @@ import type { Document, Chapter as DocumentChapter, Scene as DocumentScene } fro
 import { htmlToMarkdown, markdownToHtml } from '@/utils/contentConverter'
 
 const API_URL = import.meta.env.VITE_DOCUMENT_API_URL || 'http://localhost:8080'
+console.log('[EditorService] Using API URL:', API_URL)
 
 class EditorService {
   private getAuthHeader() {
     const token = localStorage.getItem('auth_token')
+    console.log('[EditorService] Auth token exists:', !!token)
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
@@ -62,18 +64,24 @@ class EditorService {
   }
 
   async saveContent(documentId: string, htmlContent: string): Promise<void> {
+    console.log('[EditorService] saveContent called for document:', documentId)
+    console.log('[EditorService] HTML content length:', htmlContent.length)
+    
     // Convert HTML to markdown for backend storage
     const content = htmlToMarkdown(htmlContent)
+    console.log('[EditorService] Markdown content:', content.substring(0, 200) + '...')
     
     // Parse the content to identify chapters and scenes
     const lines = content.split('\n')
     let currentChapter = 0
     let currentScene = 0
     let sceneContent = ''
+    let hasStructuredContent = false
     
     for (const line of lines) {
       // Check if this is a chapter heading
       if (line.startsWith('# Chapter ')) {
+        hasStructuredContent = true
         // Save previous scene if any
         if (currentChapter > 0 && currentScene > 0 && sceneContent.trim()) {
           await this.updateScene(documentId, currentChapter, currentScene, sceneContent.trim())
@@ -100,11 +108,20 @@ class EditorService {
       // Add to scene content
       else if (currentChapter > 0) {
         sceneContent += line + '\n'
+      } else if (!hasStructuredContent) {
+        // If no structure found yet, accumulate content
+        sceneContent += line + '\n'
       }
     }
     
-    // Save the last scene
-    if (currentChapter > 0 && currentScene > 0 && sceneContent.trim()) {
+    // If no structured content was found, save everything as Chapter 1, Scene 1
+    if (!hasStructuredContent && sceneContent.trim()) {
+      console.log('No chapter structure found, saving as Chapter 1, Scene 1')
+      await this.ensureChapterExists(documentId, 1, 'Chapter 1')
+      await this.updateScene(documentId, 1, 1, sceneContent.trim())
+    }
+    // Save the last scene if we have structured content
+    else if (currentChapter > 0 && currentScene > 0 && sceneContent.trim()) {
       await this.updateScene(documentId, currentChapter, currentScene, sceneContent.trim())
     }
     
@@ -119,27 +136,61 @@ class EditorService {
     )
   }
   
-  private async updateScene(documentId: string, chapterNumber: number, sceneNumber: number, content: string): Promise<void> {
+  private async ensureChapterExists(documentId: string, chapterNumber: number, title: string): Promise<void> {
     try {
-      await axios.put(
+      // Try to get the chapter first
+      await axios.get(
+        `${API_URL}/chapter/${documentId}/${chapterNumber}`,
+        { headers: this.getAuthHeader() }
+      )
+    } catch (error) {
+      const axiosError = error as AxiosError
+      if (axiosError.response?.status === 404) {
+        // Chapter doesn't exist, create it
+        await axios.post(
+          `${API_URL}/chapter/${documentId}/${chapterNumber}`,
+          { title },
+          { headers: this.getAuthHeader() }
+        )
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  private async updateScene(documentId: string, chapterNumber: number, sceneNumber: number, content: string): Promise<void> {
+    console.log(`[EditorService] Updating scene: ${documentId}/${chapterNumber}/${sceneNumber}`)
+    try {
+      const response = await axios.put(
         `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
         { content },
         { headers: this.getAuthHeader() }
       )
+      console.log('[EditorService] Scene updated successfully:', response.status)
     } catch (error) {
-      // If scene doesn't exist, create it
       const axiosError = error as AxiosError
+      console.log('[EditorService] Update scene error:', axiosError.response?.status, axiosError.message)
+      
+      // If scene doesn't exist, create it
       if (axiosError.response?.status === 404) {
-        await axios.post(
-          `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
-          { 
-            content,
-            title: `Scene ${sceneNumber}`,
-            type: 'NARRATIVE'
-          },
-          { headers: this.getAuthHeader() }
-        )
+        console.log('[EditorService] Scene not found, creating new scene')
+        try {
+          const createResponse = await axios.post(
+            `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
+            { 
+              content,
+              title: `Scene ${sceneNumber}`,
+              type: 'NARRATIVE'
+            },
+            { headers: this.getAuthHeader() }
+          )
+          console.log('[EditorService] Scene created successfully:', createResponse.status)
+        } catch (createError) {
+          console.error('[EditorService] Failed to create scene:', createError)
+          throw createError
+        }
       } else {
+        console.error('[EditorService] Unexpected error:', error)
         throw error
       }
     }

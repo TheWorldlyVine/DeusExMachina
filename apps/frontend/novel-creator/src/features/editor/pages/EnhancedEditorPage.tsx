@@ -70,7 +70,7 @@ export function EnhancedEditorPage() {
     documentId,
     content,
     delay: 2000, // Save 2 seconds after user stops typing
-    enabled: !editorLoading && !!documentId && !!currentScene,
+    enabled: !editorLoading && !!documentId && content.length > 0,
     onSaveError: (error) => {
       console.error('Auto-save failed:', error)
     }
@@ -413,7 +413,18 @@ export function EnhancedEditorPage() {
                     isDirty={isDirty}
                   />
                   <button
-                    onClick={saveNow}
+                    onClick={() => {
+                      console.log('[EnhancedEditorPage] Save Now clicked')
+                      console.log('[EnhancedEditorPage] Current state:', {
+                        documentId,
+                        contentLength: content.length,
+                        isDirty,
+                        isSaving,
+                        currentChapter: currentChapter?.chapterNumber,
+                        currentScene: currentScene?.sceneNumber
+                      })
+                      saveNow()
+                    }}
                     disabled={isSaving || !isDirty}
                     className="w-full px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
