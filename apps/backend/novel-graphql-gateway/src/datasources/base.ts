@@ -10,6 +10,7 @@ type RequestOptions = {
 export abstract class BaseAPI extends RESTDataSource {
   abstract baseURL: string;
   protected context: Context;
+  protected cache?: any;
 
   constructor(options: { cache?: any; context: Context }) {
     super();
