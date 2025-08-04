@@ -38,9 +38,14 @@ export const saveContent = createAsyncThunk(
   'editor/saveContent',
   async ({ documentId, content }: { documentId: string; content: string }) => {
     console.log('[EditorSlice] Saving content for document:', documentId, 'Content length:', content.length)
-    await editorService.saveContent(documentId, content)
-    console.log('[EditorSlice] Save completed')
-    return new Date()
+    try {
+      await editorService.saveContent(documentId, content)
+      console.log('[EditorSlice] Save completed')
+      return new Date()
+    } catch (error) {
+      console.error('[EditorSlice] Save failed with error:', error)
+      throw error
+    }
   }
 )
 

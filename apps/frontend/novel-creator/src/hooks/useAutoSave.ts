@@ -25,10 +25,12 @@ export function useAutoSave({
   const dispatch = useAppDispatch()
   const { isSaving, lastSaved, error } = useAppSelector(state => state.editor)
   const timeoutRef = useRef<NodeJS.Timeout>()
+  const retryTimeoutRef = useRef<NodeJS.Timeout>() // Separate timeout for retries
   const lastSavedContentRef = useRef<string>('')
   const saveToastRef = useRef<string | null>(null)
   const retryCountRef = useRef<number>(0)
   const maxRetries = 5
+  const isRetryingRef = useRef<boolean>(false) // Track if we're in retry mode
 
   // Debounced save function
   const debouncedSave = useCallback(async () => {
@@ -77,6 +79,7 @@ export function useAutoSave({
       onSaveSuccess?.()
       // Reset retry count on success
       retryCountRef.current = 0
+      isRetryingRef.current = false
     } catch (err) {
       console.error('[AutoSave] Save failed:', err)
       
@@ -95,7 +98,17 @@ export function useAutoSave({
         const baseDelay = 30000 // 30 seconds initial delay
         const backoffDelay = Math.min(baseDelay * Math.pow(2, retryCountRef.current - 1), 60000) // Max 1 minute
         console.log(`[AutoSave] Retrying in ${backoffDelay / 1000} seconds (attempt ${retryCountRef.current}/${maxRetries})`)
-        setTimeout(() => {
+        
+        isRetryingRef.current = true
+        
+        // Clear any existing retry timeout
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current)
+        }
+        
+        // Set retry timeout (separate from the main debounce timeout)
+        retryTimeoutRef.current = setTimeout(() => {
+          isRetryingRef.current = false
           debouncedSave()
         }, backoffDelay)
       } else {
@@ -103,6 +116,7 @@ export function useAutoSave({
         toast.error('Auto-save failed. Please save manually or refresh the page.', {
           duration: 10000
         })
+        isRetryingRef.current = false
       }
     } finally {
       saveToastRef.current = null
@@ -112,6 +126,12 @@ export function useAutoSave({
   // Effect to handle debounced saving
   useEffect(() => {
     if (!enabled || !documentId) return
+    
+    // Don't set a new timeout if we're in retry mode
+    if (isRetryingRef.current) {
+      console.log('[AutoSave] Skipping new save timeout - retry in progress')
+      return
+    }
 
     // Clear existing timeout
     if (timeoutRef.current) {
@@ -128,6 +148,7 @@ export function useAutoSave({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
+      // Don't clear retry timeout on cleanup
     }
   }, [content, delay, enabled, documentId, debouncedSave])
 

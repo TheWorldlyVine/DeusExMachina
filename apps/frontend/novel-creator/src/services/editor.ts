@@ -150,24 +150,39 @@ class EditorService {
     
     // If no structured content was found, save everything as Chapter 1, Scene 1
     if (!hasStructuredContent && sceneContent.trim()) {
-      console.log('No chapter structure found, saving as Chapter 1, Scene 1')
+      console.log('[EditorService] No chapter structure found, saving as Chapter 1, Scene 1')
+      console.log('[EditorService] Content to save:', sceneContent.substring(0, 100) + '...')
       await this.ensureChapterExists(documentId, 1, 'Chapter 1')
       await this.updateScene(documentId, 1, 1, sceneContent.trim())
     }
     // Save the last scene if we have structured content
     else if (currentChapter > 0 && currentScene > 0 && sceneContent.trim()) {
+      console.log(`[EditorService] Saving last scene - Chapter ${currentChapter}, Scene ${currentScene}`)
       await this.updateScene(documentId, currentChapter, currentScene, sceneContent.trim())
+    } else if (currentChapter > 0 && currentScene === 0) {
+      // We have a chapter but no scenes were detected, create scene 1
+      console.log(`[EditorService] Chapter ${currentChapter} has no scenes, creating Scene 1`)
+      await this.updateScene(documentId, currentChapter, 1, sceneContent.trim() || 'New scene')
     }
     
     // Update document metadata
-    const wordCount = content.split(/\s+/).filter(word => word.length > 0).length
-    await axios.put(`${API_URL}/document/${documentId}`, 
-      { 
-        currentWordCount: wordCount,
-        status: 'IN_PROGRESS'
-      }, 
-      { headers: this.getAuthHeader() }
-    )
+    try {
+      const wordCount = content.split(/\s+/).filter(word => word.length > 0).length
+      console.log(`[EditorService] Updating document metadata - wordCount: ${wordCount}`)
+      
+      const response = await axios.put(`${API_URL}/document/${documentId}`, 
+        { 
+          currentWordCount: wordCount,
+          status: 'IN_PROGRESS'
+        }, 
+        { headers: this.getAuthHeader() }
+      )
+      console.log('[EditorService] Document metadata updated successfully:', response.status)
+    } catch (metadataError) {
+      const axiosError = metadataError as AxiosError
+      console.error('[EditorService] Failed to update document metadata:', axiosError.response?.data || axiosError.message)
+      throw metadataError
+    }
   }
   
   private async ensureChapterExists(documentId: string, chapterNumber: number, title: string): Promise<void> {
@@ -252,7 +267,7 @@ class EditorService {
       )
       console.log('[EditorService] Default chapter created')
       
-      // Also create a default scene (using the proper endpoint)
+      // Also create a default scene (using the proper endpoint - no scene number in URL for creation)
       try {
         await axios.post(
           `${API_URL}/scene/${documentId}/1`,
@@ -266,8 +281,29 @@ class EditorService {
         )
         console.log('[EditorService] Default scene created')
       } catch (sceneError) {
-        console.error('[EditorService] Failed to create default scene:', sceneError)
-        // Continue even if scene creation fails
+        const axiosSceneError = sceneError as AxiosError
+        console.error('[EditorService] Failed to create default scene:', axiosSceneError.response?.data || axiosSceneError.message)
+        
+        // Try alternative endpoints if the standard one fails
+        if (axiosSceneError.response?.status === 404) {
+          try {
+            // Try without scene number in URL (like the updateScene method does)
+            await axios.post(
+              `${API_URL}/document/${documentId}/chapters/1/scenes`,
+              { 
+                title: 'Opening Scene',
+                content: 'Start writing your story here...',
+                type: 'NARRATIVE',
+                sceneNumber: 1
+              },
+              { headers: this.getAuthHeader() }
+            )
+            console.log('[EditorService] Default scene created via alternative endpoint')
+          } catch (altSceneError) {
+            console.error('[EditorService] Alternative scene creation also failed:', altSceneError)
+            // Continue even if scene creation fails completely
+          }
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError
