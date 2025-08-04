@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Novel Creator - Loading...</title>
+  <script>
+    // Single Page App routing workaround for static hosting
+    // This script runs when a deep route returns 404
+    
+    // Get the current path
+    const path = window.location.pathname;
+    
+    // Check if we're in a subdirectory app
+    if (path.startsWith('/novel-creator/')) {
+      // Store the intended path
+      sessionStorage.setItem('spa-redirect-path', path);
+      
+      // Redirect to the app root
+      window.location.replace('/novel-creator/');
+    } else {
+      // For other paths, go to home
+      window.location.replace('/');
+    }
+  </script>
+</head>
+<body>
+  <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+    <h2>Loading...</h2>
+    <p>If you are not redirected automatically, <a href="/novel-creator/">click here</a>.</p>
+  </div>
+</body>
+</html>

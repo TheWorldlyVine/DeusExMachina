@@ -151,3 +151,9 @@ variable "spa_apps" {
     error_message = "SPA base_path must start with / and contain only lowercase letters, numbers, and hyphens"
   }
 }
+
+variable "enable_edge_function" {
+  description = "Enable Cloud Function for advanced SPA routing"
+  type        = bool
+  default     = false
+}

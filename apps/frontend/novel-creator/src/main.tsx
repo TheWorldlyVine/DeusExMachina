@@ -21,6 +21,21 @@ const queryClient = new QueryClient({
   },
 })
 
+// Handle SPA routing redirect
+const handleSPARedirect = () => {
+  const redirectPath = sessionStorage.getItem('spa-redirect-path');
+  if (redirectPath && redirectPath.startsWith('/novel-creator/')) {
+    sessionStorage.removeItem('spa-redirect-path');
+    // Remove the base path to get the route
+    const route = redirectPath.replace('/novel-creator', '');
+    if (route && route !== '/') {
+      window.history.replaceState(null, '', redirectPath);
+    }
+  }
+};
+
+handleSPARedirect();
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>

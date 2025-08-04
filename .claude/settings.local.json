@@ -41,7 +41,10 @@
       "Bash(gcloud logging read:*)",
       "Bash(find:*)",
       "Bash(pnpm test:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(gsutil ls:*)",
+      "Bash(gcloud storage buckets describe:*)",
+      "Bash(# Create index.html in the common SPA routes\nfor route in documents editor settings; do\n  echo \"\"Creating route: novel-creator/$route/\"\"\n  gsutil cp gs://deus-ex-machina-prod-static/novel-creator/index.html gs://deus-ex-machina-prod-static/novel-creator/$route/index.html\ndone)"
     ],
     "deny": []
   }

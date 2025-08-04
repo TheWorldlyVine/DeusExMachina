@@ -66,6 +66,13 @@ resource "google_storage_bucket" "static_site" {
   )
 }
 
+# Service account for static hosting operations
+resource "google_service_account" "static_hosting_sa" {
+  account_id   = "${var.project_name}-${var.environment}-static"
+  display_name = "Static Hosting Service Account"
+  description  = "Service account for static hosting operations"
+}
+
 # Make bucket publicly readable
 resource "google_storage_bucket_iam_member" "public_read" {
   bucket = google_storage_bucket.static_site.name
