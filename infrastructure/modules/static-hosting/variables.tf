@@ -129,3 +129,25 @@ variable "log_bucket" {
   type        = string
   default     = null
 }
+
+variable "enable_spa_routing" {
+  description = "Enable Single Page Application routing (serves index.html for all unmatched routes)"
+  type        = bool
+  default     = false
+}
+
+variable "spa_apps" {
+  description = "Configuration for SPA applications and their routing"
+  type = map(object({
+    base_path = string
+    routes    = optional(list(string), [])
+  }))
+  default = {}
+  
+  validation {
+    condition = alltrue([
+      for app, config in var.spa_apps : can(regex("^/[a-z0-9-]+$", config.base_path))
+    ])
+    error_message = "SPA base_path must start with / and contain only lowercase letters, numbers, and hyphens"
+  }
+}

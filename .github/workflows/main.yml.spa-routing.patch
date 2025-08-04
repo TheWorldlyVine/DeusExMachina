@@ -1,0 +1,39 @@
+--- main.yml.original
++++ main.yml
+@@ -536,15 +536,31 @@
+       - name: Invalidate CDN Cache
+         if: github.ref == 'refs/heads/main'
+         run: |
+           PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+-          URL_MAP_NAME="${{ vars.STATIC_URL_MAP_NAME }}"
+           
+-          # If URL_MAP_NAME is not set, construct it from PROJECT_ID
+-          if [ -z "$URL_MAP_NAME" ]; then
+-            URL_MAP_NAME="deus-ex-machina-prod-static-url-map"
++          # Try to get URL map name from Terraform state
++          URL_MAP_NAME=""
++          if [ -d "infrastructure/environments/prod" ]; then
++            cd infrastructure/environments/prod
++            # Quick init without full backend config (state is read-only)
++            terraform init -backend=false &>/dev/null || true
++            URL_MAP_NAME=$(terraform output -raw static_hosting_url_map_name 2>/dev/null || echo "")
++            cd - > /dev/null
+           fi
+           
++          # Fallback to default if not found
++          if [ -z "$URL_MAP_NAME" ]; then
++            # Check if SPA routing is enabled (default for prod)
++            URL_MAP_NAME="deus-ex-machina-prod-spa-url-map"
++            
++            # Check if the SPA URL map exists
++            if ! gcloud compute url-maps describe ${URL_MAP_NAME} --project=${PROJECT_ID} &>/dev/null; then
++              # Fall back to standard URL map
++              URL_MAP_NAME="deus-ex-machina-prod-static-url-map"
++            fi
++          fi
++          
+           echo "Invalidating CDN cache for URL map: ${URL_MAP_NAME}"
+-          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --async || echo "CDN cache invalidation skipped (URL map may not exist)"
++          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} --path "/*" --project=${PROJECT_ID} --async || echo "CDN cache invalidation skipped (URL map may not exist)"
+       
+       # Vercel deployment removed - using GCS static hosting instead

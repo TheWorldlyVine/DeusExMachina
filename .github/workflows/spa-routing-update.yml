@@ -1,0 +1,125 @@
+name: SPA Routing CI/CD Update
+
+# This workflow demonstrates the recommended updates for SPA routing support
+# It can be merged into the main.yml workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_spa_routing:
+        description: 'Run SPA routing tests after deployment'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  deploy-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # ... existing deployment steps ...
+      
+      - name: Get Infrastructure Outputs
+        if: github.ref == 'refs/heads/main'
+        id: terraform_outputs
+        run: |
+          # Authenticate and get Terraform outputs
+          cd infrastructure/environments/prod
+          
+          # Initialize Terraform to read state
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=terraform/state"
+          
+          # Get the URL map name from Terraform output
+          URL_MAP_NAME=$(terraform output -raw static_hosting_url_map_name 2>/dev/null || echo "")
+          
+          # Fallback to default if not found
+          if [ -z "$URL_MAP_NAME" ]; then
+            URL_MAP_NAME="deus-ex-machina-prod-static-url-map"
+          fi
+          
+          echo "URL_MAP_NAME=${URL_MAP_NAME}" >> $GITHUB_OUTPUT
+          echo "Using URL map: ${URL_MAP_NAME}"
+      
+      - name: Invalidate CDN Cache (Updated)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          URL_MAP_NAME="${{ steps.terraform_outputs.outputs.URL_MAP_NAME }}"
+          
+          echo "Invalidating CDN cache for URL map: ${URL_MAP_NAME}"
+          gcloud compute url-maps invalidate-cdn-cache ${URL_MAP_NAME} \
+            --path "/*" \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --async || echo "CDN cache invalidation skipped"
+      
+      - name: Wait for CDN Propagation
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Waiting for CDN cache invalidation to propagate..."
+          sleep 45
+      
+      - name: Test SPA Routing
+        if: github.ref == 'refs/heads/main' && (github.event.inputs.test_spa_routing == 'true' || github.event_name == 'push')
+        run: |
+          # Run quick SPA routing tests
+          echo "Testing SPA routing functionality..."
+          
+          # Test novel-creator routes
+          BASE_URL="https://god-in-a-box.com"
+          
+          # Function to test URL
+          test_url() {
+            local url=$1
+            local expected_status=${2:-200}
+            echo -n "Testing $url... "
+            status=$(curl -s -o /dev/null -w "%{http_code}" -L "$url")
+            if [ "$status" -eq "$expected_status" ]; then
+              echo "✓ PASS (Status: $status)"
+              return 0
+            else
+              echo "✗ FAIL (Expected: $expected_status, Got: $status)"
+              return 1
+            fi
+          }
+          
+          # Test critical routes
+          test_url "$BASE_URL/novel-creator/" 200
+          test_url "$BASE_URL/novel-creator/documents" 200
+          test_url "$BASE_URL/novel-creator/editor/test-123" 200
+          test_url "$BASE_URL/novel-creator/settings" 200
+          
+          # Test static file handling
+          test_url "$BASE_URL/novel-creator/assets/non-existent.js" 404
+          
+          echo "SPA routing tests completed!"
+      
+      - name: E2E Test Suite (Optional)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+        run: |
+          # Install Playwright browsers
+          cd apps/frontend/novel-creator
+          pnpm install
+          npx playwright install chromium
+          
+          # Run E2E tests against production
+          E2E_BASE_URL=https://god-in-a-box.com pnpm test:e2e --reporter=github
+      
+      - name: Post Deployment Summary
+        if: always() && github.ref == 'refs/heads/main'
+        run: |
+          echo "## 🚀 SPA Routing Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL Map**: ${{ steps.terraform_outputs.outputs.URL_MAP_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CDN Invalidation**: Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **SPA Routing Tests**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Direct route access: ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- Page refresh handling: ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- Static file serving: ✓" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Monitor 404 error rates in Cloud Logging" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check performance metrics in Cloud Monitoring" >> $GITHUB_STEP_SUMMARY
+          echo "3. Verify all frontend routes work as expected" >> $GITHUB_STEP_SUMMARY

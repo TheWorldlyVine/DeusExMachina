@@ -148,6 +148,21 @@ module "static_hosting" {
   # Enable API routing to Cloud Functions
   enable_api_routing = true
 
+  # Enable SPA routing for frontend applications
+  enable_spa_routing = true
+  
+  # Configure SPA applications
+  spa_apps = {
+    "novel-creator" = {
+      base_path = "/novel-creator"
+      routes    = ["/documents", "/editor/*", "/settings", "/profile/*"]
+    }
+    "web-app" = {
+      base_path = "/web-app"
+      routes    = ["/dashboard", "/projects/*", "/settings"]
+    }
+  }
+
   # Basic security features for production
   enable_cloud_armor = true
 

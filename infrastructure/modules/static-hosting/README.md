@@ -91,6 +91,36 @@ module "static_hosting" {
 }
 ```
 
+### With SPA Routing (Single Page Applications)
+
+```hcl
+module "static_hosting" {
+  source = "../../modules/static-hosting"
+  
+  project_id   = "my-project-id"
+  project_name = "deus-ex-machina"
+  environment  = "prod"
+  
+  # Enable SPA routing for React/Vue/Angular apps
+  enable_spa_routing = true
+  
+  # Configure SPA applications
+  spa_apps = {
+    "novel-creator" = {
+      base_path = "/novel-creator"
+      routes    = ["/documents", "/editor/*", "/settings"]
+    }
+    "web-app" = {
+      base_path = "/web-app"
+      routes    = ["/dashboard", "/projects/*"]
+    }
+  }
+  
+  # Optional: domain configuration
+  domain_name = "god-in-a-box.com"
+}
+```
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -106,6 +136,8 @@ module "static_hosting" {
 | enable_advanced_cdn | Enable advanced CDN config | `bool` | `false` | no |
 | enable_cloud_armor | Enable Cloud Armor | `bool` | `false` | no |
 | blocked_countries | Countries to block | `list(string)` | `[]` | no |
+| enable_spa_routing | Enable SPA routing support | `bool` | `false` | no |
+| spa_apps | SPA app configurations | `map(object)` | `{}` | no |
 
 ## Outputs
 
@@ -115,6 +147,7 @@ module "static_hosting" {
 | static_ip_address | Static IP address of the load balancer |
 | load_balancer_url | HTTPS URL of the load balancer |
 | domain_url | URL with custom domain (if configured) |
+| url_map_name | Name of the URL map resource |
 | deployment_instructions | Instructions for deploying files |
 
 ## Deployment Instructions
@@ -147,6 +180,42 @@ gcloud compute url-maps invalidate-cdn-cache URL_MAP_NAME --path "/index.html"
 1. Add the static IP to your DNS as an A record
 2. Wait for DNS propagation (can take up to 24 hours)
 3. The SSL certificate will be automatically provisioned
+
+## SPA Routing Configuration
+
+When `enable_spa_routing` is set to `true`, the module configures the load balancer to properly handle Single Page Application routing:
+
+### How It Works
+
+1. **Static Files**: Files with extensions (`.js`, `.css`, `.png`, etc.) are served directly
+2. **API Routes**: `/api/*` paths bypass SPA routing and are forwarded as configured
+3. **SPA Routes**: All other paths within an app's base path serve the app's `index.html`
+4. **URL Preservation**: The original URL path is preserved for client-side routing
+
+### Example Routing Behavior
+
+For an app configured with `base_path = "/novel-creator"`:
+- `/novel-creator` → serves `/novel-creator/index.html`
+- `/novel-creator/documents` → serves `/novel-creator/index.html`
+- `/novel-creator/editor/123` → serves `/novel-creator/index.html`
+- `/novel-creator/assets/app.js` → serves the actual JS file
+- `/novel-creator/missing.js` → returns 404
+
+### Directory Structure
+
+```
+bucket/
+├── index.html                    # Landing page
+├── novel-creator/
+│   ├── index.html               # Novel Creator app
+│   └── assets/
+│       ├── app.js
+│       └── style.css
+└── web-app/
+    ├── index.html               # Web app
+    └── assets/
+        └── bundle.js
+```
 
 ## Security Considerations
 

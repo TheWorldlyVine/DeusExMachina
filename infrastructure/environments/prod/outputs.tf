@@ -36,6 +36,11 @@ output "static_hosting_url" {
   value       = module.static_hosting.load_balancer_url
 }
 
+output "static_hosting_url_map_name" {
+  description = "Name of the URL map for cache invalidation"
+  value       = module.static_hosting.url_map_name
+}
+
 output "deployment_instructions" {
   description = "Instructions for deploying the frontend"
   value       = module.static_hosting.deployment_instructions

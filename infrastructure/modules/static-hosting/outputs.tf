@@ -28,6 +28,11 @@ output "cdn_backend_id" {
   value       = google_compute_backend_bucket.static_backend.id
 }
 
+output "url_map_name" {
+  description = "Name of the URL map resource"
+  value       = var.enable_spa_routing ? google_compute_url_map.spa_url_map[0].name : google_compute_url_map.static_url_map.name
+}
+
 output "deployment_instructions" {
   description = "Instructions for deploying static files"
   value       = <<-EOT
@@ -40,8 +45,10 @@ output "deployment_instructions" {
        gsutil -m rsync -r -d dist/ gs://${google_storage_bucket.static_site.name}/
 
     3. Invalidate CDN cache (if needed):
-       gcloud compute url-maps invalidate-cdn-cache ${google_compute_url_map.static_url_map.name} --path "/*"
+       gcloud compute url-maps invalidate-cdn-cache ${var.enable_spa_routing ? google_compute_url_map.spa_url_map[0].name : google_compute_url_map.static_url_map.name} --path "/*"
 
     Access your site at: ${var.domain_name != null ? "https://${var.domain_name}" : "https://${google_compute_global_address.static_ip.address}"}
+    
+    ${var.enable_spa_routing ? "SPA Routing: Enabled - All unmatched routes will serve index.html" : "SPA Routing: Disabled - Standard static file serving"}
   EOT
 }

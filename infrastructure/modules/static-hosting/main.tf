@@ -197,14 +197,14 @@ resource "google_compute_url_map" "static_url_map" {
 # HTTPS Proxy
 resource "google_compute_target_https_proxy" "static_https_proxy" {
   name             = "${var.project_name}-${var.environment}-static-https-proxy"
-  url_map          = google_compute_url_map.static_url_map.id
+  url_map          = var.enable_spa_routing ? google_compute_url_map.spa_url_map[0].id : google_compute_url_map.static_url_map.id
   ssl_certificates = var.domain_name != null ? google_compute_managed_ssl_certificate.static_cert[*].id : google_compute_ssl_certificate.static_self_signed[*].id
 }
 
 # HTTP Proxy (redirects to HTTPS)
 resource "google_compute_target_http_proxy" "static_http_proxy" {
   name    = "${var.project_name}-${var.environment}-static-http-proxy"
-  url_map = google_compute_url_map.static_url_map.id
+  url_map = var.enable_spa_routing ? google_compute_url_map.spa_url_map[0].id : google_compute_url_map.static_url_map.id
 }
 
 # Global forwarding rule for HTTPS
