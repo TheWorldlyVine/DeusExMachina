@@ -28,7 +28,7 @@ class DocumentService {
   }
 
   async createDocument(input: CreateDocumentInput): Promise<Document> {
-    const response = await axios.post(`${API_URL}/documents`, input, {
+    const response = await axios.post(`${API_URL}/document`, input, {
       headers: {
         ...this.getAuthHeader(),
         'Content-Type': 'application/json'
@@ -38,14 +38,14 @@ class DocumentService {
   }
 
   async updateDocument(id: string, data: Partial<Document>): Promise<Document> {
-    const response = await axios.put(`${API_URL}/documents/${id}`, data, {
+    const response = await axios.put(`${API_URL}/document/${id}`, data, {
       headers: this.getAuthHeader()
     })
     return response.data
   }
 
   async deleteDocument(id: string): Promise<void> {
-    await axios.delete(`${API_URL}/documents/${id}`, {
+    await axios.delete(`${API_URL}/document/${id}`, {
       headers: this.getAuthHeader()
     })
   }
