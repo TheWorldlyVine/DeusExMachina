@@ -11,8 +11,12 @@ export abstract class BaseAPI extends RESTDataSource {
   abstract baseURL: string;
   protected context: Context;
 
-  constructor(options: { cache: any; context: Context }) {
-    super({ cache: options.cache });
+  constructor(options: { cache?: any; context: Context }) {
+    super();
+    // Cache is optional in Apollo Server 4
+    if (options.cache) {
+      this.cache = options.cache;
+    }
     this.context = options.context;
   }
 

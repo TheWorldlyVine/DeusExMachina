@@ -12,10 +12,12 @@ export interface DataSources {
 }
 
 export function dataSources(cache: any, context: Context): DataSources {
+  // Apollo Server 4 doesn't pass cache the same way as v3
+  // For now, don't use cache in datasources
   return {
-    authAPI: new AuthAPI({ cache, context }),
-    documentAPI: new DocumentAPI({ cache, context }),
-    memoryAPI: new MemoryAPI({ cache, context }),
-    generationAPI: new GenerationAPI({ cache, context }),
+    authAPI: new AuthAPI({ context }),
+    documentAPI: new DocumentAPI({ context }),
+    memoryAPI: new MemoryAPI({ context }),
+    generationAPI: new GenerationAPI({ context }),
   };
 }

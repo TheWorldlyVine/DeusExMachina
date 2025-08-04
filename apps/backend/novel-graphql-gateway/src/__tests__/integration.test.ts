@@ -62,7 +62,7 @@ describe('GraphQL Integration Tests', () => {
 
       expect(response.body.kind).toBe('single');
       if (response.body.kind === 'single') {
-        // Since we're not mocking the actual backend services, we expect errors
+        // Document service is not yet returning demo data
         expect(response.body.singleResult.errors).toBeDefined();
       }
     });
@@ -92,8 +92,11 @@ describe('GraphQL Integration Tests', () => {
 
       expect(response.body.kind).toBe('single');
       if (response.body.kind === 'single') {
-        // Since we're not mocking the actual backend services, we expect errors
-        expect(response.body.singleResult.errors).toBeDefined();
+        // We now return demo data for characters
+        expect(response.body.singleResult.errors).toBeUndefined();
+        expect(response.body.singleResult.data?.characters).toBeDefined();
+        expect(response.body.singleResult.data?.characters).toHaveLength(2);
+        expect(response.body.singleResult.data?.characters[0].name).toBe('Elena Vasquez');
       }
     });
 
@@ -122,8 +125,11 @@ describe('GraphQL Integration Tests', () => {
 
       expect(response.body.kind).toBe('single');
       if (response.body.kind === 'single') {
-        // Since we're not mocking the actual backend services, we expect errors
-        expect(response.body.singleResult.errors).toBeDefined();
+        // We now return demo data for plots
+        expect(response.body.singleResult.errors).toBeUndefined();
+        expect(response.body.singleResult.data?.plots).toBeDefined();
+        expect(response.body.singleResult.data?.plots).toHaveLength(2);
+        expect(response.body.singleResult.data?.plots[0].threadName).toBe('Main Plot');
       }
     });
   });
