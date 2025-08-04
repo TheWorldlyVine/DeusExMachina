@@ -619,7 +619,23 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infrastructure/environments/${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
-          terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -out=tfplan
+          # Use -detailed-exitcode to properly handle plan with changes
+          set +e
+          terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -out=tfplan -detailed-exitcode
+          PLAN_EXIT_CODE=$?
+          set -e
+          
+          # Exit codes: 0=no changes, 1=error, 2=changes present
+          if [ $PLAN_EXIT_CODE -eq 1 ]; then
+            echo "::error::Terraform plan failed"
+            exit 1
+          elif [ $PLAN_EXIT_CODE -eq 2 ]; then
+            echo "::notice::Terraform plan succeeded with changes"
+            exit 0
+          else
+            echo "::notice::No changes needed"
+            exit 0
+          fi
       
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
