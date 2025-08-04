@@ -443,7 +443,7 @@ export function EnhancedEditorPage() {
               sceneNumber: sc.sceneNumber,
               title: sc.title,
               content: sc.content,
-              type: sc.type === 'NARRATIVE' ? 'DESCRIPTION' : (sc.type as any),
+              type: sc.type === 'NARRATIVE' ? 'DESCRIPTION' : sc.type as 'ACTION' | 'DIALOGUE' | 'DESCRIPTION' | 'FLASHBACK' | 'TRANSITION' | 'CLIMAX',
               wordCount: sc.wordCount,
               characters: sc.characterIds,
               location: sc.locationId,
