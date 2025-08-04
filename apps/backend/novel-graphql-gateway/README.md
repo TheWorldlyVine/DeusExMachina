@@ -37,11 +37,25 @@ npm install
 2. Copy environment variables:
 ```bash
 cp .env.example .env
+# For local development with local services:
+cp .env.local.example .env.local
 ```
 
-3. Configure service URLs in `.env`
+3. Configure service URLs in `.env` or `.env.local`:
+   - For local development: Use localhost URLs (e.g., http://localhost:8080)
+   - For cloud development: Use Cloud Function URLs
 
-4. Run in development mode:
+4. Start backend services (if running locally):
+```bash
+# In separate terminals:
+# Document Service
+cd ../novel-document-service && ./gradlew bootRun
+
+# Auth Service (if needed)
+cd ../auth-service && npm run dev
+```
+
+5. Run GraphQL gateway in development mode:
 ```bash
 npm run dev
 ```
