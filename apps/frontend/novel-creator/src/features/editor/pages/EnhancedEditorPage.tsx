@@ -253,6 +253,26 @@ export function EnhancedEditorPage() {
               characters={characters}
               plots={plots.map(p => ({ plotId: p.plotId, title: p.title, status: p.currentState?.status || 'active' }))}
               locations={locations}
+              footer={
+                <div className="p-4 border-t border-border space-y-2">
+                  <SaveIndicator 
+                    isSaving={isSaving}
+                    lastSaved={lastSaved}
+                    error={editorError}
+                    isDirty={isDirty}
+                  />
+                  <button
+                    onClick={saveNow}
+                    disabled={isSaving || !isDirty}
+                    className="w-full px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    Save Now
+                  </button>
+                  <div className="text-xs text-muted-foreground text-center">
+                    Auto-save enabled • Saves 2s after you stop typing
+                  </div>
+                </div>
+              }
             />
           </div>
         )}

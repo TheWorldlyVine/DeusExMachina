@@ -23,6 +23,7 @@ interface AIAssistantPanelProps {
   characters: Array<{ characterId: string; name: string; role: string }>
   plots: Array<{ plotId: string; title: string; status: string }>
   locations: Array<{ locationId: string; name: string; type: string }>
+  footer?: React.ReactNode
 }
 
 export function AIAssistantPanel({
@@ -35,6 +36,7 @@ export function AIAssistantPanel({
   characters = [],
   plots = [],
   locations = [],
+  footer,
 }: AIAssistantPanelProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('quick-actions')
   const [generationOptions, setGenerationOptions] = useState({
@@ -285,6 +287,8 @@ export function AIAssistantPanel({
           <span>AI Settings</span>
         </button>
       </div>
+      
+      {footer && footer}
     </div>
   )
 }
