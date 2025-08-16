@@ -227,14 +227,13 @@ class EditorService {
         await this.ensureChapterExists(documentId, chapterNumber, `Chapter ${chapterNumber}`)
         
         try {
-          // The Java backend expects the scene endpoint without the scene number for creation
+          // The Java backend expects all three parameters in URL: documentId/chapterNumber/sceneNumber
           const createResponse = await axios.post(
-            `${API_URL}/scene/${documentId}/${chapterNumber}`,
+            `${API_URL}/scene/${documentId}/${chapterNumber}/${sceneNumber}`,
             { 
               content,
               title: `Scene ${sceneNumber}`,
-              type: 'NARRATIVE',
-              sceneNumber: sceneNumber
+              type: 'NARRATIVE'
             },
             { headers: this.getAuthHeader() }
           )
@@ -267,15 +266,14 @@ class EditorService {
       await axios.post(endpoint, payload, { headers: this.getAuthHeader() })
       console.log('[EditorService] Default chapter created')
       
-      // Also create a default scene (scene number goes in body, not URL)
+      // Also create a default scene (all three parameters in URL: documentId/chapterNumber/sceneNumber)
       try {
         await axios.post(
-          `${API_URL}/scene/${documentId}/1`,
+          `${API_URL}/scene/${documentId}/1/1`, // documentId/chapterNumber/sceneNumber
           { 
             title: 'Opening Scene',
             content: 'Start writing your story here...',
-            type: 'NARRATIVE',
-            sceneNumber: 1
+            type: 'NARRATIVE'
           },
           { headers: this.getAuthHeader() }
         )
@@ -283,7 +281,7 @@ class EditorService {
       } catch (sceneError) {
         const axiosSceneError = sceneError as AxiosError
         console.error('[EditorService] Failed to create default scene:', axiosSceneError.response?.data || axiosSceneError.message)
-        console.error('[EditorService] Scene creation endpoint:', `${API_URL}/scene/${documentId}/1`)
+        console.error('[EditorService] Scene creation endpoint:', `${API_URL}/scene/${documentId}/1/1`)
         // Continue even if scene creation fails - the document will still have a chapter
       }
     } catch (error) {
